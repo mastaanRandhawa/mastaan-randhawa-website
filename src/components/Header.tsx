@@ -19,10 +19,13 @@ export default function Header({ theme, onToggleTheme }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+      if (menuOpen) setMenuOpen(false);
+    };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [menuOpen]);
 
   return (
     <header
@@ -32,7 +35,7 @@ export default function Header({ theme, onToggleTheme }: HeaderProps) {
           : "bg-transparent"
       }`}
     >
-      <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <nav className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
         <a
           href="#"
           className="font-mono font-bold text-lg tracking-tight text-zinc-900 dark:text-white hover:text-accent-blue transition-colors"

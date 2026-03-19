@@ -40,22 +40,22 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" className="py-24 bg-white dark:bg-zinc-950">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="contact" className="py-16 sm:py-24 bg-white dark:bg-zinc-950">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-16">
+        <div className="mb-10 sm:mb-16">
           <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">
             Contact
           </span>
-          <h2 className="font-serif italic text-4xl sm:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
+          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
             Get In Touch
           </h2>
-          <p className="text-zinc-500 dark:text-zinc-400 max-w-xl">
+          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
             Have a project in mind or want to collaborate? I'd love to hear from you!
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: Contact info */}
           <div>
             <h3 className="font-mono font-semibold text-zinc-900 dark:text-white mb-2">
@@ -66,26 +66,26 @@ export default function Contact() {
               question, want to collaborate, or just want to say hi — feel free to reach out!
             </p>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {contactMethods.map(({ icon: Icon, label, value, href, color }) => (
                 <a
                   key={label}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all duration-200 group"
+                  className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all duration-200 group"
                 >
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: color + "18" }}
                   >
-                    <Icon size={18} style={{ color }} />
+                    <Icon size={17} style={{ color }} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="font-mono text-sm font-semibold text-zinc-900 dark:text-white group-hover:text-accent-blue transition-colors">
                       {label}
                     </div>
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">{value}</div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{value}</div>
                   </div>
                 </a>
               ))}

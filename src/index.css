@@ -7,16 +7,24 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* honour notched devices */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   body {
     @apply font-sans;
+    overflow-x: hidden;
   }
 
   *,
   *::before,
   *::after {
     box-sizing: border-box;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
   }
 }
 

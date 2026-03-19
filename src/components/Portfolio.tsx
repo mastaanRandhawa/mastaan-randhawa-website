@@ -156,24 +156,24 @@ export default function Portfolio() {
   const visible = showAll ? projects : projects.slice(0, INITIAL_VISIBLE);
 
   return (
-    <section id="portfolio" className="py-24 bg-zinc-50 dark:bg-zinc-900/50">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="portfolio" className="py-16 sm:py-24 bg-zinc-50 dark:bg-zinc-900/50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-8 sm:mb-12">
           <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">
             My Work
           </span>
-          <h2 className="font-serif italic text-4xl sm:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
+          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
             Portfolio
           </h2>
-          <p className="text-zinc-500 dark:text-zinc-400 max-w-xl">
+          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
             A collection of projects showcasing my skills in web development, system programming,
             and software engineering.
           </p>
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {visible.map((project) => (
             <ProjectCard key={project.title} project={project} />
           ))}
