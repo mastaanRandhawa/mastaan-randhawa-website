@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-sans;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+@layer utilities {
+  .text-accent-blue {
+    color: #0015ff;
+  }
+
+  .bg-accent-blue {
+    background-color: #0015ff;
+  }
+
+  .border-accent-blue {
+    border-color: #0015ff;
+  }
+
+  .hover\:text-accent-blue:hover {
+    color: #0015ff;
+  }
+
+  .hover\:bg-accent-blue:hover {
+    background-color: #0015ff;
+  }
+
+  .hover\:border-accent-blue:hover {
+    border-color: #0015ff;
+  }
+
+  .dark\:hover\:text-accent-blue:is(.dark *):hover {
+    color: #0015ff;
+  }
+
+  .dark\:hover\:bg-accent-blue:is(.dark *):hover {
+    background-color: #0015ff;
+  }
+
+  .dark\:hover\:border-accent-blue:is(.dark *):hover {
+    border-color: #0015ff;
+  }
+
+  /* Typewriter cursor blink */
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .animate-blink {
+    animation: blink 1s step-end infinite;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0015ff;
+}
+
+/* Line clamp */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
