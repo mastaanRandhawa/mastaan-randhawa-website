@@ -1,0 +1,7 @@
+{
+  "name": "mastaan-portfolio",
+  "compatibility_date": "2026-03-19",
+  "assets": {
+    "directory": "./dist"
+  }
+}
