@@ -33,8 +33,8 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Project sites are at username.github.io/REPO_NAME/ — assets must use this base
-          BASE_PATH: "/${{ github.event.repository.name }}/"
+          # Custom domain (mastaanrandhawa.com) is served at root — use base "/"
+          BASE_PATH: ""
 
       - name: Add CNAME for custom domain
         working-directory: dist
