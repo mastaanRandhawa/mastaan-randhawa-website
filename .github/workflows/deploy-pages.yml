@@ -1,4 +1,4 @@
-# Deploy Vite app from folder app-root to GitHub Pages (custom domain: mastaanrandhawa.com)
+# Deploy Vite app to GitHub Pages (custom domain: mastaanrandhawa.com)
 name: Deploy to GitHub Pages
 
 on:
@@ -28,24 +28,22 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        working-directory: app-root
         run: npm ci
 
       - name: Build
-        working-directory: app-root
         run: npm run build
         env:
           BASE_PATH: ""
 
       - name: Add CNAME for custom domain
-        working-directory: app-root/dist
+        working-directory: dist
         run: |
           if [ -f ../CNAME ]; then cp ../CNAME .; fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: app-root/dist
+          path: dist
 
   deploy:
     needs: build
