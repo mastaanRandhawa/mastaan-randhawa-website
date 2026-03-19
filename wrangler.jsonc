@@ -1,13 +1,7 @@
 {
-  "name": "mastaan-portfolio",
+  "name": "mastaan-randhawa-website",
   "compatibility_date": "2026-03-19",
   "assets": {
     "directory": "./dist"
-  },
-  "routes": [
-    {
-      "pattern": "mastaanrandhawa.com",
-      "custom_domain": true
-    }
-  ]
+  }
 }
