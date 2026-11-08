@@ -10,6 +10,9 @@ const typewriterLines = [
   "I am familiar with managing data using MongoDB, MySQL, and SQLite.",
   "I have hands-on experience deploying projects with Render and AWS.",
   "I have worked with Azure, Event Grid, and Event Hubs.",
+  "I build data pipelines and ETL workflows with SQL and Python.",
+  "I am a Databricks Certified Data Engineer Associate.",
+  "I have spent 1.5 years interning at ThoughtsWin Systems.",
 ];
 
 function useTypewriter(lines: string[]) {
@@ -80,7 +83,9 @@ export default function Hero() {
 
           {/* Description */}
           <p className="text-sm sm:text-base lg:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed mb-8 sm:mb-10 max-w-xl">
-            A passionate Software Developer and Computer Science student at{" "}
+            Software Developer and Data Engineer Intern at{" "}
+            <span className="text-zinc-900 dark:text-white font-medium">ThoughtsWin Systems</span>, and
+            Computer Science student at{" "}
             <span className="text-zinc-900 dark:text-white font-medium">Simon Fraser University</span>,
             turning ideas into digital reality.
           </p>

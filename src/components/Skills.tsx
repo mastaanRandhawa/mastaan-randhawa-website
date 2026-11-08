@@ -33,6 +33,27 @@ const skills: Skill[] = [
   { name: "Git/GitHub",  color: "#ff5941", textColor: "#fff",     x: "54%", y: "36%", shape: "sharp",    angle: -4  },
   { name: "AWS",         color: "#f97316", textColor: "#fff",     x: "69%", y: "38%", shape: "blob",     angle: 9   },
   { name: "Figma",       color: "#E794DA", textColor: "#1a1a1a",  x: "82%", y: "34%", shape: "pill"                },
+  { name: "SQL",         color: "#00758f", textColor: "#fff",     x: "14%", y: "52%", shape: "sharp",    angle: 5   },
+  { name: "Databricks",  color: "#ff3621", textColor: "#fff",     x: "34%", y: "50%", shape: "tag",      angle: -6  },
+  { name: "Azure",       color: "#0078d4", textColor: "#fff",     x: "56%", y: "53%", shape: "squircle", angle: 7   },
+  { name: "TypeScript",  color: "#3178c6", textColor: "#fff",     x: "74%", y: "52%", shape: "pill",     angle: -4  },
+  { name: "Tailwind CSS",color: "#06b6d4", textColor: "#083344",  x: "89%", y: "50%", shape: "blob",     angle: 6   },
+
+  // Data & Cloud
+  { name: "Apache Spark",     color: "#e25a1c", textColor: "#fff",     x: "9%",  y: "66%", shape: "squircle", angle: -5 },
+  { name: "Delta Lake",       color: "#00add4", textColor: "#06232b",  x: "24%", y: "68%", shape: "pill",     angle: 4  },
+  { name: "ETL",              color: "#a855f7", textColor: "#fff",     x: "37%", y: "65%", shape: "circle"             },
+  { name: "Data Pipelines",   color: "#ff5941", textColor: "#fff",     x: "51%", y: "67%", shape: "tag",      angle: -7 },
+  { name: "Microsoft Sentinel", color: "#243a5e", textColor: "#fff",   x: "68%", y: "66%", shape: "sharp",    angle: 5  },
+  { name: "KQL",              color: "#5b21b6", textColor: "#fff",     x: "83%", y: "68%", shape: "blob",     angle: -6 },
+
+  // More tools
+  { name: "REST APIs",   color: "#1f464d", textColor: "#fff",     x: "10%", y: "80%", shape: "pill",     angle: 6   },
+  { name: "SQLite",      color: "#0f80cc", textColor: "#fff",     x: "25%", y: "82%", shape: "sharp",    angle: -4  },
+  { name: "Render",      color: "#46e3b7", textColor: "#1a1a1a",  x: "39%", y: "80%", shape: "squircle", angle: 5   },
+  { name: "Event Hubs",  color: "#005ba1", textColor: "#fff",     x: "54%", y: "82%", shape: "tag",      angle: -5  },
+  { name: "Claude",      color: "#d97757", textColor: "#fff",     x: "69%", y: "80%", shape: "pill",     angle: 4   },
+  { name: "Linux",       color: "#fcc624", textColor: "#1a1a1a",  x: "84%", y: "82%", shape: "squircle", angle: -7  },
 ];
 
 const shapeClass: Record<Skill["shape"], string> = {
@@ -48,6 +69,7 @@ const categories = [
   { label: "Frontend",          color: "#0015ff" },
   { label: "Backend & Systems", color: "#1f464d" },
   { label: "Database & Tools",  color: "#ff5941" },
+  { label: "Data & Cloud",      color: "#00add4" },
 ];
 
 export default function Skills() {
@@ -78,7 +100,7 @@ export default function Skills() {
         </div>
 
         {/* Physics container — taller on larger screens, touch-friendly sizing on mobile */}
-        <div className="relative w-full h-[340px] sm:h-[440px] lg:h-[520px] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-900">
+        <div className="relative w-full h-[460px] sm:h-[500px] lg:h-[560px] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-900">
           <Gravity gravity={{ x: 0, y: 0.35 }} className="w-full h-full">
             {skills.map((skill) => (
               <MatterBody

@@ -9,6 +9,8 @@ type HeaderProps = {
 const navLinks = [
   { label: "Portfolio", href: "#portfolio" },
   { label: "Skills", href: "#skills" },
+  { label: "Experience", href: "#experience" },
+  { label: "Certifications", href: "#certifications" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
   { label: "Resume", href: "#resume" },
@@ -44,7 +46,7 @@ export default function Header({ theme, onToggleTheme }: HeaderProps) {
         </a>
 
         {/* Desktop nav */}
-        <ul className="hidden md:flex items-center gap-8">
+        <ul className="hidden md:flex items-center gap-4 lg:gap-7">
           {navLinks.map((link) => (
             <li key={link.href}>
               <a

@@ -1,4 +1,4 @@
-import { Terminal, Globe, Palette, Zap } from "lucide-react";
+import { Terminal, Globe, Palette, Zap, Database, Cloud } from "lucide-react";
 
 const whatIDo = [
   {
@@ -12,6 +12,18 @@ const whatIDo = [
     title: "Web Development",
     desc: "Full-stack web applications using modern frameworks, responsive design, and scalable architectures.",
     color: "#0015ff",
+  },
+  {
+    icon: Database,
+    title: "Data Engineering",
+    desc: "Building ETL pipelines, validating large datasets, and delivering dashboards with SQL, Python, and Databricks.",
+    color: "#ff5941",
+  },
+  {
+    icon: Cloud,
+    title: "Cloud & Security",
+    desc: "Working with Azure services and event-driven architecture, backed by a Microsoft security operations certification.",
+    color: "#2b5797",
   },
   {
     icon: Palette,
@@ -54,6 +66,16 @@ export default function About() {
               . I'm passionate about using technology to create meaningful change.
             </p>
             <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 sm:mb-6">
+              For the past year and a half at{" "}
+              <span className="text-zinc-900 dark:text-white font-semibold">
+                ThoughtsWin Systems
+              </span>{" "}
+              I've worked as an App Development Intern and now as a Data Engineer Intern, building
+              applications and data pipelines. I'm a Databricks Certified Data Engineer Associate
+              and a Microsoft Certified Security Operations Analyst, and I've built client websites
+              through Doxa Studios.
+            </p>
+            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 sm:mb-6">
               I hope to keep expanding my skills, meet people from different walks of life, and one
               day explore how tech and sales can come together to help others.
             </p>
@@ -63,10 +85,11 @@ export default function About() {
             </p>
 
             {/* Quick stats */}
-            <div className="mt-8 sm:mt-10 grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {[
-                { value: "9+", label: "Projects" },
-                { value: "15+", label: "Technologies" },
+                { value: "1.5+", label: "Years Exp." },
+                { value: "12+", label: "Projects" },
+                { value: "7", label: "Credentials" },
                 { value: "SFU", label: "University" },
               ].map((stat) => (
                 <div

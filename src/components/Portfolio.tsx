@@ -8,18 +8,49 @@ type Project = {
   tags: string[];
   link?: string;
   color: string;
+  badge?: string;
 };
 
 const projects: Project[] = [
   {
-    title: "AK Wraps Website",
+    title: "BC Tigers Tournament Hub",
     description:
-      "Built AK Wraps website with THREE.js 3D elements, HTML5, CSS3, Bootstrap 5, and JavaScript ES6+. Features lazy loading, performance optimization, and smooth animations.",
-    image:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&auto=format&fit=crop",
+      "Live tournament platform for BC Tigers FC: real-time scores, fixtures, standings, and knockout brackets across multiple competitions, with user accounts.",
+    image: "imgs/bctigers-site.jpg",
+    tags: ["React", "Vite", "TypeScript", "Node.js", "REST API"],
+    link: "https://tournament.bctigers.com/",
+    color: "#f97316",
+    badge: "Doxa Studios",
+  },
+  {
+    title: "Bao Bei Chinese Brasserie",
+    description:
+      "Menu-forward site for a modern Chinese brasserie in Vancouver's Chinatown, with photography-led design, press highlights, and reservation calls-to-action.",
+    image: "imgs/baobei-site.jpg",
+    tags: ["React", "Vite", "TypeScript", "Tailwind CSS"],
+    link: "https://mastaanrandhawa.github.io/bao-be/",
+    color: "#c8312b",
+    badge: "Doxa Studios",
+  },
+  {
+    title: "Lumière Salon",
+    description:
+      "Editorial brand site for a luxury hair studio with service menus, transparent pricing, and a booking-focused flow.",
+    image: "imgs/lumiere-site.jpg",
+    tags: ["React", "Vite", "TypeScript", "Tailwind CSS"],
+    link: "https://mastaanrandhawa.github.io/Hair-Stylist/",
+    color: "#ffd726",
+    badge: "Doxa Studios",
+  },
+  {
+    title: "AK Wraps & Customs",
+    description:
+      "Cinematic brand site for an auto wrap studio, with Three.js 3D visuals, smooth animations, lazy loading, and a lead-capturing quote form.",
+    image: "imgs/akwrapsimage.png",
     tags: ["Three.js", "JavaScript", "Bootstrap", "Docker"],
     link: "https://akwraps.ca/landingPage",
     color: "#0015ff",
+    badge: "Doxa Studios",
   },
   {
     title: "RISC-V Processor",
@@ -98,7 +129,7 @@ const projects: Project[] = [
   },
 ];
 
-const INITIAL_VISIBLE = 3;
+const INITIAL_VISIBLE = 6;
 
 function ProjectCard({ project }: { project: Project }) {
   return (
@@ -116,6 +147,11 @@ function ProjectCard({ project }: { project: Project }) {
           className="absolute bottom-0 left-0 right-0 h-1"
           style={{ backgroundColor: project.color }}
         />
+        {project.badge && (
+          <span className="absolute top-3 left-3 font-mono text-[11px] bg-white/90 dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-300 rounded-full px-2.5 py-1">
+            {project.badge}
+          </span>
+        )}
         {project.link && (
           <a
             href={project.link}
@@ -168,7 +204,7 @@ export default function Portfolio() {
           </h2>
           <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
             A collection of projects showcasing my skills in web development, system programming,
-            and software engineering.
+            and software engineering, including client sites built at Doxa Studios.
           </p>
         </div>
 

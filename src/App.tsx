@@ -3,6 +3,8 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Portfolio from "@/components/Portfolio";
 import Skills from "@/components/Skills";
+import Experience from "@/components/Experience";
+import Certifications from "@/components/Certifications";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Resume from "@/components/Resume";
@@ -35,6 +37,8 @@ export default function App() {
         <Hero />
         <Portfolio />
         <Skills />
+        <Experience />
+        <Certifications />
         <About />
         <Contact />
         <Resume />
