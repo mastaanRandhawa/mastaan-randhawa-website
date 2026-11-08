@@ -1,43 +1,9 @@
 import { Terminal, Globe, Palette, Zap, Database, Cloud } from "lucide-react";
 
-const whatIDo = [
-  {
-    icon: Terminal,
-    title: "System Programming",
-    desc: "Low-level C/C++ development, memory management, OS concepts, and performance-critical applications.",
-    color: "#1f464d",
-  },
-  {
-    icon: Globe,
-    title: "Web Development",
-    desc: "Full-stack web applications using modern frameworks, responsive design, and scalable architectures.",
-    color: "#0015ff",
-  },
-  {
-    icon: Database,
-    title: "Data Engineering",
-    desc: "Building ETL pipelines, validating large datasets, and delivering dashboards with SQL, Python, and Databricks.",
-    color: "#ff5941",
-  },
-  {
-    icon: Cloud,
-    title: "Cloud & Security",
-    desc: "Working with Azure services and event-driven architecture, backed by a Microsoft security operations certification.",
-    color: "#2b5797",
-  },
-  {
-    icon: Palette,
-    title: "UI/UX Design",
-    desc: "Crafting intuitive user interfaces with Figma, translating designs into polished digital experiences.",
-    color: "#E794DA",
-  },
-  {
-    icon: Zap,
-    title: "Performance Optimization",
-    desc: "Profiling, benchmarking, and tuning applications for speed, efficiency, and resource utilization.",
-    color: "#ff5941",
-  },
-];
+import { portfolio } from "@/content/portfolio";
+
+const ICONS = { terminal: Terminal, globe: Globe, database: Database, cloud: Cloud, palette: Palette, zap: Zap };
+const whatIDo = portfolio.profile.focusAreas.map((f) => ({ icon: ICONS[f.icon], title: f.title, desc: f.description, color: f.color }));
 
 export default function About() {
   return (
@@ -86,12 +52,7 @@ export default function About() {
 
             {/* Quick stats */}
             <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {[
-                { value: "1.5+", label: "Years Exp." },
-                { value: "12+", label: "Projects" },
-                { value: "7", label: "Credentials" },
-                { value: "SFU", label: "University" },
-              ].map((stat) => (
+              {portfolio.profile.stats.map((stat) => (
                 <div
                   key={stat.label}
                   className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 sm:p-4 text-center"

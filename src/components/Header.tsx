@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Menu, X, Moon, Sun } from "lucide-react";
+import { Menu, X, Moon, Sun, Plane } from "lucide-react";
 
 type HeaderProps = {
   theme: "light" | "dark";
   onToggleTheme: () => void;
+  onFly?: () => void;
 };
 
 const navLinks = [
@@ -11,12 +12,13 @@ const navLinks = [
   { label: "Skills", href: "#skills" },
   { label: "Experience", href: "#experience" },
   { label: "Certifications", href: "#certifications" },
+  { label: "Education", href: "#education" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
   { label: "Resume", href: "#resume" },
 ];
 
-export default function Header({ theme, onToggleTheme }: HeaderProps) {
+export default function Header({ theme, onToggleTheme, onFly }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -61,6 +63,15 @@ export default function Header({ theme, onToggleTheme }: HeaderProps) {
         </ul>
 
         <div className="flex items-center gap-3">
+          {onFly && (
+            <button
+              onClick={onFly}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#f2735a] px-3.5 py-1.5 font-mono text-xs font-semibold text-white shadow-sm transition hover:bg-[#e8624a]"
+            >
+              <Plane size={14} /> <span className="hidden xs:inline">Fly the 3D version</span>
+              <span className="xs:hidden">Fly</span>
+            </button>
+          )}
           <button
             onClick={onToggleTheme}
             aria-label="Toggle theme"

@@ -105,3 +105,24 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ── Game mode ─────────────────────────────────────────────── */
+html.game-mode {
+  padding: 0;
+  overflow: hidden;
+  scroll-behavior: auto;
+  overscroll-behavior: none;
+}
+html.game-mode body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  background: #f4cfa8;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { portfolio as content } from "@/content/portfolio";
 
 type Project = {
   title: string;
@@ -11,123 +12,9 @@ type Project = {
   badge?: string;
 };
 
-const projects: Project[] = [
-  {
-    title: "BC Tigers Tournament Hub",
-    description:
-      "Live tournament platform for BC Tigers FC: real-time scores, fixtures, standings, and knockout brackets across multiple competitions, with user accounts.",
-    image: "imgs/bctigers-site.jpg",
-    tags: ["React", "Vite", "TypeScript", "Node.js", "REST API"],
-    link: "https://tournament.bctigers.com/",
-    color: "#f97316",
-    badge: "Doxa Studios",
-  },
-  {
-    title: "Bao Bei Chinese Brasserie",
-    description:
-      "Menu-forward site for a modern Chinese brasserie in Vancouver's Chinatown, with photography-led design, press highlights, and reservation calls-to-action.",
-    image: "imgs/baobei-site.jpg",
-    tags: ["React", "Vite", "TypeScript", "Tailwind CSS"],
-    link: "https://mastaanrandhawa.github.io/bao-be/",
-    color: "#c8312b",
-    badge: "Doxa Studios",
-  },
-  {
-    title: "Lumière Salon",
-    description:
-      "Editorial brand site for a luxury hair studio with service menus, transparent pricing, and a booking-focused flow.",
-    image: "imgs/lumiere-site.jpg",
-    tags: ["React", "Vite", "TypeScript", "Tailwind CSS"],
-    link: "https://mastaanrandhawa.github.io/Hair-Stylist/",
-    color: "#ffd726",
-    badge: "Doxa Studios",
-  },
-  {
-    title: "AK Wraps & Customs",
-    description:
-      "Cinematic brand site for an auto wrap studio, with Three.js 3D visuals, smooth animations, lazy loading, and a lead-capturing quote form.",
-    image: "imgs/akwrapsimage.png",
-    tags: ["Three.js", "JavaScript", "Bootstrap", "Docker"],
-    link: "https://akwraps.ca/landingPage",
-    color: "#0015ff",
-    badge: "Doxa Studios",
-  },
-  {
-    title: "RISC-V Processor",
-    description:
-      "RISC-V processor implementation in C/C++/Assembly with custom slt-type instructions, register management, and instruction decoding. Includes pipelining optimization and memory management.",
-    image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80&auto=format&fit=crop",
-    tags: ["C", "C++", "Assembly"],
-    color: "#1f464d",
-  },
-  {
-    title: "LS Command Implementation",
-    description:
-      "Custom `ls` command implementation in C, mimicking Unix's ls utility with inode display and long-format listing options.",
-    image:
-      "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=600&q=80&auto=format&fit=crop",
-    tags: ["C"],
-    color: "#1f464d",
-  },
-  {
-    title: "Multi-Level Cache System",
-    description:
-      "Multi-level cache system in C/C++ with LRU and LFU eviction policies. Implemented efficient memory management and cache optimization techniques.",
-    image:
-      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&q=80&auto=format&fit=crop",
-    tags: ["C", "C++"],
-    color: "#1f464d",
-  },
-  {
-    title: "Concurrent Data Communication",
-    description:
-      "Concurrent data communication framework in C using mutex locks for thread-safe operations. Implements secure multi-threading and synchronization mechanisms.",
-    image:
-      "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&q=80&auto=format&fit=crop",
-    tags: ["C"],
-    color: "#ff5941",
-  },
-  {
-    title: "IPC Implementation",
-    description:
-      "IPC architecture in C with global variable management. Supports POSIX IPC mechanisms and inter-process communication protocols.",
-    image:
-      "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&q=80&auto=format&fit=crop",
-    tags: ["C"],
-    color: "#ff5941",
-  },
-  {
-    title: "Ferrari Website",
-    description:
-      "Ferrari-themed website showcasing front-end development skills with HTML, CSS, JavaScript, and Bootstrap. Features elegant design and dynamic user interactions.",
-    image:
-      "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=80&auto=format&fit=crop",
-    tags: ["HTML", "CSS", "JavaScript", "Bootstrap"],
-    link: "https://mastaanrandhawa.github.io/Ferrari-Website/",
-    color: "#E794DA",
-  },
-  {
-    title: "Roar Cycle Website",
-    description:
-      "Mobile bike repair service website with user-friendly design and streamlined booking system. Built with HTML, CSS, JavaScript, and Bootstrap.",
-    image:
-      "https://images.unsplash.com/photo-1558618047-3f12a22c64e6?w=600&q=80&auto=format&fit=crop",
-    tags: ["HTML", "CSS", "JavaScript", "Bootstrap"],
-    link: "https://mastaanrandhawa.github.io/Roar-Cycle/",
-    color: "#E794DA",
-  },
-  {
-    title: "Logo Design Website",
-    description:
-      "Professional logo design website demonstrating expertise in creating seamless user experiences. Features modern UI/UX design with HTML, CSS, JavaScript, and Bootstrap.",
-    image:
-      "https://images.unsplash.com/photo-1626785774625-ddcddc3445e9?w=600&q=80&auto=format&fit=crop",
-    tags: ["HTML", "CSS", "JavaScript", "Bootstrap"],
-    link: "https://mastaanrandhawa.github.io/Logo-Design-Website/",
-    color: "#E794DA",
-  },
-];
+const projects: Project[] = content.projects
+  .filter((p) => p.showOnSite)
+  .map((p) => ({ title: p.title, description: p.summary, image: p.image ?? "", tags: p.tech, link: p.link, color: p.color, badge: p.badge }));
 
 const INITIAL_VISIBLE = 6;
 

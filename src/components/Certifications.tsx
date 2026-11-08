@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import { portfolio } from "@/content/portfolio";
 
 type Credential = {
   title: string;
@@ -16,63 +17,9 @@ const issuerColor: Record<string, string> = {
   Anthropic: "#f97316",
 };
 
-const certifications: Credential[] = [
-  {
-    title: "Databricks Certified Data Engineer Associate",
-    issuer: "Databricks",
-    issued: "Jun 2026",
-    expires: "Jun 2028",
-    image: "imgs/badges/databricks-data-engineer-associate.png",
-    url: "https://credentials.databricks.com/f55c9f3d-a469-4a49-8d34-bbb87b2ed8f6",
-  },
-  {
-    title: "Microsoft Certified: Security Operations Analyst Associate",
-    issuer: "Microsoft",
-    issued: "Jun 2026",
-    expires: "Jun 2027",
-    image: "imgs/badges/microsoft-security-operations-analyst-associate.svg",
-    url: "https://learn.microsoft.com/en-us/users/mastaanrandhawa-7449/credentials/3e01fd96cc3d97dd",
-  },
-  {
-    title: "Introduction to Agent Skills",
-    issuer: "Anthropic",
-    issued: "Jun 2026",
-    note: "Certificate of completion",
-    image: "imgs/badges/anthropic-intro-agent-skills.png",
-    url: "https://verify.skilljar.com/c/zt22orhk6guy",
-  },
-];
+const certifications: Credential[] = portfolio.credentials.filter((c) => c.kind === "certification");
 
-const badges: Credential[] = [
-  {
-    title: "DevOps Essentials for Data Engineering",
-    issuer: "Databricks",
-    issued: "May 2026",
-    image: "imgs/badges/databricks-devops-essentials.png",
-    url: "https://credentials.databricks.com/d3fd9ed0-5ed2-456d-a82c-09a646de83af",
-  },
-  {
-    title: "Build Data Pipelines with Lakeflow Spark Declarative Pipelines",
-    issuer: "Databricks",
-    issued: "May 2026",
-    image: "imgs/badges/databricks-lakeflow-pipelines.png",
-    url: "https://credentials.databricks.com/b51fa08b-798d-4592-8ddb-d5c353149759",
-  },
-  {
-    title: "Deploy Workloads with Lakeflow Jobs",
-    issuer: "Databricks",
-    issued: "May 2026",
-    image: "imgs/badges/databricks-lakeflow-jobs.png",
-    url: "https://credentials.databricks.com/1fe427c7-1118-46db-b95a-8c3d1496ff78",
-  },
-  {
-    title: "Data Ingestion with Lakeflow Connect",
-    issuer: "Databricks",
-    issued: "May 2026",
-    image: "imgs/badges/databricks-lakeflow-connect.png",
-    url: "https://credentials.databricks.com/8a6bdbb9-f623-4b3f-9c90-ec5c89934319",
-  },
-];
+const badges: Credential[] = portfolio.credentials.filter((c) => c.kind === "badge");
 
 function CertificationCard({ cred }: { cred: Credential }) {
   const color = issuerColor[cred.issuer] ?? "#0015ff";
@@ -185,7 +132,7 @@ export default function Certifications() {
 
         <div className="mt-10 flex justify-center">
           <a
-            href="https://www.linkedin.com/in/mastaanrandhawa/details/certifications/"
+            href={portfolio.profile.links.credentials}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 font-mono text-sm border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 px-6 py-3 rounded-full hover:border-accent-blue hover:text-accent-blue dark:hover:border-accent-blue dark:hover:text-accent-blue transition-all duration-200"
