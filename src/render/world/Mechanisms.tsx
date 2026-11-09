@@ -49,7 +49,7 @@ export function Gears({ anchors }: { anchors: Anchor[] }) {
       {anchors.map((a, i) => (
         <group key={i} position={[a.x, a.y, a.z]} rotation={[0, a.ry ?? 0, 0]}>
           <group rotation={axisRot(a.data?.axis ?? "z")}>
-            <mesh ref={(m) => (refs.current[i] = m)} geometry={geos[i]} material={mats[i]} castShadow />
+            <mesh ref={(m) => (refs.current[i] = m)} geometry={geos[i]} material={mats[i]} />
           </group>
         </group>
       ))}
@@ -63,13 +63,13 @@ function Car({ body, accent, scale = 1 }: { body: MeshStandardMaterial; accent: 
   const glass = useMemo(() => std("#9fd6ea", { roughness: 0.1, metalness: 0.5 }), []);
   return (
     <group scale={scale}>
-      <mesh material={body} position={[0, 0.7, 0]} castShadow>
+      <mesh material={body} position={[0, 0.7, 0]}>
         <boxGeometry args={[2.2, 0.8, 4.6]} />
       </mesh>
       <mesh material={accent} position={[0, 0.72, 0]}>
         <boxGeometry args={[2.24, 0.25, 4.64]} />
       </mesh>
-      <mesh material={glass} position={[0, 1.35, 0.2]} castShadow>
+      <mesh material={glass} position={[0, 1.35, 0.2]}>
         <boxGeometry args={[1.8, 0.6, 2.2]} />
       </mesh>
       <mesh material={body} position={[0, 1.68, 0.25]}>
@@ -166,7 +166,7 @@ export function Pulses({ anchors }: { anchors: Anchor[] }) {
         const curve = new CatmullRomCurve3(pts, !!a.data.closed, "catmullrom", 0.1);
         if (!Number.isFinite(curve.getLength()) || curve.getLength() < 0.1) return [];
         const count = a.data.count ?? 6;
-        const mesh = new InstancedMesh(new BoxGeometry(1, 1, 1), glow(a.data.color ?? "#7fe3ff", 2.5), count);
+        const mesh = new InstancedMesh(new BoxGeometry(1, 1, 1), glow(a.data.color ?? "#7fe3ff", 1.25), count);
         mesh.frustumCulled = false;
         return [{ curve, count, mesh, speed: a.data.speed ?? 0.12, size: a.data.size ?? 0.7 }];
       }),
@@ -205,13 +205,13 @@ export function Domes({ anchors }: { anchors: Anchor[] }) {
       {anchors.map((a, i) => (
         <group key={i} position={[a.x, a.y, a.z]} scale={a.s ?? 1}>
           <group ref={(g) => (refs.current[i] = g)}>
-            <mesh material={m.dome} castShadow>
+            <mesh material={m.dome}>
               <sphereGeometry args={[6, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
             </mesh>
             <mesh material={m.slit} position={[0, 3.2, 3.6]} rotation={[-0.75, 0, 0]}>
               <boxGeometry args={[1.6, 5.8, 0.4]} />
             </mesh>
-            <mesh material={m.tube} position={[0, 4.6, 4.2]} rotation={[-0.85, 0, 0]} castShadow>
+            <mesh material={m.tube} position={[0, 4.6, 4.2]} rotation={[-0.85, 0, 0]}>
               <cylinderGeometry args={[0.55, 0.7, 4.5, 10]} />
             </mesh>
           </group>
@@ -232,7 +232,7 @@ export function Wheels({ anchors }: { anchors: Anchor[] }) {
         return (
           <group key={i} position={[a.x, a.y, a.z]} rotation={[0, a.ry ?? 0, 0]}>
             <group ref={(g) => (refs.current[i] = g)}>
-              <mesh material={m.tire} rotation={[0, Math.PI / 2, 0]} castShadow>
+              <mesh material={m.tire} rotation={[0, Math.PI / 2, 0]}>
                 <torusGeometry args={[r, r * 0.09, 8, 32]} />
               </mesh>
               <mesh material={m.rim} rotation={[0, Math.PI / 2, 0]}>
@@ -276,7 +276,7 @@ export function Spinners({ anchors }: { anchors: Anchor[] }) {
         const k = a.data?.kind ?? "octa";
         return (
           <group key={i} position={[a.x, a.y, a.z]}>
-            <mesh ref={(m) => (refs.current[i] = m)} material={mats[i]} castShadow>
+            <mesh ref={(m) => (refs.current[i] = m)} material={mats[i]}>
               {k === "torus" && <torusGeometry args={[s, s * 0.32, 10, 28]} />}
               {k === "cube" && <boxGeometry args={[s * 1.4, s * 1.4, s * 1.4]} />}
               {k === "sphere" && <icosahedronGeometry args={[s, 1]} />}
@@ -310,7 +310,7 @@ export function Bobbers({ anchors }: { anchors: Anchor[] }) {
         const s = a.data?.size ?? 1;
         return (
           <group key={i} position={[a.x, a.y, a.z]}>
-            <mesh ref={(m) => (refs.current[i] = m)} material={mats[i]} castShadow>
+            <mesh ref={(m) => (refs.current[i] = m)} material={mats[i]}>
               {a.data?.kind === "cyl" ? <cylinderGeometry args={[s, s, s * 0.7, 16]} /> : <boxGeometry args={[s, s, s]} />}
             </mesh>
           </group>
@@ -320,7 +320,7 @@ export function Bobbers({ anchors }: { anchors: Anchor[] }) {
   );
 }
 
-/** Server-rack style blinking LED fields (instanced). */
+/** Server-rack LED fields: steady cool lights with a slow, smooth breathing (no random blinking). */
 export function Blinkers({ anchors }: { anchors: Anchor[] }) {
   const items = useMemo(
     () =>
@@ -333,21 +333,19 @@ export function Blinkers({ anchors }: { anchors: Anchor[] }) {
           o.rotation.set(0, a.data.ry?.[k] ?? a.ry ?? 0, 0);
           o.updateMatrix();
           mesh.setMatrixAt(k, o.matrix);
-          mesh.setColorAt(k, new Color(0, 0, 0));
         });
-        return { mesh, n: pts.length, palette: (a.data.colors as string[] | undefined)?.map((c) => new Color(c).multiplyScalar(2.6)) ?? [new Color(0.3, 3, 1.4), new Color(3, 2, 0.4)] };
+        const palette = [new Color("#7fe3ff"), new Color("#7dffb0")];
+        return { mesh, n: pts.length, palette };
       }),
     [anchors],
   );
-  const off = useMemo(() => new Color(0.05, 0.08, 0.1), []);
-  const acc = useRef(0);
-  useFrame((_, dt) => {
-    acc.current += dt;
-    if (acc.current < 0.12) return;
-    acc.current = 0;
+  const c = useMemo(() => new Color(), []);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
     for (const it of items) {
       for (let k = 0; k < it.n; k++) {
-        if (Math.random() < 0.25) it.mesh.setColorAt(k, Math.random() < 0.7 ? it.palette[k % it.palette.length] : off);
+        const level = 0.75 + 0.25 * Math.sin(t * 0.8 + k * 0.7);
+        it.mesh.setColorAt(k, c.copy(it.palette[k % 2]).multiplyScalar(1.15 * level));
       }
       if (it.mesh.instanceColor) it.mesh.instanceColor.needsUpdate = true;
     }

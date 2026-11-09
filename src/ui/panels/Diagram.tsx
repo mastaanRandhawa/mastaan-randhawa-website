@@ -8,11 +8,11 @@ import type { DiagramKind } from "@/content/types";
 const box = (x: number, y: number, w: number, h: number, label: string, fill: string, sub?: string) => (
   <g key={label + x + y}>
     <rect x={x} y={y} width={w} height={h} rx={10} fill={fill} fillOpacity={0.14} stroke={fill} strokeWidth={1.6} />
-    <text x={x + w / 2} y={y + h / 2 + (sub ? -3 : 4)} textAnchor="middle" fontFamily="'Azeret Mono', monospace" fontSize={12} fontWeight={600} fill="#1f3552">
+    <text x={x + w / 2} y={y + h / 2 + (sub ? -3 : 4)} textAnchor="middle" fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif" fontSize={12} fontWeight={600} fill="#1f3552">
       {label}
     </text>
     {sub && (
-      <text x={x + w / 2} y={y + h / 2 + 13} textAnchor="middle" fontFamily="'Azeret Mono', monospace" fontSize={9.5} fill="#1f3552" fillOpacity={0.6}>
+      <text x={x + w / 2} y={y + h / 2 + 13} textAnchor="middle" fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif" fontSize={9.5} fill="#1f3552" fillOpacity={0.6}>
         {sub}
       </text>
     )}

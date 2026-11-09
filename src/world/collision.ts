@@ -71,8 +71,8 @@ export class CollisionWorld {
       else if (c.type === "box") {
         const lx = x - c.x;
         const lz = z - c.z;
-        const cs = Math.cos(-c.ry);
-        const sn = Math.sin(-c.ry);
+        const cs = Math.cos(c.ry);
+        const sn = Math.sin(c.ry);
         if (Math.abs(lx * cs - lz * sn) <= c.hx && Math.abs(lx * sn + lz * cs) <= c.hz) top = c.y + c.hy;
       } else if (c.type === "cyl") {
         if (Math.hypot(x - c.x, z - c.z) <= c.r) top = c.y1;
@@ -120,8 +120,9 @@ function collideOne(c: Collider, x: number, y: number, z: number, r: number): Co
       return { nx: d > 1e-6 ? dx * inv : 1, ny: 0, nz: dz * inv, depth: penSide, kind: "cyl" };
     }
     case "box": {
-      const cs = Math.cos(-c.ry);
-      const sn = Math.sin(-c.ry);
+      // World → box space is a rotation by -ry about Y (three.js convention).
+      const cs = Math.cos(c.ry);
+      const sn = Math.sin(c.ry);
       const dx = x - c.x;
       const dz = z - c.z;
       const lx = dx * cs - dz * sn;
@@ -163,10 +164,8 @@ function collideOne(c: Collider, x: number, y: number, z: number, r: number): Co
           depth = pz + r;
         }
       }
-      // Rotate normal back to world.
-      const wc = Math.cos(c.ry);
-      const ws = Math.sin(c.ry);
-      return { nx: ex * wc - ez * ws, ny: ey, nz: ex * ws + ez * wc, depth, kind: "box" };
+      // Rotate the normal back to world space (+ry).
+      return { nx: ex * cs + ez * sn, ny: ey, nz: -ex * sn + ez * cs, depth, kind: "box" };
     }
     case "island":
       return collideIsland(c.terrain, x, y, z, r);
@@ -196,7 +195,8 @@ function collideIsland(t: IslandTerrain, x: number, y: number, z: number, r: num
     return { nx: -gx * inv, ny: inv, nz: -gz * inv, depth: pen, kind: "island" };
   }
 
-  // Underside / cliff contact.
+  // Underside / cliff contact (only below the rim; above it is open sky).
+  if (ly - r > top) return null;
   const depthFrac = (top - p.rimDrop - ly - 2.5) / Math.max(1, p.depth - 2.5);
   if (depthFrac > 1.05) return null;
   const tt = Math.max(0, Math.min(1, depthFrac));

@@ -1,11 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, X } from "lucide-react";
+import { MapPin, X } from "lucide-react";
 import { useEffect } from "react";
 import { useGame } from "@/game/store";
 import { destinationById } from "@/world/world";
 import { portfolio, projectById, skillCategoryById } from "@/content/portfolio";
 import { panelFor } from "./panels/panelFor";
-import { Kbd } from "./kit";
+import { startVisit } from "@/game/visit";
+import { Button, IconTile, Kbd } from "./kit";
 import type { Destination } from "@/world/defs";
 
 function teaser(d: Destination): string {
@@ -29,7 +30,7 @@ function teaser(d: Destination): string {
   }
 }
 
-/** Non-blocking card shown when flying through a destination's ring. */
+/** Widget-style card shown when flying through a destination's ring. */
 export function DiscoveryCard() {
   const id = useGame((s) => s.discoveryCard);
   const set = useGame((s) => s.setDiscoveryCard);
@@ -49,33 +50,37 @@ export function DiscoveryCard() {
       {d && !panel && (
         <motion.aside
           key={d.id}
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          className="fixed left-5 top-[34%] z-20 w-[min(360px,calc(100vw-2.5rem))] overflow-hidden max-sm:left-3 max-sm:top-[9.5rem] rounded-2xl bg-[#fbf6ec]/95 text-[#1f3552] shadow-2xl ring-1 ring-[#1f3552]/10 backdrop-blur"
+          initial={{ opacity: 0, x: -24, scale: 0.97 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: -16 }}
+          transition={{ type: "spring", damping: 26, stiffness: 300 }}
+          className="font-sf mat-light fixed left-5 top-[34%] z-20 w-[min(360px,calc(100vw-2.5rem))] rounded-[14px] p-4 max-sm:left-3 max-sm:top-[9.5rem]"
           aria-live="polite"
         >
-          <div className="h-1.5" style={{ backgroundColor: d.accent }} />
-          <div className="p-4">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: d.accent }}>
-                  {d.sublabel}
-                </p>
-                <h3 className="font-serif text-2xl italic leading-tight">{d.label}</h3>
-              </div>
-              <button onClick={() => set(null)} aria-label="Dismiss" className="rounded-full p-1 text-[#1f3552]/50 hover:bg-[#1f3552]/5 hover:text-[#1f3552]">
-                <X size={16} />
-              </button>
+          <div className="flex items-start gap-3">
+            <IconTile icon={MapPin} color={d.accent} size={40} />
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-semibold text-[#5d6b80]">{d.sublabel}</p>
+              <h3 className="font-sf-display text-[22px] font-bold leading-tight text-[#1f3552]">{d.label}</h3>
             </div>
-            <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-[#1f3552]/80">{teaser(d)}</p>
-            <button
-              onClick={() => open(panelFor(d))}
-              className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#1f3552] px-4 py-2 font-mono text-xs font-semibold text-white hover:bg-[#2b4a72]"
-            >
-              {!isTouch && <Kbd className="border-white/30 bg-white/10">F</Kbd>} Open details <ArrowRight size={14} />
+            <button onClick={() => set(null)} aria-label="Dismiss" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[rgba(120,120,128,0.14)] text-[#5d6b80] hover:bg-[rgba(120,120,128,0.22)]">
+              <X size={14} strokeWidth={2.6} />
             </button>
           </div>
+          <p className="mt-2.5 line-clamp-4 text-[15px] leading-snug text-[#33425a]">{teaser(d)}</p>
+          <div className="mt-3.5 flex items-center gap-2">
+            <Button variant="filled" size="md" onClick={() => (startVisit(d.id) ? undefined : open(panelFor(d)))} className="flex-1">
+              Fly There & Land
+            </Button>
+            <Button variant="gray" size="md" onClick={() => set(null)}>
+              Later
+            </Button>
+          </div>
+          {!isTouch && (
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-[#5d6b80]">
+              or press <Kbd>F</Kbd>
+            </p>
+          )}
         </motion.aside>
       )}
     </AnimatePresence>

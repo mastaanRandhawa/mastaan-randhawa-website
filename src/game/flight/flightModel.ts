@@ -25,6 +25,8 @@ export interface FlightState {
   speed: number;
   boostEnergy: number;
   boosting: boolean;
+  /** Set when boost runs dry; cleared once it recharges to 30% (no on/off chatter). */
+  boostLock: boolean;
   /** Landing gear extension 0 (up) … 1 (down). */
   gear: number;
   onGround: boolean;
@@ -39,6 +41,8 @@ export interface FlightInput {
   roll: number;
   boost: boolean;
   brake: boolean;
+  /** Mouse steering: turn is an absolute bank target (centred = wings level). */
+  absolute?: boolean;
 }
 
 export interface FlightEnv {
@@ -81,6 +85,7 @@ export function createFlightState(x = 0, y = 140, z = 0, heading = 0, speed = 48
     speed,
     boostEnergy: 1,
     boosting: false,
+    boostLock: false,
     gear: 0,
     onGround: false,
     clearance: 100,
@@ -93,19 +98,12 @@ export function forwardOf(s: Pick<FlightState, "heading" | "pitch">): [number, n
   return [-Math.sin(s.heading) * cp, Math.sin(s.pitch), -Math.cos(s.heading) * cp];
 }
 
-export interface AssistOptions {
-  /** Auto-level roll when no steering input (assist: 1, advanced: 0). */
-  rollAutoLevel: number;
-  worldRadius: number;
-}
-
 export function stepFlight(
   s: FlightState,
   inp: FlightInput,
   t: FlightTuning,
   dt: number,
   env: FlightEnv | null,
-  opts: AssistOptions = { rollAutoLevel: 1, worldRadius: 1250 },
 ): StepEvents {
   const ev: StepEvents = { impact: 0, crashed: false, barrelRoll: false };
   const speedT = clamp((s.speed - t.baseSpeed) / (t.maxSpeed - t.baseSpeed), 0, 1);
@@ -121,12 +119,13 @@ export function stepFlight(
     }
   } else {
     s.rollAccum = 0;
-    const steering = Math.abs(inp.turn) > 0.02;
-    const targetBank = inp.turn * t.maxBank;
-    const err = wrapPi(targetBank - s.roll);
-    const level = steering ? 1 : opts.rollAutoLevel;
-    const desired = clamp(err * t.bankResponse * level, -t.rollRate, t.rollRate);
-    s.rollRate = damp(s.rollRate, desired, 10, dt);
+    // Steering banks toward the stick; letting go rolls the wings back to level
+    // (the short way round, so it also recovers from inverted).
+    const steering = inp.absolute || Math.abs(inp.turn) > 0.02;
+    const desired = steering
+      ? clamp(wrapPi(inp.turn * t.maxBank - s.roll) * t.bankResponse, -t.rollRate, t.rollRate)
+      : clamp(wrapPi(-s.roll) * t.bankAutoLevel, -t.bankLevelRate, t.bankLevelRate);
+    s.rollRate = damp(s.rollRate, desired, steering ? 10 : 6, dt);
   }
   s.roll = wrapPi(s.roll + s.rollRate * dt);
 
@@ -154,16 +153,10 @@ export function stepFlight(
   s.yawRate = damp(s.yawRate, liftTurn + direct, 6, dt);
   s.heading = wrapPi(s.heading + s.yawRate * dt + coupledYaw);
 
-  // ── Soft world boundary: turn the nose home ──
-  const dist = Math.hypot(s.x, s.z);
-  if (dist > opts.worldRadius) {
-    const home = Math.atan2(s.x, s.z); // heading that points toward origin
-    const err = wrapPi(home - s.heading);
-    s.heading = wrapPi(s.heading + clamp(err, -1, 1) * dt * 0.9 * Math.min(1, (dist - opts.worldRadius) / 150));
-  }
-
   // ── Speed / energy ──
-  const boosting = inp.boost && s.boostEnergy > 0.02;
+  if (s.boostEnergy <= 0.02) s.boostLock = true;
+  else if (s.boostLock && s.boostEnergy >= 0.3) s.boostLock = false;
+  const boosting = inp.boost && !s.boostLock;
   s.boosting = boosting;
   let target = t.baseSpeed;
   if (boosting) target = t.maxSpeed;
@@ -182,18 +175,10 @@ export function stepFlight(
   s.vz += (fz * s.speed - s.vz) * k;
   s.vy = clamp(s.vy, -t.verticalSpeedLimit, t.verticalSpeedLimit);
 
-  // ── Terrain assist (look-ahead clearance) ──
+  // ── Ground clearance (for checkpoints; no automatic pull-up) ──
   if (env) {
-    const ahead = 0.9;
-    const g = Math.max(
-      env.groundAt(s.x, s.z, s.y + 4),
-      env.groundAt(s.x + s.vx * ahead, s.z + s.vz * ahead, s.y + 6),
-    );
+    const g = env.groundAt(s.x, s.z, s.y + 4);
     s.clearance = g === -Infinity ? 999 : s.y - g;
-    if (t.terrainAssistClearance > 0 && s.clearance < t.terrainAssistClearance && s.vy < 4) {
-      const urgency = 1 - Math.max(0, s.clearance) / t.terrainAssistClearance;
-      s.pitch = Math.min(t.maxPitch * 0.6, s.pitch + urgency * 1.6 * dt);
-    }
   }
   if (s.y > t.ceiling) s.pitch = Math.min(s.pitch, s.pitch - (s.y - t.ceiling) * 0.01 * dt);
 

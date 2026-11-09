@@ -24,7 +24,9 @@ import { mulberry32 } from "@/world/noise";
  * attributes drive the shared world material:
  *   aSway     — 0..1 wind sway weight (foliage, flags)
  *   aEmissive — 0..1 self-illumination (windows, lamps, screens)
- * Normals are omitted; the material uses flat shading (screen-space derivatives).
+ * Normals are computed at build time: the material shades faceted up close and
+ * blends to these interpolated normals far away, where per-pixel derivative
+ * normals turn into sparkle.
  */
 export interface AddOptions {
   sway?: number;
@@ -32,10 +34,15 @@ export interface AddOptions {
   swayBase?: number;
   swayHeight?: number;
   emissive?: number;
+  /** Set false to skip baked ground-contact shading for this primitive. */
+  ao?: boolean;
 }
 
 const tmpV = new Vector3();
 const tmpColor = new Color();
+/** Ground-contact shading: colour multiplier at the ground, and the height over which it fades out. */
+const AO_K = 0.6;
+const AO_H = 4.5;
 
 export class MeshBuilder {
   private pos: number[] = [];
@@ -44,6 +51,12 @@ export class MeshBuilder {
   private emi: number[] = [];
   private idx: number[] = [];
   private vcount = 0;
+  /**
+   * Ground height in this builder's space. When set, every upright primitive is
+   * darkened toward the ground it stands on (baked contact occlusion), so
+   * buildings, trunks and posts sit on the terrain instead of floating on it.
+   */
+  ground: ((x: number, z: number) => number) | null = null;
 
   get vertexCount() {
     return this.vcount;
@@ -57,6 +70,7 @@ export class MeshBuilder {
     const sb = opts.swayBase ?? 0;
     const sh = opts.swayHeight ?? 0;
     const em = opts.emissive ?? 0;
+    const p0 = this.pos.length;
     for (let i = 0; i < p.count; i++) {
       tmpV.fromBufferAttribute(p, i).applyMatrix4(m);
       this.pos.push(tmpV.x, tmpV.y, tmpV.z);
@@ -73,7 +87,36 @@ export class MeshBuilder {
       for (let i = 0; i < p.count; i++) this.idx.push(base + i);
     }
     this.vcount += p.count;
+    if (this.ground && opts.ao !== false) this.contactShade(p0, this.pos.length);
     return this;
+  }
+
+  /** Darken an upright primitive's vertices near the ground under its centre. */
+  private contactShade(from: number, to: number) {
+    let minY = Infinity;
+    let maxY = -Infinity;
+    let cx = 0;
+    let cz = 0;
+    for (let i = from; i < to; i += 3) {
+      const y = this.pos[i + 1];
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      cx += this.pos[i];
+      cz += this.pos[i + 2];
+    }
+    // Flat things (roads, paving, markings) keep their colour.
+    if (maxY - minY < 0.5) return;
+    const n = (to - from) / 3;
+    const g = this.ground!(cx / n, cz / n);
+    // Only things standing on the surface (not rocks hanging under the island).
+    if (minY < g - 1.5 || minY > g + AO_H) return;
+    for (let i = from; i < to; i += 3) {
+      const t = Math.min(1, Math.max(0, (this.pos[i + 1] - g) / AO_H));
+      const k = AO_K + (1 - AO_K) * t * t * (3 - 2 * t);
+      this.col[i] *= k;
+      this.col[i + 1] *= k;
+      this.col[i + 2] *= k;
+    }
   }
 
   /** Raw triangle soup with per-vertex colours (used by terrain). */
@@ -98,6 +141,7 @@ export class MeshBuilder {
     g.setAttribute("aEmissive", new BufferAttribute(new Float32Array(this.emi), 1));
     const IndexArray = this.vcount > 65535 ? Uint32Array : Uint16Array;
     g.setIndex(new BufferAttribute(new IndexArray(this.idx), 1));
+    g.computeVertexNormals();
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;

@@ -9,7 +9,6 @@ export interface Settings {
   controlMode: "keyboard" | "mouse";
   mouseSensitivity: number;
   invertPitch: boolean;
-  flightAssist: boolean;
   masterVolume: number;
   musicVolume: number;
   sfxVolume: number;
@@ -49,7 +48,6 @@ export function defaultSettings(): Settings {
     controlMode: "keyboard",
     mouseSensitivity: 1,
     invertPitch: false,
-    flightAssist: true,
     masterVolume: 0.8,
     musicVolume: 0.45,
     sfxVolume: 0.8,
@@ -93,7 +91,6 @@ export function sanitizeSettings(raw: unknown): Settings {
     controlMode: oneOf(raw.controlMode, ["keyboard", "mouse"] as const, d.controlMode),
     mouseSensitivity: num(raw.mouseSensitivity, d.mouseSensitivity, 0.3, 2.5),
     invertPitch: bool(raw.invertPitch, d.invertPitch),
-    flightAssist: bool(raw.flightAssist, d.flightAssist),
     masterVolume: num(raw.masterVolume, d.masterVolume, 0, 1),
     musicVolume: num(raw.musicVolume, d.musicVolume, 0, 1),
     sfxVolume: num(raw.sfxVolume, d.sfxVolume, 0, 1),

@@ -1,6 +1,7 @@
 import { KEY_BINDINGS, type AxisAction, type PressAction } from "@/config/controls";
 import type { FlightInput } from "./flight/flightModel";
 import type { Settings } from "./save";
+import { look } from "./runtime";
 
 /**
  * Unified input layer: keyboard, mouse steering, touch joystick and gamepad all
@@ -41,9 +42,19 @@ export function attachInput(): () => void {
   const down = (e: KeyboardEvent) => {
     if (isTyping(e.target)) return;
     const press = codeToPress.get(e.code);
+    const bound = !!press || codeToAxis.has(e.code);
+    // While flying, a focused button/link must not also react to a flight key
+    // (Space would re-click it, Enter would activate it). The game key wins.
+    if (gameKeysActive && bound) {
+      const el = document.activeElement as HTMLElement | null;
+      if (el && el !== document.body && (el.tagName === "BUTTON" || el.tagName === "A")) {
+        el.blur();
+        e.preventDefault();
+      }
+    }
     if (press && !e.repeat) {
-      // Enter on a focused button should click it, not interact.
-      if (press === "interact" && e.code === "Enter" && (e.target as HTMLElement)?.tagName === "BUTTON") return;
+      // In menus, Enter on a focused button clicks it rather than "interact".
+      if (!gameKeysActive && press === "interact" && e.code === "Enter" && (e.target as HTMLElement)?.tagName === "BUTTON") return;
       pressHandler?.(press);
     }
     if (!gameKeysActive) return;
@@ -98,7 +109,8 @@ function readPad() {
   });
   return {
     turn: dz(gp.axes[0] ?? 0),
-    pitch: -dz(gp.axes[1] ?? 0),
+    // Stick back (positive Y) climbs, like a real control column.
+    pitch: dz(gp.axes[1] ?? 0),
     roll: (gp.buttons[5]?.pressed ? 1 : 0) - (gp.buttons[4]?.pressed ? 1 : 0),
     boost: (gp.buttons[7]?.value ?? 0) > 0.3,
     brake: (gp.buttons[6]?.value ?? 0) > 0.3,
@@ -118,7 +130,8 @@ export function readFlightInput(dt: number, settings: Settings, out: FlightInput
   let boost = axis("boost");
   let brake = axis("brake");
 
-  if (settings.controlMode === "mouse" && pointer.inside) {
+  const mouseSteer = settings.controlMode === "mouse" && pointer.inside && !look.dragging;
+  if (mouseSteer) {
     const s = settings.mouseSensitivity;
     turn += dz(pointer.x * 1.7 * s, 0.05);
     pitch += dz(-pointer.y * 1.7 * s, 0.05);
@@ -142,6 +155,7 @@ export function readFlightInput(dt: number, settings: Settings, out: FlightInput
   out.roll = clamp1(roll);
   out.boost = boost;
   out.brake = brake;
+  out.absolute = mouseSteer && Math.abs(smooth.turn) < 0.05;
   return out;
 }
 

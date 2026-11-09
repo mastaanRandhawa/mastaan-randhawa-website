@@ -124,7 +124,7 @@ function DestinationRings({ world }: { world: World }) {
 function Collectibles({ world }: { world: World }) {
   const got = useGame((s) => s.progress.collectibles);
   const refs = useRef<(Group | null)[]>([]);
-  const m = useMemo(() => ({ core: glowMat("#ffc65a", 3.2), halo: glowMat("#fff2cf", 1.6, 0.8), beam: glowMat("#ffd27a", 0.9, 0.18) }), []);
+  const m = useMemo(() => ({ core: glowMat("#ffc65a", 1.9), halo: glowMat("#fff2cf", 1.6, 0.8), beam: glowMat("#ffd27a", 0.9, 0.18) }), []);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     refs.current.forEach((g, i) => {

@@ -5,8 +5,8 @@ import type { RegionExtras } from "../defs";
 import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { floatingRocks, tree, flowers, bush } from "../prefabs/nature";
-import { bridge, gazebo, bench } from "../prefabs/structures";
-import { projectIsland } from "./common";
+import { gazebo, bench } from "../prefabs/structures";
+import { bridgeBetween, projectIsland } from "./common";
 
 /** Region: Frontend Gardens — the early HTML/CSS/JS sites, in a blooming garden. */
 export function buildGardens(kit: RegionKit, def: RegionDef, out: RegionExtras) {
@@ -48,8 +48,8 @@ export function buildGardens(kit: RegionKit, def: RegionDef, out: RegionExtras) 
     I.scatter(10, { maxRho: 0.9, spacing: 4 }, (x, z) => flowers(I, x, z, 6, 1.8));
     I.scatter(6, { maxRho: 0.85, spacing: 6 }, (x, z) => bush(I, x, z, 1, "#6aa84f"));
   }
-  bridge(kit.world, [cx - 20, cy + 0.2, cz - 14], [cx - 64, cy + 6.2, cz - 52], 3.4, 4);
-  bridge(kit.world, [cx + 20, cy + 0.2, cz - 14], [cx + 72, cy - 5.8, cz - 44], 3.4, 4);
-  bridge(kit.world, [cx - 4, cy + 0.2, cz + 25], [cx - 14, cy + 12.2, cz + 76], 3.4, 3);
+  bridgeBetween(kit, hub, fer, 3.4, 4);
+  bridgeBetween(kit, hub, roar, 3.4, 4);
+  bridgeBetween(kit, hub, logo, 3.4, 3);
   kit.anchor("balloon", cx, cy + 50, cz, { s: 0.9, data: { colors: ["#c46fc0", C.cream], path: { cx, cz, r: 90, speed: 0.035 } } });
 }

@@ -1,230 +1,175 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Award, BookOpen, Check, Keyboard, LayoutGrid, Lock, Map, Play, Plane, Settings2, Camera, LogOut, ScrollText } from "lucide-react";
+import { Award, BookOpen, Camera, Check, CheckCircle2, Circle, Gamepad2, Keyboard, LayoutGrid, ListChecks, Lock, Map, Medal, Plane, Play, Settings2 } from "lucide-react";
+import type { ReactNode } from "react";
 import { useGame, type Overlay } from "@/game/store";
 import { ACHIEVEMENTS, MISSIONS, SKINS, completion, unlockedSkins } from "@/game/progression";
 import { CONTROL_HELP } from "@/config/controls";
 import { portfolio } from "@/content/portfolio";
 import { parkAtSpawn } from "@/game/runtime";
 import { clearSave } from "@/game/save";
-import { Button, Glass, Kbd, Label } from "./kit";
+import { Group, Kbd, NavBar, Row, Segmented, Slider, Switch, SYSTEM } from "./kit";
 import { cn } from "@/lib/utils";
-import type { ReactNode } from "react";
 
-function Header({ title, onBack }: { title: string; onBack: () => void }) {
+/** iOS sheet chrome: grouped background, large rounded corners. */
+function Sheet({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn("font-sf max-h-[86vh] overflow-y-auto rounded-[16px] bg-[#f3ecdf] pb-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]", className)}>{children}</div>;
+}
+
+function LargeTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
-    <div className="mb-4 flex items-center gap-3">
-      <button onClick={onBack} aria-label="Back" className="grid h-9 w-9 place-items-center rounded-full bg-[#1f3552]/5 text-[#1f3552] hover:bg-[#1f3552]/10">
-        <ArrowLeft size={16} />
-      </button>
-      <h2 className="font-serif text-2xl italic text-[#1f3552]">{title}</h2>
+    <div className="px-5 pb-4 pt-1">
+      <h2 className="font-sf-display text-[34px] font-bold leading-tight text-[#1f3552]">{children}</h2>
+      {sub && <p className="text-[15px] text-[#5d6b80]">{sub}</p>}
     </div>
   );
 }
 
-function Row({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-[#1f3552]/8 py-2.5 last:border-0">
-      <div>
-        <p className="text-sm font-medium text-[#1f3552]">{label}</p>
-        {hint && <p className="text-[11px] text-[#1f3552]/55">{hint}</p>}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
-  return (
-    <button
-      role="switch"
-      aria-checked={value}
-      aria-label={label}
-      onClick={() => onChange(!value)}
-      className={cn("relative h-6 w-11 shrink-0 rounded-full transition", value ? "bg-[#3fb8af]" : "bg-[#1f3552]/20")}
-    >
-      <span className={cn("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all", value ? "left-[22px]" : "left-0.5")} />
-    </button>
-  );
-}
-
-function Segmented<T extends string>({ value, options, onChange, label }: { value: T; options: { v: T; l: string }[]; onChange: (v: T) => void; label: string }) {
-  return (
-    <div role="radiogroup" aria-label={label} className="flex rounded-full bg-[#1f3552]/8 p-0.5">
-      {options.map((o) => (
-        <button
-          key={o.v}
-          role="radio"
-          aria-checked={value === o.v}
-          onClick={() => onChange(o.v)}
-          className={cn("rounded-full px-3 py-1 font-mono text-[11px] transition", value === o.v ? "bg-white text-[#1f3552] shadow" : "text-[#1f3552]/60 hover:text-[#1f3552]")}
-        >
-          {o.l}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function Slider({ value, onChange, label, min = 0, max = 1, step = 0.05 }: { value: number; onChange: (v: number) => void; label: string; min?: number; max?: number; step?: number }) {
-  return <input type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-36 accent-[#f2735a]" />;
-}
-
-export function SettingsPanel({ onBack }: { onBack: () => void }) {
+export function SettingsPanel({ onBack, closeLabel }: { onBack: () => void; closeLabel?: string }) {
   const s = useGame((x) => x.settings);
   const u = useGame((x) => x.updateSettings);
   const quality = useGame((x) => x.quality);
   return (
-    <Glass className="max-h-[85vh] overflow-y-auto p-6">
-      <Header title="Settings" onBack={onBack} />
-      <Label className="text-[#d9573f]">Flight</Label>
-      <Row label="Flight assist" hint="Auto-levels, limits pitch, pulls up near terrain">
-        <Toggle label="Flight assist" value={s.flightAssist} onChange={(v) => u({ flightAssist: v })} />
-      </Row>
-      <Row label="Steering" hint="Mouse mode steers toward the cursor">
-        <Segmented label="Steering" value={s.controlMode} onChange={(v) => u({ controlMode: v })} options={[{ v: "keyboard", l: "Keyboard" }, { v: "mouse", l: "Mouse" }]} />
-      </Row>
-      {s.controlMode === "mouse" && (
-        <Row label="Mouse sensitivity">
-          <Slider label="Mouse sensitivity" value={s.mouseSensitivity} min={0.3} max={2.5} step={0.1} onChange={(v) => u({ mouseSensitivity: v })} />
-        </Row>
-      )}
-      <Row label="Invert pitch">
-        <Toggle label="Invert pitch" value={s.invertPitch} onChange={(v) => u({ invertPitch: v })} />
-      </Row>
-      <div className="mt-4" />
-      <Label className="text-[#d9573f]">Graphics</Label>
-      <Row label="Quality" hint={s.quality === "auto" ? `Auto — currently ${quality}` : undefined}>
-        <Segmented
-          label="Quality"
-          value={s.quality}
-          onChange={(v) => u({ quality: v })}
-          options={[{ v: "auto", l: "Auto" }, { v: "low", l: "Low" }, { v: "medium", l: "Med" }, { v: "high", l: "High" }]}
-        />
-      </Row>
-      <Row label="Destination labels">
-        <Toggle label="Destination labels" value={s.showLabels} onChange={(v) => u({ showLabels: v })} />
-      </Row>
-      <Row label="Show FPS">
-        <Toggle label="Show FPS" value={s.showFps} onChange={(v) => u({ showFps: v })} />
-      </Row>
-      <div className="mt-4" />
-      <Label className="text-[#d9573f]">Comfort & accessibility</Label>
-      <Row label="Reduced motion" hint="Calmer camera, no speed lines or FOV kicks">
-        <Toggle label="Reduced motion" value={s.reducedMotion} onChange={(v) => u({ reducedMotion: v, cameraShake: v ? false : s.cameraShake })} />
-      </Row>
-      <Row label="Camera shake">
-        <Toggle label="Camera shake" value={s.cameraShake} onChange={(v) => u({ cameraShake: v })} />
-      </Row>
-      <div className="mt-4" />
-      <Label className="text-[#d9573f]">Audio</Label>
-      <Row label="Mute all">
-        <Toggle label="Mute" value={s.muted} onChange={(v) => u({ muted: v })} />
-      </Row>
-      <Row label="Master volume">
-        <Slider label="Master volume" value={s.masterVolume} onChange={(v) => u({ masterVolume: v })} />
-      </Row>
-      <Row label="Music">
-        <Slider label="Music volume" value={s.musicVolume} onChange={(v) => u({ musicVolume: v })} />
-      </Row>
-      <Row label="Effects">
-        <Slider label="Effects volume" value={s.sfxVolume} onChange={(v) => u({ sfxVolume: v })} />
-      </Row>
-    </Glass>
+    <Sheet>
+      {closeLabel ? <NavBar title="Settings" onDone={onBack} doneLabel={closeLabel} /> : <NavBar title="Settings" onBack={onBack} backLabel="Paused" />}
+      <div className="space-y-6 px-4 pt-2">
+        <Group header="Flight" footer="S climbs and W dives, like a control column. Let go and the plane rolls back to wings-level and eases its nose to the horizon. In Mouse mode, centring the cursor does the same.">
+          <Row
+            icon={Gamepad2}
+            color={SYSTEM.indigo}
+            title="Steering"
+            accessory={<Segmented label="Steering" value={s.controlMode} onChange={(v) => u({ controlMode: v })} options={[{ v: "keyboard", l: "Keys" }, { v: "mouse", l: "Mouse" }]} />}
+          />
+          {s.controlMode === "mouse" && (
+            <Row title="Mouse Sensitivity" accessory={<Slider label="Mouse sensitivity" value={s.mouseSensitivity} min={0.3} max={2.5} step={0.1} onChange={(v) => u({ mouseSensitivity: v })} />} />
+          )}
+          <Row title="Invert Pitch" accessory={<Switch label="Invert pitch" value={s.invertPitch} onChange={(v) => u({ invertPitch: v })} />} />
+        </Group>
+        <Group header="Graphics" footer={s.quality === "auto" ? `Automatic adjusts to your device. Currently ${quality}.` : undefined}>
+          <Row
+            title="Quality"
+            accessory={
+              <Segmented
+                label="Quality"
+                value={s.quality}
+                onChange={(v) => u({ quality: v })}
+                options={[{ v: "auto", l: "Auto" }, { v: "low", l: "Low" }, { v: "medium", l: "Med" }, { v: "high", l: "High" }]}
+              />
+            }
+          />
+          <Row title="Destination Labels" accessory={<Switch label="Destination labels" value={s.showLabels} onChange={(v) => u({ showLabels: v })} />} />
+          <Row title="Show Frame Rate" accessory={<Switch label="Show FPS" value={s.showFps} onChange={(v) => u({ showFps: v })} />} />
+        </Group>
+        <Group header="Accessibility" footer="Reduce Motion calms the camera and removes speed lines and field-of-view kicks.">
+          <Row title="Reduce Motion" accessory={<Switch label="Reduced motion" value={s.reducedMotion} onChange={(v) => u({ reducedMotion: v, cameraShake: v ? false : s.cameraShake })} />} />
+          <Row title="Camera Shake" accessory={<Switch label="Camera shake" value={s.cameraShake} onChange={(v) => u({ cameraShake: v })} />} />
+        </Group>
+        <Group header="Sound">
+          <Row title="Mute" accessory={<Switch label="Mute" value={s.muted} onChange={(v) => u({ muted: v })} />} />
+          <Row title="Master" accessory={<Slider label="Master volume" value={s.masterVolume} onChange={(v) => u({ masterVolume: v })} />} />
+          <Row title="Music" accessory={<Slider label="Music volume" value={s.musicVolume} onChange={(v) => u({ musicVolume: v })} />} />
+          <Row title="Effects" accessory={<Slider label="Effects volume" value={s.sfxVolume} onChange={(v) => u({ sfxVolume: v })} />} />
+        </Group>
+      </div>
+    </Sheet>
   );
 }
 
 function ControlsPanel({ onBack }: { onBack: () => void }) {
   return (
-    <Glass className="p-6">
-      <Header title="Controls" onBack={onBack} />
-      <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
-        {CONTROL_HELP.map((c) => (
-          <div key={c.label} className="flex items-center justify-between gap-3 border-b border-[#1f3552]/8 py-1.5">
-            <span className="text-sm text-[#1f3552]">{c.label}</span>
-            <span className="flex gap-1">
-              {c.keys.map((k) => (
-                <Kbd key={k} className="border-[#1f3552]/20 bg-[#1f3552]/5 text-[#1f3552]">
-                  {k}
-                </Kbd>
-              ))}
-            </span>
-          </div>
-        ))}
+    <Sheet>
+      <NavBar title="Controls" onBack={onBack} backLabel="Paused" />
+      <div className="space-y-6 px-4 pt-2">
+        <Group header="Keyboard" footer="Arrow keys mirror the letters: ↓ climbs, ↑ dives, ← → turn.">
+          {CONTROL_HELP.map((c) => (
+            <Row
+              key={c.label}
+              title={c.label}
+              accessory={
+                <span className="flex gap-1">
+                  {c.keys.map((k) => (
+                    <Kbd key={k}>{k}</Kbd>
+                  ))}
+                </span>
+              }
+            />
+          ))}
+        </Group>
+        <Group header="Mouse" footer="With Mouse steering on, the left button steers, so drag with the right button to look.">
+          <Row title="Look around" accessory={<span className="text-[15px] text-[#5d6b80]">Drag</span>} />
+          <Row title="Zoom" accessory={<span className="text-[15px] text-[#5d6b80]">Scroll</span>} />
+          <Row title="Reset view" accessory={<span className="text-[15px] text-[#5d6b80]">Double-click</span>} />
+        </Group>
+        <Group header="Other devices">
+          <Row icon={Gamepad2} color={SYSTEM.indigo} title="Gamepad" subtitle="Left stick flies (pull back to climb) · RT boost · LT brake · bumpers roll · A explore · Start pause" />
+          <Row icon={Plane} color={SYSTEM.teal} title="Touch" subtitle="On-screen stick (pull back to climb) with Boost, Brake and Explore buttons" />
+        </Group>
       </div>
-      <p className="mt-4 text-xs text-[#1f3552]/60">Arrow keys mirror W/A/S/D. Gamepads: left stick to fly, RT boost, LT brake, bumpers roll, A explore, Start pause. Touch devices get an on-screen stick.</p>
-    </Glass>
+    </Sheet>
   );
 }
 
 function LogPanel({ onBack }: { onBack: () => void }) {
   const p = useGame((s) => s.progress);
+  const pct = Math.round(completion(p) * 100);
   return (
-    <Glass className="max-h-[85vh] overflow-y-auto p-6">
-      <Header title="Mission Log" onBack={onBack} />
-      <div className="mb-5 flex items-center gap-4 rounded-xl bg-[#1f3552]/5 p-3">
-        <div className="font-mono text-3xl font-semibold text-[#1f3552]">{Math.round(completion(p) * 100)}%</div>
-        <div className="text-xs text-[#1f3552]/70">
-          {p.discoveredRegions.length} regions · {p.viewed.filter((v) => v.startsWith("project-")).length}/{portfolio.projects.length} projects · {p.collectibles.length}/{portfolio.flightLogs.length} flight logs · {Math.round(p.flightSeconds / 60)} min flown
+    <Sheet>
+      <NavBar title="Mission Log" onBack={onBack} backLabel="Paused" />
+      <div className="space-y-6 px-4 pt-2">
+        <div className="ios-group flex items-center gap-4 p-4">
+          <div className="relative h-16 w-16 shrink-0">
+            <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
+              <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(120,120,128,0.16)" strokeWidth="4" />
+              <circle cx="18" cy="18" r="15.5" fill="none" stroke="#2b5c8a" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${(pct / 100) * 97.4} 97.4`} />
+            </svg>
+            <span className="absolute inset-0 grid place-items-center text-[15px] font-semibold text-[#1f3552]">{pct}%</span>
+          </div>
+          <div className="text-[13px] leading-relaxed text-[#5d6b80]">
+            <div className="text-[17px] font-semibold text-[#1f3552]">Explored</div>
+            {p.discoveredRegions.length} regions · {p.viewed.filter((v) => v.startsWith("project-")).length} of {portfolio.projects.length} projects · {p.collectibles.length} of {portfolio.flightLogs.length} logs ·{" "}
+            {Math.round(p.flightSeconds / 60)} min flown
+          </div>
         </div>
+        <Group header="Missions">
+          {MISSIONS.map((m) => {
+            const done = m.done(p);
+            const pr = m.progress?.(p);
+            return (
+              <Row
+                key={m.id}
+                title={<span className={done ? "text-[#7d8593]" : undefined}>{m.title}</span>}
+                accessory={
+                  <span className="flex items-center gap-2">
+                    {pr && <span className="text-[15px] tabular-nums text-[#7d8593]">{pr[0]}/{pr[1]}</span>}
+                    {done ? <CheckCircle2 size={22} className="text-[#3f8f5a]" fill="#3f8f5a" stroke="white" /> : <Circle size={22} className="text-[#c7c7cc]" />}
+                  </span>
+                }
+              />
+            );
+          })}
+        </Group>
+        <Group header="Courses">
+          {[
+            ["canyon-run", "Canyon Run"],
+            ["skyline-sprint", "Skyline Sprint"],
+            ["summit-spiral", "Summit Spiral"],
+          ].map(([id, name]) => (
+            <Row key={id} icon={Medal} color={p.courses[id] ? SYSTEM.yellow : SYSTEM.gray} title={name} value={p.courses[id] ? `${p.courses[id].best.toFixed(2)}s` : "Not flown"} />
+          ))}
+        </Group>
+        <Group header="Achievements">
+          {ACHIEVEMENTS.map((a) => {
+            const got = p.achievements.includes(a.id);
+            return <Row key={a.id} icon={got ? Award : Lock} color={got ? "#E5B000" : "#b9bfc9"} title={<span className={got ? undefined : "text-[#7d8593]"}>{a.title}</span>} subtitle={a.description} />;
+          })}
+        </Group>
+        <Group header="Flight Logs" footer="Logs glow gold. Look behind waterfalls, under islands and on top of towers.">
+          {portfolio.flightLogs.map((l) => {
+            const got = p.collectibles.includes(l.id);
+            return <Row key={l.id} icon={got ? BookOpen : Lock} color={got ? SYSTEM.orange : "#b9bfc9"} title={got ? l.title : "Undiscovered"} subtitle={got ? l.body : undefined} />;
+          })}
+        </Group>
       </div>
-      <Label className="text-[#d9573f]">Missions</Label>
-      <ul className="mb-5 mt-2 space-y-1.5">
-        {MISSIONS.map((m) => {
-          const done = m.done(p);
-          const pr = m.progress?.(p);
-          return (
-            <li key={m.id} className="flex items-center gap-3 text-sm">
-              <span className={cn("grid h-5 w-5 shrink-0 place-items-center rounded-full", done ? "bg-[#3fb8af] text-white" : "ring-1 ring-[#1f3552]/25")}>{done && <Check size={12} />}</span>
-              <span className={cn("text-[#1f3552]", done && "text-[#1f3552]/50 line-through")}>{m.title}</span>
-              {pr && <span className="ml-auto font-mono text-[11px] text-[#1f3552]/50">{pr[0]}/{pr[1]}</span>}
-            </li>
-          );
-        })}
-      </ul>
-      <Label className="text-[#d9573f]">Courses</Label>
-      <ul className="mb-5 mt-2 space-y-1 text-sm text-[#1f3552]">
-        {[
-          ["canyon-run", "Canyon Run"],
-          ["skyline-sprint", "Skyline Sprint"],
-          ["summit-spiral", "Summit Spiral"],
-        ].map(([id, name]) => (
-          <li key={id} className="flex justify-between">
-            <span>{name}</span>
-            <span className="font-mono text-xs text-[#1f3552]/60">{p.courses[id] ? `${p.courses[id].best.toFixed(2)}s · ${p.courses[id].medal}` : "not flown"}</span>
-          </li>
-        ))}
-      </ul>
-      <Label className="text-[#d9573f]">Achievements</Label>
-      <div className="mb-5 mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {ACHIEVEMENTS.map((a) => {
-          const got = p.achievements.includes(a.id);
-          return (
-            <div key={a.id} className={cn("flex items-start gap-2.5 rounded-xl p-2.5 ring-1", got ? "bg-[#fff4d6] ring-[#e6b64c]/40" : "ring-[#1f3552]/10 opacity-60")}>
-              <Award size={16} className={got ? "mt-0.5 text-[#b88a1c]" : "mt-0.5 text-[#1f3552]/40"} />
-              <div>
-                <p className="text-sm font-semibold text-[#1f3552]">{a.title}</p>
-                <p className="text-[11px] leading-snug text-[#1f3552]/60">{a.description}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <Label className="text-[#d9573f]">Flight logs</Label>
-      <div className="mt-2 space-y-2">
-        {portfolio.flightLogs.map((l) => {
-          const got = p.collectibles.includes(l.id);
-          return (
-            <div key={l.id} className="rounded-xl bg-[#1f3552]/[0.04] p-3">
-              <p className="flex items-center gap-1.5 text-sm font-semibold text-[#1f3552]">
-                {got ? <BookOpen size={14} className="text-[#b88a1c]" /> : <Lock size={13} className="text-[#1f3552]/40" />}
-                {got ? l.title : "Undiscovered log"}
-              </p>
-              <p className="mt-0.5 text-xs leading-relaxed text-[#1f3552]/70">{got ? l.body : "Hidden somewhere in the world. Look for a golden glow."}</p>
-            </div>
-          );
-        })}
-      </div>
-    </Glass>
+    </Sheet>
   );
 }
 
@@ -233,9 +178,9 @@ function HangarPanel({ onBack }: { onBack: () => void }) {
   const setSkin = useGame((s) => s.setSkin);
   const unlocked = unlockedSkins(p);
   return (
-    <Glass className="p-6">
-      <Header title="Hangar" onBack={onBack} />
-      <div className="grid gap-3 sm:grid-cols-2">
+    <Sheet>
+      <NavBar title="Hangar" onBack={onBack} backLabel="Paused" />
+      <div className="grid grid-cols-2 gap-3 px-4 pt-2">
         {SKINS.map((s) => {
           const ok = unlocked.includes(s.id);
           const on = p.skin === s.id;
@@ -244,19 +189,27 @@ function HangarPanel({ onBack }: { onBack: () => void }) {
               key={s.id}
               disabled={!ok}
               onClick={() => setSkin(s.id)}
-              className={cn("rounded-2xl p-3 text-left ring-1 transition", on ? "bg-white ring-2 ring-[#f2735a]" : "bg-white/60 ring-[#1f3552]/10 hover:bg-white", !ok && "cursor-not-allowed opacity-60")}
+              className={cn("relative rounded-[10px] bg-white p-3 text-left transition", on && "ring-2 ring-[#2b5c8a]", !ok && "cursor-not-allowed")}
             >
-              <div className="mb-2 flex h-14 items-center justify-center rounded-xl" style={{ background: `linear-gradient(135deg, ${s.body} 0 55%, ${s.accent} 55% 75%, ${s.trim} 75%)` }}>
-                {!ok && <Lock size={18} className="text-[#1f3552]/70" />}
-                {on && <Check size={18} className="text-[#1f3552]" />}
+              <div className="relative mb-2.5 flex h-20 items-center justify-center overflow-hidden rounded-[12px]" style={{ background: `linear-gradient(135deg, ${s.body} 0 55%, ${s.accent} 55% 76%, ${s.trim} 76%)` }}>
+                {!ok && (
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-black/45 text-white">
+                    <Lock size={16} />
+                  </span>
+                )}
               </div>
-              <p className="text-sm font-semibold text-[#1f3552]">{s.name}</p>
-              <p className="text-[11px] text-[#1f3552]/60">{ok ? (on ? "Equipped" : "Click to equip") : s.unlock}</p>
+              {on && (
+                <span className="absolute right-4 top-4 grid h-6 w-6 place-items-center rounded-full bg-[#2b5c8a] text-white shadow">
+                  <Check size={14} strokeWidth={3} />
+                </span>
+              )}
+              <p className="text-[15px] font-semibold text-[#1f3552]">{s.name}</p>
+              <p className="text-[12px] leading-snug text-[#5d6b80]">{ok ? (on ? "Equipped" : "Tap to equip") : s.unlock}</p>
             </button>
           );
         })}
       </div>
-    </Glass>
+    </Sheet>
   );
 }
 
@@ -273,74 +226,66 @@ export function PauseMenu() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-40 grid place-items-center bg-[#1f3552]/35 p-4 backdrop-blur-[6px]"
+      className="font-sf fixed inset-0 z-40 grid place-items-center bg-[#0d1523]/55 p-4"
       onClick={(e) => e.target === e.currentTarget && setOverlay(null)}
       role="dialog"
       aria-modal="true"
       aria-label="Pause menu"
     >
-      <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-xl">
+      <motion.div
+        key={overlay}
+        initial={{ y: 24, opacity: 0, scale: 0.98 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: "spring", damping: 28, stiffness: 320 }}
+        className="w-full max-w-[460px]"
+      >
         {overlay === "settings" && <SettingsPanel onBack={back} />}
         {overlay === "controls" && <ControlsPanel onBack={back} />}
         {overlay === "log" && <LogPanel onBack={back} />}
         {overlay === "hangar" && <HangarPanel onBack={back} />}
         {overlay === "pause" && (
-          <Glass className="p-6">
-            <Label className="text-[#d9573f]">Paused</Label>
-            <h2 className="mb-5 font-serif text-3xl italic text-[#1f3552]">Holding pattern</h2>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Button variant="primary" size="lg" onClick={() => setOverlay(null)} autoFocus>
-                <Play size={15} fill="currentColor" /> Resume flight
-              </Button>
-              <Button size="lg" onClick={() => setMode("portfolio")}>
-                <LayoutGrid size={15} /> View portfolio
-              </Button>
-              <Button size="lg" onClick={() => go("map")}>
-                <Map size={15} /> World map
-              </Button>
-              <Button size="lg" onClick={() => go("log")}>
-                <ScrollText size={15} /> Mission log
-              </Button>
-              <Button size="lg" onClick={() => go("hangar")}>
-                <Plane size={15} /> Hangar
-              </Button>
-              <Button size="lg" onClick={() => setPhoto(true)}>
-                <Camera size={15} /> Photo mode
-              </Button>
-              <Button size="lg" onClick={() => go("settings")}>
-                <Settings2 size={15} /> Settings
-              </Button>
-              <Button size="lg" onClick={() => go("controls")}>
-                <Keyboard size={15} /> Controls
-              </Button>
-            </div>
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-[#1f3552]/10 pt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  parkAtSpawn();
-                  setMode("title");
-                }}
-              >
-                <LogOut size={13} /> Return to title
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (window.confirm("Reset all exploration progress? This can't be undone.")) {
-                    clearSave();
-                    useGame.getState().resetProgress();
+          <Sheet>
+            <NavBar onDone={() => setOverlay(null)} doneLabel="Resume" />
+            <LargeTitle sub="Holding pattern. The world waits for you.">Paused</LargeTitle>
+            <div className="space-y-6 px-4">
+              <Group>
+                <Row icon={Play} color={SYSTEM.blue} title="Resume Flight" chevron onClick={() => setOverlay(null)} />
+              </Group>
+              <Group>
+                <Row icon={Map} color={SYSTEM.green} title="World Map" chevron onClick={() => go("map")} />
+                <Row icon={ListChecks} color={SYSTEM.orange} title="Mission Log" chevron onClick={() => go("log")} />
+                <Row icon={Plane} color={SYSTEM.indigo} title="Hangar" chevron onClick={() => go("hangar")} />
+                <Row icon={Camera} color={SYSTEM.pink} title="Photo Mode" chevron onClick={() => setPhoto(true)} />
+              </Group>
+              <Group>
+                <Row icon={Settings2} color={SYSTEM.gray} title="Settings" chevron onClick={() => go("settings")} />
+                <Row icon={Keyboard} color={SYSTEM.gray} title="Controls" chevron onClick={() => go("controls")} />
+                <Row icon={LayoutGrid} color={SYSTEM.teal} title="Classic Portfolio" chevron onClick={() => setMode("portfolio")} />
+              </Group>
+              <Group>
+                <Row
+                  title="Return to Title"
+                  tone="blue"
+                  onClick={() => {
                     parkAtSpawn();
                     setMode("title");
-                  }
-                }}
-              >
-                Reset progress
-              </Button>
+                  }}
+                />
+                <Row
+                  title="Reset Progress…"
+                  tone="red"
+                  onClick={() => {
+                    if (window.confirm("Reset all exploration progress? This can't be undone.")) {
+                      clearSave();
+                      useGame.getState().resetProgress();
+                      parkAtSpawn();
+                      setMode("title");
+                    }
+                  }}
+                />
+              </Group>
             </div>
-          </Glass>
+          </Sheet>
         )}
       </motion.div>
     </motion.div>

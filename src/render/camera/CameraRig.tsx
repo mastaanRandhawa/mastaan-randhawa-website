@@ -1,11 +1,11 @@
 import { useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Euler, PerspectiveCamera, Quaternion, Vector3 } from "three";
-import { runtime, photoOrbit } from "@/game/runtime";
+import { runtime, photoOrbit, look } from "@/game/runtime";
 import { useGame } from "@/game/store";
 import { CAMERA } from "@/config/flight";
 import { tuning } from "@/game/gameplay";
-import { getWorld, worldReady } from "@/world/world";
+import { destinationById, getWorld, worldReady } from "@/world/world";
 import { damp } from "@/game/flight/flightModel";
 
 const UP = new Vector3(0, 1, 0);
@@ -23,6 +23,7 @@ export function CameraRig() {
       roll: 0,
       orbit: 0.8,
       lastMode: "",
+      viewShift: 0,
       blendT: 1,
       blendDur: 1,
       q: new Quaternion(),
@@ -30,44 +31,84 @@ export function CameraRig() {
       tmp: new Vector3(),
       desired: new Vector3(),
       lookDesired: new Vector3(),
+      lookPlane: new Vector3(),
+      lookQ: new Quaternion(),
+      lookE: new Euler(),
     }),
     [],
   );
 
-  // Photo-mode controls.
+  // Pointer controls: photo-mode orbit, and free-look while flying.
   useEffect(() => {
     const el = gl.domElement;
-    let drag = false;
+    let mode: "photo" | "look" | null = null;
     let lx = 0;
     let ly = 0;
     const down = (e: PointerEvent) => {
-      if (!useGame.getState().photoMode) return;
-      drag = true;
+      const g = useGame.getState();
+      if (g.photoMode) mode = "photo";
+      else if (g.mode === "flying" && e.pointerType === "mouse") {
+        // In Mouse steering the left button steers, so look with the right button.
+        const allowed = g.settings.controlMode === "mouse" ? e.button === 2 : e.button === 0 || e.button === 2;
+        if (!allowed) return;
+        mode = "look";
+        look.dragging = true;
+      } else return;
       lx = e.clientX;
       ly = e.clientY;
       el.setPointerCapture(e.pointerId);
     };
     const move = (e: PointerEvent) => {
-      if (!drag) return;
-      photoOrbit.yaw -= (e.clientX - lx) * 0.006;
-      photoOrbit.pitch = Math.max(-0.4, Math.min(1.2, photoOrbit.pitch + (e.clientY - ly) * 0.005));
+      if (!mode) return;
+      const dx = e.clientX - lx;
+      const dy = e.clientY - ly;
       lx = e.clientX;
       ly = e.clientY;
+      if (mode === "photo") {
+        photoOrbit.yaw -= dx * 0.006;
+        photoOrbit.pitch = Math.max(-0.4, Math.min(1.2, photoOrbit.pitch + dy * 0.005));
+      } else {
+        look.yaw -= dx * 0.006;
+        look.pitch = Math.max(-0.6, Math.min(1.0, look.pitch + dy * 0.004));
+        look.lastInput = performance.now() / 1000;
+      }
     };
-    const up = () => (drag = false);
+    const up = () => {
+      if (mode === "look") {
+        look.dragging = false;
+        look.lastInput = performance.now() / 1000;
+      }
+      mode = null;
+    };
     const wheel = (e: WheelEvent) => {
-      if (!useGame.getState().photoMode) return;
-      photoOrbit.dist = Math.max(7, Math.min(140, photoOrbit.dist * (1 + Math.sign(e.deltaY) * 0.08)));
+      const g = useGame.getState();
+      const k = 1 + Math.sign(e.deltaY) * 0.08;
+      if (g.photoMode) photoOrbit.dist = Math.max(7, Math.min(140, photoOrbit.dist * k));
+      else if (g.mode === "flying") look.zoom = Math.max(0.55, Math.min(2.4, look.zoom * k));
+    };
+    const context = (e: MouseEvent) => {
+      if (useGame.getState().mode === "flying") e.preventDefault();
+    };
+    const reset = () => {
+      look.yaw = 0;
+      look.pitch = 0;
+      look.zoom = 1;
     };
     el.addEventListener("pointerdown", down);
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
     el.addEventListener("wheel", wheel, { passive: true });
+    el.addEventListener("contextmenu", context);
+    el.addEventListener("dblclick", reset);
     return () => {
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
+      el.removeEventListener("pointercancel", up);
       el.removeEventListener("wheel", wheel);
+      el.removeEventListener("contextmenu", context);
+      el.removeEventListener("dblclick", reset);
     };
   }, [gl]);
 
@@ -85,12 +126,16 @@ export function CameraRig() {
     const fwd = st.tmp.set(-Math.sin(p.heading), 0, -Math.cos(p.heading));
     const right = new Vector3(Math.cos(p.heading), 0, -Math.sin(p.heading));
     let mode: string = g.cameraMode;
+    const vstage = runtime.visit?.stage;
     if (g.mode === "title" || g.mode === "loading") mode = "title";
     else if (g.photoMode) mode = "photo";
+    else if (vstage === "landed") mode = "parked";
     else if (g.panel) mode = "showcase";
+    else if (vstage === "final" || vstage === "rollout" || vstage === "turn") mode = "landing";
+    else if (vstage === "takeoff") mode = "departure";
 
     if (mode !== st.lastMode) {
-      st.blendDur = mode === "cockpit" || st.lastMode === "cockpit" ? 0.2 : st.lastMode === "title" ? 2.4 : 0.9;
+      st.blendDur = mode === "cockpit" || st.lastMode === "cockpit" ? 0.2 : st.lastMode === "title" ? 2.4 : mode === "landing" || mode === "parked" || st.lastMode === "departure" ? 1.8 : 0.9;
       st.blendT = 0;
       st.lastMode = mode;
     }
@@ -118,6 +163,35 @@ export function CameraRig() {
         posK = 2;
         lookK = 3;
         fovTarget = mode === "title" ? 50 : 55;
+        break;
+      }
+      case "landing":
+      case "departure": {
+        // Side-quarter tracking shot: shows the island sliding past the wheels.
+        const v = runtime.visit!;
+        const [dx, dz] = mode === "departure" ? [-v.plan.dir[0], -v.plan.dir[1]] : v.plan.dir;
+        const side = mode === "departure" ? -1 : 1;
+        desiredOffset.set(-dx * 17 - dz * 9 * side, 5.5, -dz * 17 + dx * 9 * side);
+        lookOffset.set(dx * 9, 1.2, dz * 9);
+        posK = 3;
+        lookK = 5;
+        fovTarget = 55;
+        break;
+      }
+      case "parked": {
+        // Slow orbit that keeps both the plane and the island's landmark in frame.
+        const v = runtime.visit!;
+        const dest = destinationById(v.destId);
+        st.orbit += dt * 0.06 * (reduced ? 0.4 : 1);
+        const tx = dest ? (dest.pos[0] - p.x) * 0.3 : 0;
+        const tz = dest ? (dest.pos[2] - p.z) * 0.3 : 0;
+        const ty = dest ? Math.min(10, Math.max(2, (dest.pos[1] - p.y) * 0.25)) : 2;
+        const r = 40 + Math.hypot(tx, tz) * 0.6;
+        desiredOffset.set(tx + Math.sin(st.orbit) * r, ty + 24, tz + Math.cos(st.orbit) * r);
+        lookOffset.set(tx, ty, tz);
+        posK = 1.6;
+        lookK = 2.2;
+        fovTarget = 52;
         break;
       }
       case "photo": {
@@ -157,6 +231,33 @@ export function CameraRig() {
       }
     }
 
+    // Mouse free-look: orbit the follow offset, zoom it, and look at the plane.
+    const nowS = performance.now() / 1000;
+    if (!look.dragging && nowS - look.lastInput > 1.4) {
+      look.yaw = damp(look.yaw, 0, 2.2, dt);
+      look.pitch = damp(look.pitch, 0, 2.2, dt);
+    }
+    if (mode !== "title" && mode !== "photo" && mode !== "cockpit") {
+      if (Math.abs(look.yaw) > 1e-4 || Math.abs(look.pitch) > 1e-4 || look.zoom !== 1) {
+        const c = Math.cos(look.yaw);
+        const sn = Math.sin(look.yaw);
+        const ox = desiredOffset.x;
+        const oz = desiredOffset.z;
+        desiredOffset.x = ox * c + oz * sn;
+        desiredOffset.z = -ox * sn + oz * c;
+        const hl = Math.hypot(desiredOffset.x, desiredOffset.z) || 1;
+        const len = desiredOffset.length();
+        const el = Math.max(-0.35, Math.min(1.35, Math.atan2(desiredOffset.y, hl) + look.pitch));
+        desiredOffset.set((desiredOffset.x / hl) * Math.cos(el) * len, Math.sin(el) * len, (desiredOffset.z / hl) * Math.cos(el) * len).multiplyScalar(look.zoom);
+        const w = Math.min(1, (Math.abs(look.yaw) + Math.abs(look.pitch)) * 1.8);
+        lookOffset.lerp(st.lookPlane.set(0, 1.2, 0), w);
+      }
+      if (look.dragging) {
+        posK = Math.max(posK, 10);
+        lookK = Math.max(lookK, 12);
+      }
+    }
+
     // Glance toward a newly discovered landmark (keeps player in control).
     let glanceW = 0;
     if (runtime.glance && mode === "chase") {
@@ -170,6 +271,7 @@ export function CameraRig() {
       st.e.set(p.pitch, p.heading, -p.roll * (reduced ? 0.5 : 1), "YXZ");
       st.q.setFromEuler(st.e);
       const off = new Vector3(ox, oy, oz).applyQuaternion(st.q);
+      st.q.multiply(st.lookQ.setFromEuler(st.lookE.set(-look.pitch * 0.8, look.yaw, 0, "YXZ")));
       camera.position.set(p.x + off.x, p.y + off.y, p.z + off.z);
       camera.quaternion.slerp(st.q, blend < 1 ? 0.35 + blendEase * 0.65 : 1);
       st.offset.copy(off);
@@ -204,6 +306,11 @@ export function CameraRig() {
       st.roll = damp(st.roll, rollTarget, 4, dt);
       camera.rotateZ(st.roll);
     }
+    const W = state.size.width;
+    const panelW = g.panel && W >= 640 ? Math.min(620, W * 0.46) : 0;
+    st.viewShift = damp(st.viewShift, panelW / 2, 4, dt);
+    if (st.viewShift > 0.5) camera.setViewOffset(W, state.size.height, st.viewShift, 0, W, state.size.height);
+    else if (camera.view?.enabled) camera.clearViewOffset();
     st.fov = damp(st.fov, fovTarget, 3, dt);
     if (Math.abs(camera.fov - st.fov) > 0.01) {
       camera.fov = st.fov;

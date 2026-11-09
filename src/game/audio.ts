@@ -2,7 +2,7 @@
  * Procedural audio: every sound is synthesised with the Web Audio API, so there
  * are no audio files to load or license. Starts only after a user gesture.
  */
-type Sfx = "ring" | "discover" | "collect" | "bump" | "crash" | "click" | "boost" | "finish" | "achievement" | "open" | "whoosh";
+type Sfx = "touchdown" | "ring" | "discover" | "collect" | "bump" | "crash" | "click" | "boost" | "finish" | "achievement" | "open" | "whoosh";
 
 const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26];
 const midi = (n: number) => 440 * Math.pow(2, (n - 69) / 12);
@@ -225,6 +225,11 @@ class AudioEngine {
       case "crash":
         this.noiseBurst(t, 1.2, 900, 0.5, "lowpass", 120);
         this.play("bump", { strength: 1 });
+        break;
+      case "touchdown":
+        this.noiseBurst(t, 0.18, 2600, 0.12, "bandpass", 1400);
+        this.noiseBurst(t + 0.09, 0.14, 2400, 0.08, "bandpass", 1200);
+        this.play("bump", { strength: 0.22 });
         break;
       case "click":
         this.tone(1400, "sine", t, 0.002, 0.05, 0.05);

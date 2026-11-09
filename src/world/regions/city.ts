@@ -7,30 +7,13 @@ import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { floatingRocks, tree, bush, flowers } from "../prefabs/nature";
 import { streetlight, bench } from "../prefabs/structures";
+import { officeTower, type TowerStyle } from "../prefabs/architecture";
 import { approachRing, medalsFor } from "./common";
 import { portfolio } from "@/content/portfolio";
 
-const FACADES = ["#e9edf2", "#f4ead5", "#dfe6ee", "#f0e2cf", "#e3e0ec"];
-
-function tower(I: Isl, x: number, z: number, w: number, d: number, h: number, accent: string, glass = false) {
-  const y = I.h(x, z);
-  const b = I.b;
-  const facade = FACADES[Math.abs(Math.round(x * 7 + z * 3)) % FACADES.length];
-  b.add(P.box(), T(x, y + h / 2, z, w, h, d), glass ? "#9cc7dd" : facade);
-  const floors = Math.max(2, Math.floor((h - 2) / 3));
-  for (let f = 0; f < floors; f++) {
-    const fy = y + 2 + f * 3;
-    const lit = (f + Math.round(x)) % 3 !== 0;
-    b.add(P.box(), T(x, fy, z + d / 2 + 0.03, w * 0.86, 1.3, 0.08), lit ? C.window : "#7d8fa3", { emissive: lit ? 0.55 : 0.05 });
-    b.add(P.box(), T(x, fy, z - d / 2 - 0.03, w * 0.86, 1.3, 0.08), lit ? C.window : "#7d8fa3", { emissive: lit ? 0.5 : 0.05 });
-    b.add(P.box(), T(x + w / 2 + 0.03, fy, z, 0.08, 1.3, d * 0.86), (f + 1) % 3 ? C.window : "#7d8fa3", { emissive: 0.45 });
-    b.add(P.box(), T(x - w / 2 - 0.03, fy, z, 0.08, 1.3, d * 0.86), f % 2 ? C.window : "#7d8fa3", { emissive: 0.45 });
-  }
-  b.add(P.box(), T(x, y + h + 0.3, z, w + 0.6, 0.6, d + 0.6), accent);
-  b.add(P.box(), T(x + w * 0.2, y + h + 1.2, z - d * 0.15, w * 0.3, 1.2, d * 0.3), C.metal);
-  I.box(x, y + h / 2, z, w / 2 + 0.3, h / 2 + 0.6, d / 2 + 0.3);
-  I.block(x, z, Math.max(w, d) * 0.75);
-  return y + h;
+/** City tower in one of the architecture kit's archetypes; returns the roof height (local y). */
+function tower(I: Isl, x: number, z: number, w: number, d: number, h: number, accent: string, style: TowerStyle) {
+  return I.h(x, z) + officeTower(I, x, z, w, d, h, accent, style);
 }
 
 function serverHall(I: Isl, x: number, z: number, accent: string) {
@@ -88,20 +71,26 @@ export function buildCity(kit: RegionKit, def: RegionDef, out: RegionExtras) {
 
   // ── HQ plaza: the two roles as two towers ──
   const [appRole, dataRole] = [portfolio.company.roles[1], portfolio.company.roles[0]];
-  const appTop = tower(I, -15, -8, 11, 11, 34, "#7d8fa3", true);
-  const dataTop = tower(I, 15, -10, 12, 12, 48, accent, true);
+  const appTop = tower(I, -15, -8, 11, 11, 34, "#7d8fa3", "glass");
+  const dataTop = tower(I, 15, -10, 12, 12, 48, accent, "glass");
   b.add(P.box(), T(15, dataTop + 3, -10, 0.4, 6, 0.4), C.metalDark);
   b.add(P.torus(0.12, 6, 24), T(15, dataTop + 1.4, -10, 10, 10, 2, 0, Math.PI / 2), accent, { emissive: 0.7 });
   I.anchor("beacon", 15, dataTop + 6.4, -10, { data: { color: "#ff4b3e", period: 1.4 } });
   out.collectibles.push({ id: "log-thoughtswin", pos: I.w(15, dataTop + 14, -10), hint: "Above the Data Engineering tower" });
-  I.anchor("sign", -15, appTop - 4, -2.45, { data: { lines: [appRole.title.toUpperCase(), appRole.period], w: 9.6, h: 2.6, bg: "#fbf6ec", fg: "#1f3552", accent: "#7d8fa3" } });
-  I.anchor("sign", 15, dataTop - 4, -3.95, { data: { lines: [dataRole.title.toUpperCase(), `${dataRole.period} · CURRENT`], w: 10.6, h: 2.6, bg: "#fbf6ec", fg: "#1f3552", accent } });
+  I.anchor("sign", -15, appTop - 6, -2.15, { data: { lines: [appRole.title.toUpperCase(), appRole.period], w: 9.6, h: 2.6, bg: "#fbf6ec", fg: "#1f3552", accent: "#7d8fa3" } });
+  I.anchor("sign", 15, dataTop - 6, -3.65, { data: { lines: [dataRole.title.toUpperCase(), `${dataRole.period} · CURRENT`], w: 10.6, h: 2.6, bg: "#fbf6ec", fg: "#1f3552", accent } });
   // HQ lobby
   b.add(P.box(), T(0, 4.5, 16, 30, 9, 10), "#f4ead5");
   b.add(P.box(), T(0, 3, 21.05, 26, 4.6, 0.1), C.glass, { emissive: 0.3 });
   b.add(P.box(), T(0, 9.3, 16, 31, 0.6, 11), accent);
+  // Colonnade, entrance canopy and a clerestory of lit windows.
+  for (let k = -3; k <= 3; k++) b.add(P.box(), T(k * 4.2, 4.6, 21.3, 0.7, 8.8, 0.5), "#fbf6ec");
+  b.add(P.box(), T(0, 5.6, 22.9, 9, 0.35, 3.4), accent);
+  for (const sx of [-4, 4]) b.add(P.cyl(8), T(sx, 2.9, 24.2, 0.3, 5.4, 0.3), C.metalDark);
+  b.add(P.box(), T(0, 0.15, 23.5, 10, 0.3, 5), C.stone);
+  for (let k = -3; k < 3; k++) b.add(P.box(), T(k * 4.2 + 2.1, 7.2, 21.12, 2.6, 1.2, 0.08), C.window, { emissive: 0.45 });
   I.box(0, 4.5, 16, 15, 4.8, 5);
-  I.anchor("sign", 0, 11.4, 21.2, { data: { lines: [portfolio.company.name.toUpperCase()], w: 18, h: 2.4, bg: "#1f3552", fg: "#ffffff", accent, font: 60 } });
+  I.anchor("sign", 0, 11.4, 21.2, { data: { lines: [portfolio.company.name.toUpperCase()], w: 26, h: 2.4, bg: "#1f3552", fg: "#ffffff", accent, font: 58 } });
   I.anchor("fountain", 0, 0.4, -26);
   b.add(P.cyl(16), T(0, 0.4, -26, 9, 0.8, 9), C.stone);
   I.anchor("pond", 0, 0.85, -26, { s: 4 });
@@ -138,7 +127,10 @@ export function buildCity(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     [28, -66, 12, 12, 20],
     [92, -66, 12, 12, 28],
   ];
-  for (const [x, z, w, d, h] of blocks) tower(I, x, z, w, d, h, ["#f2735a", "#3fb8af", "#e6b64c", "#5b6cff"][Math.abs(x + z) % 4]);
+  blocks.forEach(([x, z, w, d, h], i) => {
+    const style: TowerStyle = h >= 26 ? (i % 2 ? "deco" : "glass") : h <= 18 ? "masonry" : i % 2 ? "masonry" : "deco";
+    tower(I, x, z, w, d, h, ["#d9573f", "#2f8f8a", "#c99a3a", "#4a5fd0"][Math.abs(x + z) % 4], style);
+  });
 
   // ── Dashboard park: bar chart sculpture + trees ──
   const bars = [6, 10, 8, 14, 12, 18];
@@ -194,5 +186,6 @@ export function buildCity(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     interactRadius: 140,
     ring: approachRing(def, cx, cy, cz - 120, -10, 40, 13),
     accent,
+    landing: { x: cx, y: cy + 0.24, z: cz - 40, heading: -Math.PI / 2, length: 200, turn: -1 },
   });
 }

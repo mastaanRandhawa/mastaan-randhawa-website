@@ -1,17 +1,19 @@
-import { ADVANCED, ASSISTED, SIM, type FlightTuning } from "@/config/flight";
+import { FLIGHT, SIM, type FlightTuning } from "@/config/flight";
 import { stepFlight, stepTakeoff, damp, wrapPi, type FlightInput } from "./flight/flightModel";
 import { runtime, resetFlightAt, parkAtSpawn } from "./runtime";
+import { logEvent } from "@/debug/recorder";
 import { useGame, simRunning } from "./store";
 import { readFlightInput, rumble } from "./input";
 import { audio } from "./audio";
 import { getWorld, courseById, destinationById, worldReady } from "@/world/world";
 import { REGIONS, WORLD } from "@/world/layout";
 import type { RingDef } from "@/world/defs";
+import { cancelVisit, stepVisit } from "./visit";
 
 const input: FlightInput = { pitch: 0, turn: 0, roll: 0, boost: false, brake: false };
 export const RUNWAY_Y = 100.34;
 
-export const tuning = (): FlightTuning => (useGame.getState().settings.flightAssist ? ASSISTED : ADVANCED);
+export const tuning = (): FlightTuning => FLIGHT;
 
 const env = {
   collide: (x: number, y: number, z: number, r: number) => (worldReady() ? getWorld().collision.collide(x, y, z, r) : null),
@@ -31,7 +33,7 @@ export function beginTakeoff() {
 /** Skip the runway roll and start airborne (Continue / experienced players). */
 export function beginAirborne() {
   const cp = runtime.checkpoint;
-  resetFlightAt(cp.x, cp.y, cp.z, cp.heading, ASSISTED.baseSpeed);
+  resetFlightAt(cp.x, cp.y, cp.z, cp.heading, FLIGHT.baseSpeed);
   runtime.phase = "flying";
   runtime.phaseTime = 0;
 }
@@ -50,6 +52,21 @@ export function respawn(reason: "crash" | "reset" | "lost") {
     st.setCourse(null);
     st.toast({ kind: "info", title: "Course reset", body: "Fly through the start ring to try again." });
   }
+}
+
+/** Flew past the edge of the world: fade and respawn inside it, facing the islands. */
+function outOfBounds() {
+  const f = runtime.flight;
+  const ang = Math.atan2(f.z, f.x);
+  const r = WORLD.radius - 330;
+  const x = Math.cos(ang) * r;
+  const z = Math.sin(ang) * r;
+  const ground = worldReady() ? getWorld().collision.groundAt(x, z) : -Infinity;
+  const y = Math.max(190, ground + 80);
+  runtime.checkpoint = { x, y, z, heading: Math.atan2(x, z) }; // heading that faces the origin
+  runtime.boundsWarned = false;
+  useGame.getState().toast({ kind: "info", title: "Back to the islands", body: "You flew past the edge of the archipelago." });
+  respawn("lost");
 }
 
 function setCheckpointHere() {
@@ -80,7 +97,11 @@ function simStep(h: number) {
       break;
     }
     case "flying": {
-      const ev = stepFlight(f, input, t, h, env, { rollAutoLevel: useGame.getState().settings.flightAssist ? 1 : 0, worldRadius: WORLD.radius });
+      const ev = stepFlight(f, input, t, h, env);
+      if (Math.hypot(f.x, f.z) > WORLD.radius) {
+        outOfBounds();
+        break;
+      }
       if (ev.barrelRoll) useGame.getState().unlock("barrel-roll");
       if (ev.crashed) respawn(f.y < t.floor ? "lost" : "crash");
       else if (ev.impact > 4 && runtime.simTime - runtime.lastImpactAt > 0.25) {
@@ -92,6 +113,9 @@ function simStep(h: number) {
       }
       break;
     }
+    case "visit":
+      stepVisit(h);
+      break;
     case "respawning": {
       const before = runtime.respawnT;
       runtime.respawnT -= h;
@@ -112,6 +136,38 @@ function simStep(h: number) {
 const lerpAngle = (a: number, b: number, t: number) => a + wrapPi(b - a) * t;
 
 /** Called once per rendered frame by the R3F loop. */
+const FINITE_KEYS = ["x", "y", "z", "vx", "vy", "vz", "heading", "pitch", "roll", "speed", "pitchRate", "rollRate", "yawRate"] as const;
+
+function flightIsFinite(f: typeof runtime.flight) {
+  for (const k of FINITE_KEYS) if (!Number.isFinite(f[k])) return false;
+  return true;
+}
+
+let badStateWarned = false;
+/**
+ * Safety net: a non-finite value anywhere in the flight state would otherwise
+ * stick forever (NaN spreads), leaving the camera with nothing to draw. Put the
+ * plane back at the last good checkpoint instead.
+ */
+function recoverFromBadState() {
+  const cp = runtime.checkpoint;
+  const ok = [cp.x, cp.y, cp.z, cp.heading].every(Number.isFinite);
+  const c = ok ? cp : { x: 0, y: 170, z: 260, heading: 0 };
+  if (!ok) runtime.checkpoint = { ...c };
+  if (runtime.visit) {
+    runtime.visit = null;
+    useGame.getState().setVisit(null);
+  }
+  resetFlightAt(c.x, c.y, c.z, c.heading, FLIGHT.baseSpeed);
+  runtime.phase = "flying";
+  runtime.phaseTime = 0;
+  if (!badStateWarned) {
+    badStateWarned = true;
+    console.warn("[flight] non-finite flight state; recovered at the last checkpoint");
+  }
+  logEvent("flight-state-recovered", { checkpoint: { ...c } }, "warn");
+}
+
 export function tick(rawDt: number) {
   const dt = Math.min(rawDt, SIM.maxFrameDelta);
   const st = useGame.getState();
@@ -119,6 +175,10 @@ export function tick(rawDt: number) {
   const f = runtime.flight;
 
   readFlightInput(dt, st.settings, input);
+  // Grabbing the controls during an autopilot transit hands control back.
+  if (running && runtime.phase === "visit" && runtime.visit?.stage === "travel" && (Math.abs(input.pitch) > 0.35 || Math.abs(input.turn) > 0.35 || Math.abs(input.roll) > 0.35)) {
+    cancelVisit();
+  }
   runtime.ctl.pitch = damp(runtime.ctl.pitch, running ? input.pitch : 0, 8, dt);
   runtime.ctl.turn = damp(runtime.ctl.turn, running ? input.turn : 0, 8, dt);
   runtime.ctl.roll = damp(runtime.ctl.roll, running ? input.roll : 0, 8, dt);
@@ -134,6 +194,7 @@ export function tick(rawDt: number) {
       steps++;
     }
     if (steps >= SIM.maxSubSteps) runtime.accumulator = 0;
+    if (!flightIsFinite(runtime.flight)) recoverFromBadState();
     const a = runtime.accumulator / h;
     const cur = runtime.flight;
     const p = runtime.prev;
@@ -150,10 +211,13 @@ export function tick(rawDt: number) {
     Object.assign(runtime.pose, { x: f.x, y: f.y, z: f.z, heading: f.heading, pitch: f.pitch, roll: f.roll });
   }
   runtime.shake = damp(runtime.shake, 0, 3.5, dt);
+  runtime.flash = damp(runtime.flash, 0, 4, dt);
 
   const t = tuning();
   const speedT = Math.min(1, Math.max(0, (f.speed - t.minSpeed) / (t.maxSpeed - t.minSpeed)));
-  const rpm = runtime.phase === "parked" ? 0.1 : Math.min(1, 0.35 + speedT * 0.55 + (f.boosting ? 0.1 : 0));
+  const vs = runtime.visit?.stage;
+  const idle = runtime.phase === "parked" || vs === "landed" || vs === "turn";
+  const rpm = idle ? 0.1 : Math.min(1, 0.35 + speedT * 0.55 + (f.boosting ? 0.1 : 0) + (vs === "takeoff" ? 0.3 : 0));
   audio.updateFlight(st.mode === "flying" || st.mode === "title", rpm, speedT, f.boosting && running, !running && st.mode === "flying");
 }
 
@@ -193,7 +257,8 @@ function frameGameplay(dt: number) {
   const st = useGame.getState();
   const f = runtime.flight;
   const w = getWorld();
-  if (!last.valid || runtime.phase !== "flying") {
+  const visiting = runtime.phase === "visit";
+  if (!last.valid || (runtime.phase !== "flying" && !visiting)) {
     Object.assign(last, { x: f.x, y: f.y, z: f.z, valid: true });
     return;
   }
@@ -207,8 +272,10 @@ function frameGameplay(dt: number) {
   runtime.airborneTime += dt;
 
   // ── Courses ──
-  const run = st.course;
-  if (run) {
+  const run = visiting ? null : st.course;
+  if (visiting) {
+    // Autopilot: no ring triggers or prompts, just discovery + pickups below.
+  } else if (run) {
     const c = courseById(run.id)!;
     runtime.courseTime = runtime.simTime - run.startedAt;
     const ring = c.rings[run.next];
@@ -260,7 +327,7 @@ function frameGameplay(dt: number) {
   if (st.tutorialStep === 3 && f.boosting) st.setTutorialStep(4);
 
   // ── Destination arrival rings ──
-  for (const d of w.destinations) {
+  if (!visiting) for (const d of w.destinations) {
     if (d.ring && crossed(d.ring, ax, ay, az, bx, by, bz)) {
       audio.play("open");
       st.setDiscoveryCard(d.id);
@@ -297,7 +364,7 @@ function frameGameplay(dt: number) {
   // ── Nearby destination (interaction prompt) ──
   let best: string | null = null;
   let bestD = Infinity;
-  for (const d of w.destinations) {
+  if (!visiting) for (const d of w.destinations) {
     const dist = Math.hypot(d.pos[0] - bx, d.pos[1] - by, d.pos[2] - bz);
     if (dist < d.interactRadius && dist < bestD) {
       best = d.id;
@@ -306,10 +373,17 @@ function frameGameplay(dt: number) {
   }
   st.setNearby(best);
 
+  // ── Edge-of-world warning ──
+  const fromCentre = Math.hypot(bx, bz);
+  if (!visiting && fromCentre > WORLD.radius - 150 && !runtime.boundsWarned) {
+    runtime.boundsWarned = true;
+    st.toast({ kind: "info", title: "Leaving the archipelago", body: "Turn back, or you'll be returned to the islands." });
+  } else if (fromCentre < WORLD.radius - 300) runtime.boundsWarned = false;
+
   // ── Speed achievement / checkpoints / play time ──
   if (f.speed > tuning().maxSpeed * 0.95) st.unlock("speed");
   checkpointTimer += dt;
-  if (checkpointTimer > 2 && f.clearance > 35 && Math.abs(f.pitch) < 0.45 && Math.abs(f.roll) < 0.6) {
+  if (!visiting && checkpointTimer > 2 && f.clearance > 35 && Math.abs(f.pitch) < 0.45 && Math.abs(f.roll) < 0.6) {
     checkpointTimer = 0;
     setCheckpointHere();
   }
@@ -337,6 +411,8 @@ export function travelTo(destId: string) {
   runtime.checkpoint = { x: px, y: y + 30, z: pz, heading };
   respawn("reset");
 }
+
+export { startVisit } from "./visit";
 
 export function resetToCheckpoint() {
   if (runtime.phase === "flying") respawn("reset");

@@ -5,7 +5,7 @@ import type { RegionExtras } from "../defs";
 import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { floatingRocks, tree } from "../prefabs/nature";
-import { flagpole } from "../prefabs/structures";
+import { airstrip, flagpole, stripPad } from "../prefabs/structures";
 import { approachRing } from "./common";
 import { portfolio } from "@/content/portfolio";
 
@@ -35,7 +35,8 @@ export function buildPeaks(kit: RegionKit, def: RegionDef, out: RegionExtras) {
   const certs = portfolio.credentials.filter((c) => c.kind === "certification");
   const badges = portfolio.credentials.filter((c) => c.kind === "badge");
   // Base plateau the spires rise from.
-  const base = kit.island({ id: "peaks-base", x: cx, y: cy - 40, z: cz, radius: 60, seed: 5501, hilliness: 6, depth: 70, palette: PALETTES.spire, pads: [{ x: 0, z: 0, r: 16, h: 0, color: "#cfc6b6", colorStrength: 0.5 }] });
+  const base = kit.island({ id: "peaks-base", x: cx, y: cy - 40, z: cz, radius: 60, seed: 5501, hilliness: 6, depth: 70, palette: PALETTES.spire, pads: [{ x: 0, z: 0, r: 16, h: 0, color: "#cfc6b6", colorStrength: 0.5 }, stripPad(10, 12, Math.PI / 2, 56)] });
+  const peaksLanding = airstrip(base, 10, 12, Math.PI / 2, 56);
   base.scatter(16, { maxRho: 0.85, spacing: 8, minRho: 0.35 }, (x, z, y) => tree(base, x, z, "pine", 1.2, y));
   floatingRocks(base, 10, 1.5);
   base.b.add(P.cyl(10), T(0, base.h(0, 0) + 1, 0, 10, 2, 10), C.stone);
@@ -74,5 +75,6 @@ export function buildPeaks(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     interactRadius: 120,
     ring: approachRing({ ...def, center: [cx + 300, cy, cz + 300] }, cx, cy + 4, cz, 0, 0, 13),
     accent: def.accent,
+    landing: peaksLanding,
   });
 }

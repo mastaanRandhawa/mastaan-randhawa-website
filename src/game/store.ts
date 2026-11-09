@@ -23,6 +23,12 @@ export interface PanelState {
   id?: string;
 }
 
+export interface VisitUI {
+  destId: string;
+  stage: "travel" | "final" | "rollout" | "turn" | "landed" | "takeoff" | "climb" | "handoff";
+  nextId: string | null;
+}
+
 export interface CourseRun {
   id: string;
   next: number;
@@ -60,7 +66,9 @@ interface GameStore {
   webglOk: boolean;
   isTouch: boolean;
   openLog: string | null;
+  visit: VisitUI | null;
 
+  setVisit: (v: VisitUI | null) => void;
   setMode: (m: AppMode) => void;
   setLoadProgress: (v: number) => void;
   setOverlay: (o: Overlay) => void;
@@ -139,7 +147,9 @@ export const useGame = create<GameStore>((set, get) => {
     webglOk: true,
     isTouch: typeof window !== "undefined" && !!window.matchMedia?.("(pointer: coarse)").matches,
     openLog: null,
+    visit: null,
 
+    setVisit: (visit) => set({ visit }),
     setMode: (mode) => {
       set({ mode, overlay: null, panel: null, photoMode: false });
       track("mode", { mode });

@@ -1,12 +1,13 @@
 import { createFlightState, type FlightState } from "./flight/flightModel";
 import { WORLD } from "@/world/layout";
+import type { Visit } from "./visit";
 
 /**
  * High-frequency mutable game state. Lives OUTSIDE React so the 120 Hz sim and
  * the 60+ fps renderer never trigger component re-renders. UI reads it inside
  * requestAnimationFrame callbacks.
  */
-export type FlightPhase = "parked" | "takeoff" | "flying" | "respawning";
+export type FlightPhase = "parked" | "takeoff" | "flying" | "respawning" | "visit";
 
 export interface Pose {
   x: number;
@@ -42,7 +43,18 @@ export const runtime = {
   ringFlashAt: -10,
   speedRecord: 0,
   airborneTime: 0,
+  /** Active island visit (autopilot landing / takeoff), if any. */
+  visit: null as Visit | null,
+  /** White flash for skips (decays each frame). */
+  flash: 0,
+  /** Edge-of-world warning shown for this excursion. */
+  boundsWarned: false,
+  /** Last touchdown, for the dust puff. */
+  dust: null as null | { x: number; y: number; z: number; at: number },
 };
+
+/** Free-look around the plane while flying (mouse drag + wheel). Eases back when idle. */
+export const look = { yaw: 0, pitch: 0, zoom: 1, dragging: false, lastInput: -10 };
 
 /** Photo-mode orbit (yaw/pitch around the plane, distance), driven by pointer + wheel. */
 export const photoOrbit = { yaw: 0.6, pitch: 0.25, dist: 18 };

@@ -80,7 +80,7 @@ export function Flags({ anchors }: { anchors: Anchor[] }) {
   return (
     <>
       {anchors.map((a, i) => (
-        <mesh key={i} geometry={geo} material={mats[i]} position={[a.x, a.y, a.z]} rotation={[0, 0.9 + (a.ry ?? 0), 0]} castShadow />
+        <mesh key={i} geometry={geo} material={mats[i]} position={[a.x, a.y, a.z]} rotation={[0, 0.9 + (a.ry ?? 0), 0]} />
       ))}
     </>
   );
@@ -121,7 +121,7 @@ export function Windsocks({ anchors }: { anchors: Anchor[] }) {
     <>
       {anchors.map((a, i) => (
         <group key={i} ref={(g) => (refs.current[i] = g)} position={[a.x, a.y, a.z]}>
-          <mesh geometry={stripes} material={mat} castShadow />
+          <mesh geometry={stripes} material={mat} />
         </group>
       ))}
     </>
@@ -145,7 +145,7 @@ export function Radars({ anchors, dishes = false }: { anchors: Anchor[]; dishes?
             <cylinderGeometry args={[0.25, 0.4, 1.2, 6]} />
           </mesh>
           <group ref={(g) => (refs.current[i] = g)}>
-            <mesh material={m.white} rotation={[dishes ? -0.9 : -1.25, 0, 0]} position={[0, 0.5, 0]} castShadow>
+            <mesh material={m.white} rotation={[dishes ? -0.9 : -1.25, 0, 0]} position={[0, 0.5, 0]}>
               <sphereGeometry args={[dishes ? 2.2 : 1.6, 14, 6, 0, Math.PI * 2, 0, 0.9]} />
             </mesh>
             <mesh material={m.accent} position={[0, 0.5, dishes ? 1.2 : 0.9]}>
@@ -160,24 +160,16 @@ export function Radars({ anchors, dishes = false }: { anchors: Anchor[]; dishes?
 
 // ── Beacons (blinking) ───────────────────────────────────────────────────────
 export function Beacons({ anchors }: { anchors: Anchor[] }) {
-  const refs = useRef<(Mesh | null)[]>([]);
+  // Steady obstruction lights. Pulsing them (even gently) made small, distant
+  // beacons pop in and out of a pixel, which read as orange twinkling.
   const mats = useMemo(
-    () => anchors.map((a) => new MeshBasicMaterial({ color: new Color(a.data?.color ?? "#ff4b3e").multiplyScalar(4), toneMapped: false })),
+    () => anchors.map((a) => new MeshBasicMaterial({ color: new Color(a.data?.color ?? "#ff4b3e").multiplyScalar(1.15), toneMapped: false })),
     [anchors],
   );
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    refs.current.forEach((m, i) => {
-      if (!m) return;
-      const period = anchors[i].data?.period ?? 2;
-      const on = ((t + i * 0.37) % period) / period < 0.5;
-      m.scale.setScalar(on ? 1 : 0.35);
-    });
-  });
   return (
     <>
       {anchors.map((a, i) => (
-        <mesh key={i} ref={(m) => (refs.current[i] = m)} position={[a.x, a.y, a.z]} material={mats[i]}>
+        <mesh key={i} position={[a.x, a.y, a.z]} material={mats[i]}>
           <sphereGeometry args={[0.45 * (a.s ?? 1), 10, 8]} />
         </mesh>
       ))}
@@ -205,15 +197,15 @@ export function Windmills({ anchors, turbine = false }: { anchors: Anchor[]; tur
             {(turbine ? [0, 1, 2] : [0, 1, 2, 3]).map((k) => (
               <group key={k} rotation={[0, 0, (k * Math.PI * 2) / (turbine ? 3 : 4)]}>
                 {turbine ? (
-                  <mesh material={m.white} position={[0, 6.5, 0]} castShadow>
+                  <mesh material={m.white} position={[0, 6.5, 0]}>
                     <boxGeometry args={[0.7, 13, 0.18]} />
                   </mesh>
                 ) : (
                   <>
-                    <mesh material={m.frame} position={[0, 4, 0]} castShadow>
+                    <mesh material={m.frame} position={[0, 4, 0]}>
                       <boxGeometry args={[0.25, 8, 0.2]} />
                     </mesh>
-                    <mesh material={m.sail} position={[0.75, 4.6, 0.05]} castShadow>
+                    <mesh material={m.sail} position={[0.75, 4.6, 0.05]}>
                       <boxGeometry args={[1.3, 6.4, 0.08]} />
                     </mesh>
                   </>
@@ -233,15 +225,21 @@ export function Ponds({ anchors }: { anchors: Anchor[] }) {
     const m = new MeshStandardMaterial({ color: C.water, roughness: 0.08, metalness: 0.25, emissive: new Color("#1d6f8a"), emissiveIntensity: 0.25 });
     m.onBeforeCompile = (s) => {
       s.uniforms.uTime = worldUniforms.uTime;
+      // Glints are anchored to the water (world space); view-space glints swam
+      // across the surface whenever the camera moved.
+      s.vertexShader = s.vertexShader
+        .replace("#include <common>", "#include <common>\nvarying vec2 vWp;")
+        .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xz;");
       s.fragmentShader = s.fragmentShader
-        .replace("#include <common>", "#include <common>\nuniform float uTime;")
+        .replace("#include <common>", "#include <common>\nuniform float uTime;\nvarying vec2 vWp;")
         .replace(
           "#include <emissivemap_fragment>",
           `#include <emissivemap_fragment>
-float sp = sin(vViewPosition.x * 1.7 + uTime * 2.0) * sin(vViewPosition.y * 2.3 - uTime * 1.6);
-totalEmissiveRadiance += vec3(0.9, 0.95, 1.0) * smoothstep(0.92, 1.0, sp) * 0.6;`,
+float sp = sin(vWp.x * 1.3 + uTime * 1.1) * sin(vWp.y * 1.7 - uTime * 0.9);
+totalEmissiveRadiance += vec3(0.9, 0.95, 1.0) * smoothstep(0.9, 1.0, sp) * 0.35 * (1.0 - smoothstep(60.0, 180.0, length(vViewPosition)));`,
         );
     };
+    m.customProgramCacheKey = () => "skybound-pond-v2";
     return m;
   }, []);
   return (
@@ -318,7 +316,7 @@ export function Waterfalls({ anchors }: { anchors: Anchor[] }) {
         for (let i = 0; i < p.count; i++) {
           const x = p.getX(i);
           const t = 1 - (p.getY(i) + h / 2) / h; // 0 top → 1 bottom
-          const out = Math.sqrt(t) * 7 + 0.6;
+          const out = Math.sqrt(Math.max(0, t)) * 7 + 0.6;
           const lateral = x;
           p.setXYZ(i, dx * out - dz * lateral, -t * h, dz * out + dx * lateral);
         }
@@ -395,8 +393,8 @@ export function Balloons({ anchors }: { anchors: Anchor[] }) {
     <>
       {anchors.map((a, i) => (
         <group key={i} ref={(g) => (refs.current[i] = g)} position={[a.x, a.y, a.z]} scale={a.s ?? 1}>
-          <mesh geometry={geos[i]} material={m.env} position={[0, 2.2, 0]} castShadow />
-          <mesh material={m.basket} position={[0, -0.6, 0]} castShadow>
+          <mesh geometry={geos[i]} material={m.env} position={[0, 2.2, 0]} />
+          <mesh material={m.basket} position={[0, -0.6, 0]}>
             <boxGeometry args={[1.5, 1.2, 1.5]} />
           </mesh>
           {[-0.6, 0.6].map((x) =>

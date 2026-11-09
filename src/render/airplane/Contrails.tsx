@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Mesh, ShaderMaterial, Vector3, type Object3D } from "three";
 import { runtime } from "@/game/runtime";
-import { ASSISTED } from "@/config/flight";
+import { FLIGHT } from "@/config/flight";
 
 const N = 46;
 
@@ -62,7 +62,7 @@ export function Contrails({ tips }: { tips: Object3D[] }) {
     const f = runtime.flight;
     const flying = runtime.phase === "flying";
     const g = Math.abs(runtime.flight.yawRate) * 1.2 + Math.abs(runtime.flight.pitchRate) * 1.4;
-    const fast = Math.max(0, (f.speed - ASSISTED.baseSpeed * 1.25) / (ASSISTED.maxSpeed - ASSISTED.baseSpeed * 1.25));
+    const fast = Math.max(0, (f.speed - FLIGHT.baseSpeed * 1.25) / (FLIGHT.maxSpeed - FLIGHT.baseSpeed * 1.25));
     const target = flying ? Math.min(1, fast * 1.2 + Math.max(0, g - 0.75) * 0.9) : 0;
     level.current += (target - level.current) * (1 - Math.exp(-4 * dt));
     const intensity = level.current;

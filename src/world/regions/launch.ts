@@ -231,5 +231,6 @@ export function buildLaunch(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     pos: [cx + 22, cy + 12, cz + 64],
     interactRadius: 85,
     accent: def.accent,
+    landing: { x: cx, y: cy + 0.34, z: cz, heading: 0, length: 160 },
   });
 }

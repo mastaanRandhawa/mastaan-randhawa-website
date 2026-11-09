@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { Camera, X } from "lucide-react";
 import { useState } from "react";
 import { useGame } from "@/game/store";
 import { canvasRef } from "@/render/captureRef";
 import { BRAND } from "@/config/brand";
 import { audio } from "@/game/audio";
 
+/** Camera-app style controls: shutter button + Done. */
 export function PhotoMode() {
   const setPhoto = useGame((s) => s.setPhoto);
   const unlock = useGame((s) => s.unlock);
@@ -26,20 +26,21 @@ export function PhotoMode() {
     }, "image/png");
     audio.play("click");
     setFlash(true);
-    setTimeout(() => setFlash(false), 180);
+    setTimeout(() => setFlash(false), 160);
     unlock("shutterbug");
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none fixed inset-0 z-30">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="font-sf pointer-events-none fixed inset-0 z-30">
       {flash && <div className="absolute inset-0 bg-white/80" />}
-      <div className="pointer-events-auto absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#1f3552]/70 p-2 pl-5 text-white ring-1 ring-white/20 backdrop-blur-md">
-        <span className="font-mono text-xs text-white/80">Photo mode · drag to orbit · scroll to zoom</span>
-        <button onClick={capture} className="inline-flex items-center gap-2 rounded-full bg-[#f2735a] px-4 py-2 font-mono text-xs font-semibold hover:bg-[#e8624a]">
-          <Camera size={14} /> Capture
+      <div className="mat-dark absolute left-1/2 top-4 -translate-x-1/2 rounded-full px-4 py-1.5 text-[13px] font-medium text-white/85">Drag to orbit · Scroll to zoom</div>
+      <div className="pointer-events-auto absolute bottom-7 left-1/2 flex -translate-x-1/2 items-center gap-6">
+        <span className="w-16" />
+        <button onClick={capture} aria-label="Capture photo" className="grid h-[72px] w-[72px] place-items-center rounded-full border-[4px] border-white/95 shadow-[0_6px_24px_rgba(0,0,0,0.35)] transition active:scale-95">
+          <span className="h-[56px] w-[56px] rounded-full bg-white transition hover:bg-white/90" />
         </button>
-        <button onClick={() => setPhoto(false)} aria-label="Exit photo mode" className="grid h-9 w-9 place-items-center rounded-full hover:bg-white/10">
-          <X size={16} />
+        <button onClick={() => setPhoto(false)} className="mat-dark w-16 rounded-full py-2 text-[15px] font-semibold text-white">
+          Done
         </button>
       </div>
     </motion.div>

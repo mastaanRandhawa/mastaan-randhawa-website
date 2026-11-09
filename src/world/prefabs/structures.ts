@@ -1,7 +1,10 @@
 import { Matrix4 } from "three";
 import { P, T, TP, type MeshBuilder } from "@/render/geometry/MeshBuilder";
-import type { Isl } from "../regionKit";
+import type { Isl, RegionKit } from "../regionKit";
+import type { LandingSite } from "../defs";
+import type { Pad } from "../terrain";
 import { C } from "../palette";
+import { house, type HouseOpts, framedWindow, faces } from "./architecture";
 
 /** Local building frame at (x, y, z) rotated by ry. */
 export function frame(x: number, y: number, z: number, ry = 0): Matrix4 {
@@ -22,37 +25,11 @@ function windowsRow(b: MeshBuilder, M: Matrix4, y: number, z: number, xs: number
   }
 }
 
-export interface CottageOpts {
-  w?: number;
-  d?: number;
-  h?: number;
-  wall?: string;
-  roof?: string;
-  trim?: string;
-  chimney?: boolean;
-  stories?: number;
-}
+export type CottageOpts = HouseOpts;
 
+/** Storybook cottage (see architecture.house). */
 export function cottage(I: Isl, x: number, z: number, ry = 0, o: CottageOpts = {}) {
-  const w = o.w ?? 6;
-  const d = o.d ?? 5;
-  const h = (o.h ?? 3.4) * (o.stories ?? 1);
-  const y = I.h(x, z);
-  const M = frame(x, y, z, ry);
-  const b = I.b;
-  const roofH = d * 0.55;
-  b.add(P.box(), TP(M, 0, 0.25, 0, w + 0.6, 0.5, d + 0.6), C.stoneDark);
-  b.add(P.box(), TP(M, 0, h / 2 + 0.4, 0, w, h, d), o.wall ?? C.cream);
-  // Timber trim
-  b.add(P.box(), TP(M, 0, h + 0.4, 0, w + 0.15, 0.25, d + 0.15), o.trim ?? C.woodDark);
-  for (const sx of [-1, 1]) b.add(P.box(), TP(M, (sx * w) / 2, h / 2 + 0.4, d / 2, 0.25, h, 0.25), o.trim ?? C.woodDark);
-  b.add(P.prism(), TP(M, 0, h + 0.4 + roofH / 2, 0, d + 1.3, roofH, w + 1, Math.PI / 2), o.roof ?? C.roofRed);
-  b.add(P.box(), TP(M, 0, 1.4, d / 2 + 0.05, 1.2, 2, 0.12), C.woodDark);
-  windowsRow(b, M, h * 0.55 + 0.4, d / 2 + 0.02, [-w / 3, w / 3]);
-  windowsRow(b, M, h * 0.55 + 0.4, -d / 2 - 0.02, [0]);
-  if (o.chimney !== false) b.add(P.box(), TP(M, w * 0.22, h + roofH * 0.75, -d * 0.2, 0.8, 2.2, 0.8), C.stoneDark);
-  I.box(x, y + (h + roofH) / 2, z, w / 2 + 0.3, (h + roofH) / 2 + 0.4, d / 2 + 0.3, ry);
-  I.block(x, z, Math.max(w, d) * 0.75);
+  house(I, x, z, ry, o);
 }
 
 export function hangar(I: Isl, x: number, z: number, ry = 0, o: { w?: number; d?: number; h?: number; sign?: string[] } = {}) {
@@ -71,11 +48,30 @@ export function hangar(I: Isl, x: number, z: number, ry = 0, o: { w?: number; d?
   b.add(P.box(), TP(M, 0, 3.6, d / 2 + 0.1, w * 0.72, 6.8, 0.3), C.metalDark);
   for (let i = -3; i <= 3; i++) b.add(P.box(), TP(M, (i * w * 0.72) / 7, 3.6, d / 2 + 0.28, 0.12, 6.6, 0.06), C.metal);
   b.add(P.box(), TP(M, 0, 7.4, d / 2 + 0.2, w * 0.76, 0.7, 0.3), C.coral);
-  // Side windows
-  for (let i = -3; i <= 3; i++) {
-    b.add(P.box(), TP(M, w / 2 + 0.02, 2.2, (i * d) / 8, 0.06, 1, 1.4), C.window, { emissive: 0.5 });
-    b.add(P.box(), TP(M, -w / 2 - 0.02, 2.2, (i * d) / 8, 0.06, 1, 1.4), C.window, { emissive: 0.5 });
+  // Clerestory windows along both sides.
+  for (const fc of faces(M, w, d)) {
+    if (fc.k % 2 === 0) continue;
+    for (let i = -3; i <= 3; i++) framedWindow(b, fc.F, (i * d) / 8, 2.1, { w: 1.5, h: 1, lit: (i + fc.k) % 3 !== 0, frame: C.white, sill: C.metal });
   }
+  // Two-storey office annex with a flat roof on the left flank.
+  const ax = -w / 2 - 3.2;
+  b.add(P.box(), TP(M, ax, 0.25, d * 0.18, 6.8, 0.5, 9.4), C.concrete);
+  b.add(P.box(), TP(M, ax, 3.3, d * 0.18, 6, 6, 8.6), C.cream);
+  b.add(P.box(), TP(M, ax, 6.45, d * 0.18, 6.5, 0.3, 9.1), C.roofTeal);
+  b.add(P.box(), TP(M, ax, 3.2, d * 0.18, 6.08, 0.22, 8.68), C.roofTeal);
+  const AM = TP(M, ax, 0.3, d * 0.18).clone();
+  for (const fc of faces(AM, 6, 8.6)) {
+    if (fc.k === 1) continue;
+    const us = fc.width > 7 ? [-2.6, 0, 2.6] : [-1.5, 1.5];
+    for (const fy of [1.6, 4.6]) for (const u of us) framedWindow(b, fc.F, u, fy, { w: 1.1, h: 1.1, lit: (u + fy + fc.k) % 2 > 0.5, frame: C.white, sill: C.roofTeal });
+  }
+  {
+    const [awx, awz] = rot(ax, d * 0.18, ry);
+    I.box(x + awx, y + 3.3, z + awz, 3.4, 3.5, 4.7, ry);
+    I.block(x + awx, z + awz, 6.5);
+  }
+  // Skylights along the barrel roof crown.
+  for (let i = -1; i <= 1; i++) b.add(P.box(), TP(M, 0, 3.2 + h * 1.15 * 0.5 + 0.1, (i * d) / 3, 2.4, 0.3, 1.4), C.windowCool, { emissive: 0.15 });
   if (o.sign) {
     const [sx, sz] = rot(0, d / 2 + 0.6, ry);
     I.anchor("sign", x + sx, y + h * 1.15 * 0.5 + 3.5, z + sz, { ry, data: { lines: o.sign, w: w * 0.5, h: 2.6, bg: "#fbf8f2", fg: "#1f3552", accent: C.coral } });
@@ -125,7 +121,8 @@ export function runway(I: Isl, x: number, z: number, length: number, width: numb
   for (let zz = -length / 2; zz <= length / 2; zz += 10) {
     for (const sx of [-1, 1]) {
       const end = Math.abs(zz) > length / 2 - 2;
-      b.add(P.box(), TP(M, (sx * (width + 1.6)) / 2, 0.45, zz, 0.35, 0.5, 0.35), end ? "#ff6b4a" : C.window, { emissive: 1 });
+      b.add(P.cyl(8), TP(M, (sx * (width + 1.6)) / 2, 0.3, zz, 0.6, 0.24, 0.6), C.metalDark);
+      b.add(P.cyl(8), TP(M, (sx * (width + 1.6)) / 2, 0.5, zz, 0.42, 0.2, 0.42), end ? "#ff8a6a" : C.window, { emissive: 0.45 });
     }
   }
 }
@@ -305,4 +302,53 @@ export function antenna(I: Isl, x: number, z: number, h = 14) {
   for (let k = 1; k < h; k += 2) I.b.add(P.cyl(3), T(x, y + k, z, 1.4, 0.08, 1.4), C.metal);
   I.anchor("beacon", x, y + h + 0.3, z, { data: { color: "#ff4b3e", period: 1.6 } });
   I.cyl(x, z, y, y + h, 1);
+}
+
+// ── Landing infrastructure ──────────────────────────────────────────────────
+
+/** Flattening pad for an axis-aligned airstrip (create it with the island). */
+export function stripPad(x: number, z: number, heading: number, length: number): Pad {
+  const alongX = Math.abs(Math.sin(heading)) > 0.5;
+  return alongX
+    ? { x, z, r: 0, w: length / 2 + 5, l: 7.5, h: 0, blend: 9, color: "#b9b08f", colorStrength: 0.35 }
+    : { x, z, r: 0, w: 7.5, l: length / 2 + 5, h: 0, blend: 9, color: "#b9b08f", colorStrength: 0.35 };
+}
+
+/** Grass approach lane continuing the strip to the island rim (kept flat and clear). */
+export function corridorPad(x: number, z: number, heading: number, reach: number): Pad {
+  const alongX = Math.abs(Math.sin(heading)) > 0.5;
+  return alongX ? { x, z, r: 0, w: reach, l: 10, h: 0, blend: 12 } : { x, z, r: 0, w: 10, l: reach, h: 0, blend: 12 };
+}
+
+/** Airstrip on an island; returns its world-space landing site. */
+export function airstrip(I: Isl, x: number, z: number, heading: number, length: number, width = 8): LandingSite {
+  runway(I, x, z, length, width, heading);
+  I.block(x, z, 4);
+  return { x: I.ox + x, y: I.oy + I.h(x, z) + 0.34, z: I.oz + z, heading, length };
+}
+
+/** Floating sky-dock airstrip for places too crowded to land on. */
+export function skyDock(kit: RegionKit, x: number, y: number, z: number, heading: number, length: number, width = 9): LandingSite {
+  const b = kit.world;
+  const M = frame(x, y, z, heading);
+  b.add(P.box(), TP(M, 0, -0.6, 0, width + 6, 1.2, length + 8), C.concrete);
+  b.add(P.box(), TP(M, 0, 0.12, 0, width, 0.24, length), C.asphalt);
+  for (let zz = -length / 2 + 14; zz < length / 2 - 14; zz += 9) b.add(P.box(), TP(M, 0, 0.26, zz, 0.4, 0.04, 4.5), C.white);
+  for (const end of [-1, 1]) {
+    for (let i = -2; i <= 2; i++) if (i) b.add(P.box(), TP(M, (i * width) / 6, 0.26, end * (length / 2 - 3.5), width / 9, 0.04, 5), C.white);
+  }
+  for (let zz = -length / 2 - 2; zz <= length / 2 + 2; zz += 8) {
+    for (const sx of [-1, 1]) b.add(P.cyl(8), TP(M, (sx * (width + 4.5)) / 2, 0.22, zz, 0.46, 0.22, 0.46), Math.abs(zz) > length / 2 ? "#ff8a6a" : C.window, { emissive: 0.45 });
+  }
+  // Rocky underside so it reads as part of the floating world.
+  const n = Math.max(3, Math.round(length / 14));
+  for (let k = 0; k < n; k++) {
+    const zz = -length / 2 + ((k + 0.5) * length) / n;
+    b.add(P.rock(k), TP(M, 0, -4.5 - (k % 2) * 1.5, zz, width + 3, 7, length / n + 4, k * 0.7), k % 2 ? "#a2826c" : "#8f7262");
+  }
+  b.add(P.cone(7), TP(M, 0, -14, 0, width, 14, width, 0.3, Math.PI), "#7f6559");
+  const [cx, cz] = rot(width / 2 + 2.5, length / 2 + 2, heading);
+  kit.anchor("beacon", x + cx, y + 1.2, z + cz, { data: { color: "#ff4b3e", period: 1.4 } });
+  kit.box(x, y - 0.6, z, (width + 6) / 2, 0.9, (length + 8) / 2, heading);
+  return { x, y: y + 0.24, z, heading, length };
 }

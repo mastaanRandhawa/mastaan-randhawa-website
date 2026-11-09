@@ -73,11 +73,7 @@ export default function Hero() {
 
           {/* Description */}
           <p className="text-sm sm:text-base lg:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed mb-8 sm:mb-10 max-w-xl">
-            Software Developer and Data Engineer Intern at{" "}
-            <span className="text-zinc-900 dark:text-white font-medium">ThoughtsWin Systems</span>, and
-            Computer Science student at{" "}
-            <span className="text-zinc-900 dark:text-white font-medium">Simon Fraser University</span>,
-            turning ideas into digital reality.
+            {portfolio.profile.intro}
           </p>
 
           {/* CTAs */}

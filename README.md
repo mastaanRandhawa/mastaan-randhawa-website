@@ -22,7 +22,8 @@ npm run test:e2e     # build + Playwright end-to-end tests (uses your installed 
 
 | Input | Action |
 | --- | --- |
-| W / S (↑ / ↓) | Pitch up / down |
+| S (↓) | Climb: pull back, like a control column |
+| W (↑) | Dive: push forward |
 | A / D (← / →) | Bank & turn |
 | Q / E | Roll (full barrel rolls) |
 | Shift | Boost (uses the boost meter) |
@@ -34,7 +35,13 @@ npm run test:e2e     # build + Playwright end-to-end tests (uses your installed 
 | R | Reset to last checkpoint |
 | Esc / P | Pause menu |
 
-Mouse steering (Settings → Steering → Mouse), gamepads (left stick, RT boost, LT brake, bumpers roll, A explore, Start pause) and touch (virtual stick + boost/brake/explore buttons) are supported. Flight assist is on by default; turn it off in Settings for looser, loop-capable handling.
+**Mouse view:** drag on the scene to look around the plane (right-drag when Mouse steering is on), scroll to zoom, double-click to reset; the view eases back behind the plane when you let go.
+
+Let go of the controls and the plane rolls back to wings-level and eases its nose to the horizon (in Mouse steering, centring the cursor does the same). There is no terrain pull-up: it levels, but never climbs on its own. Flying past the edge of the archipelago fades out and respawns you inside it, facing the islands. Mouse steering (Settings → Steering → Mouse), gamepads (left stick, RT boost, LT brake, bumpers roll, A explore, Start pause) and touch (virtual stick + boost/brake/explore buttons) are supported. No two actions share a key (enforced by a unit test).
+
+## Island hopping
+
+Choosing a destination (F near it, **Fly There & Land** on the discovery card or map, or **Fly to next** in a panel) hands the plane to an autopilot (`src/game/visit.ts`). It flies a curved route to the island's airstrip, makes a gear-down approach and flare, touches down and rolls out, then U-turns and parks. The panel opens once the plane is parked. **Take Off** (or Done / Esc) departs and banks toward the next destination before handing control back. **Fly to …** chains straight on to the next island. Steering during a transit takes control back, and **Skip** fast-forwards any stage. Every destination's landing site is defined in its region builder, and `npm test` verifies that each approach, rollout, parking spot and climb-out is collision-free.
 
 ## Updating the portfolio content
 
@@ -102,6 +109,7 @@ Key decisions:
 - **Unit (Vitest, `npm test`):** flight model (stability, assist, banking, barrel rolls, boost, terrain assist, collisions, takeoff); save system (round-trip, corrupt JSON, field-level sanitising, migration); progression; content integrity; and **world layout**. Layout tests check that every geometry vertex is finite and every project, skill area and section has a destination. They also check that every flight log is placed and reachable, that every course ring and the path between rings is collision-free, and that every arrival ring is clear.
 - **End-to-end (Playwright, `npm run test:e2e`):** title links and resume PDF; the classic portfolio and its link back to the game; legacy deep links; the no-WebGL fallback; takeoff; keyboard flight; pause; map; and opening a destination panel with F.
 - A read-only debug handle (`window.__skybound`) exposes runtime state for these tests and for devtools.
+- **Flight recorder (`?debug=frames`, or localStorage `skybound-debug` = `1`):** an on-screen readout plus a log you can copy or download as JSON. Every frame it checks the finished pixels (frames where only the clear colour was drawn), draw calls and triangles, camera and plane validity, frame gaps and canvas resizes. It also logs GPU context loss, tab visibility, quality changes, game-state transitions, and every screen-level element that appears or disappears; for any suspect frame it records which page elements sit on top of the canvas. If a flash shows on screen while it counts 0 blank frames, the flash happens after the game hands its frame to the browser (compositor or GPU driver), not in the game. A sim-level guard also recovers from any non-finite flight state instead of leaving a blank screen. World tests require a waterfall on every sizeable island, with none crossing a landing approach.
 
 ## Deployment
 

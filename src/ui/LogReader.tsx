@@ -3,8 +3,9 @@ import { BookOpen, X } from "lucide-react";
 import { useEffect } from "react";
 import { useGame } from "@/game/store";
 import { portfolio } from "@/content/portfolio";
+import { IconTile, SYSTEM } from "./kit";
 
-/** Small card revealing a freshly collected flight log's story. */
+/** Card revealing a freshly collected flight log's story. */
 export function LogReader() {
   const id = useGame((s) => s.openLog);
   const set = useGame((s) => s.setOpenLog);
@@ -19,21 +20,25 @@ export function LogReader() {
     <AnimatePresence>
       {log && (
         <motion.aside
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-28 right-5 z-20 w-[min(340px,calc(100vw-2.5rem))] rounded-2xl bg-[#fff7e6]/95 p-4 text-[#1f3552] shadow-2xl ring-1 ring-[#e6b64c]/50 backdrop-blur"
+          initial={{ opacity: 0, y: 24, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 16 }}
+          transition={{ type: "spring", damping: 26, stiffness: 300 }}
+          className="font-sf mat-light fixed bottom-28 right-5 z-20 w-[min(340px,calc(100vw-2.5rem))] rounded-[14px] p-4"
         >
-          <div className="flex items-center justify-between">
-            <p className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b88a1c]">
-              <BookOpen size={13} /> Flight log {count}/{portfolio.flightLogs.length}
-            </p>
-            <button onClick={() => set(null)} aria-label="Close log" className="rounded-full p-1 text-[#1f3552]/50 hover:text-[#1f3552]">
-              <X size={14} />
+          <div className="flex items-start gap-3">
+            <IconTile icon={BookOpen} color={SYSTEM.orange} size={38} />
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-semibold text-[#5d6b80]">
+                Flight log {count} of {portfolio.flightLogs.length}
+              </p>
+              <h4 className="text-[17px] font-semibold leading-snug text-[#1f3552]">{log.title}</h4>
+            </div>
+            <button onClick={() => set(null)} aria-label="Close log" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[rgba(120,120,128,0.14)] text-[#5d6b80]">
+              <X size={14} strokeWidth={2.6} />
             </button>
           </div>
-          <h4 className="mt-1 font-serif text-xl italic">{log.title}</h4>
-          <p className="mt-1 text-sm leading-relaxed text-[#1f3552]/80">{log.body}</p>
+          <p className="mt-2 text-[15px] leading-snug text-[#33425a]">{log.body}</p>
         </motion.aside>
       )}
     </AnimatePresence>

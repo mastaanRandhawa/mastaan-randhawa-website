@@ -5,8 +5,8 @@ import type { RegionExtras } from "../defs";
 import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { floatingRocks, tree, flowers } from "../prefabs/nature";
-import { bench, bridge, flagpole, streetlight } from "../prefabs/structures";
-import { projectIsland } from "./common";
+import { bench, flagpole, streetlight } from "../prefabs/structures";
+import { bridgeBetween, projectIsland } from "./common";
 
 export function lighthouse(I: Isl, x: number, z: number, h = 18, stripe: string = C.coral) {
   const y = I.h(x, z);
@@ -45,8 +45,8 @@ export function buildHarbor(kit: RegionKit, def: RegionDef, out: RegionExtras) {
   streetlight(islands[2], 12, 10, Math.PI);
 
   // Boardwalk bridges from the hub to two islands.
-  bridge(kit.world, [cx - 15, cy - 5.8, cz - 10], [cx - 66, cy + 4.2, cz - 44], 3.6, 5);
-  bridge(kit.world, [cx + 15, cy - 5.8, cz + 10], [cx + 88, cy - 3.8, cz + 52], 3.6, 5);
+  bridgeBetween(kit, hub, islands[0], 3.6, 5);
+  bridgeBetween(kit, hub, islands[2], 3.6, 5);
 
   // Balloons drifting around the harbour.
   kit.anchor("balloon", cx, cy + 40, cz, { data: { colors: ["#f97316", C.cream], path: { cx, cz, r: 120, speed: 0.04 } } });

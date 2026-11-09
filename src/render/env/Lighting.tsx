@@ -6,12 +6,14 @@ import { runtime } from "@/game/runtime";
 import type { QualityPreset } from "@/config/quality";
 
 /**
- * Warm golden-hour sun with a shadow frustum that follows the aircraft, so the
- * plane always casts a crisp grounding shadow onto whatever it is flying over.
+ * Warm golden-hour sun. Only the aircraft casts a shadow (scenery receives it),
+ * so the plane always throws a crisp grounding shadow onto whatever it flies
+ * over, with no shadow acne or frustum edges sweeping across the islands.
  */
 export function Lighting({ preset }: { preset: QualityPreset }) {
   const sun = useRef<DirectionalLight>(null);
-  const span = 150;
+  // Only the aircraft casts, so a tight box gives a crisp shadow wherever it lands.
+  const span = 9;
 
   useEffect(() => {
     const l = sun.current;
@@ -24,8 +26,8 @@ export function Lighting({ preset }: { preset: QualityPreset }) {
     cam.right = span;
     cam.top = span;
     cam.bottom = -span;
-    cam.near = 10;
-    cam.far = 1200;
+    cam.near = 1;
+    cam.far = 1800;
     cam.updateProjectionMatrix();
   }, [preset.shadowMapSize]);
 
@@ -33,13 +35,8 @@ export function Lighting({ preset }: { preset: QualityPreset }) {
     const l = sun.current;
     if (!l) return;
     const p = runtime.pose;
-    // Snap to shadow texels to stop shimmering while moving.
-    const texel = (span * 2) / preset.shadowMapSize;
-    const sx = Math.round(p.x / texel) * texel;
-    const sz = Math.round(p.z / texel) * texel;
-    const sy = Math.round(p.y / texel) * texel;
-    l.target.position.set(sx, sy - 20, sz);
-    l.position.set(sx + ENV.sunDir.x * 500, sy - 20 + ENV.sunDir.y * 500, sz + ENV.sunDir.z * 500);
+    l.target.position.set(p.x, p.y, p.z);
+    l.position.set(p.x + ENV.sunDir.x * 400, p.y + ENV.sunDir.y * 400, p.z + ENV.sunDir.z * 400);
     l.target.updateMatrixWorld();
   });
 
@@ -52,8 +49,8 @@ export function Lighting({ preset }: { preset: QualityPreset }) {
         color={ENV.sunLight}
         intensity={2.6}
         castShadow={preset.shadows}
-        shadow-bias={-0.0004}
-        shadow-normalBias={0.9}
+        shadow-bias={-0.0002}
+        shadow-normalBias={0.02}
       />
       {/* Cool fill from the opposite side keeps shadowed faces readable. */}
       <directionalLight color="#a9c7ff" intensity={0.35} position={[400, 200, -300]} />

@@ -6,6 +6,7 @@ import { audio } from "@/game/audio";
 import { buildWorld, destinationById, type World } from "@/world/world";
 import { QUALITY } from "@/config/quality";
 import { resetToCheckpoint } from "@/game/gameplay";
+import { departVisit, startVisit } from "@/game/visit";
 import { LoadingScreen } from "./LoadingScreen";
 import { TitleScreen } from "./TitleScreen";
 import { HUD } from "./hud/HUD";
@@ -19,9 +20,12 @@ import { PhotoMode } from "./PhotoMode";
 import { MobileControls } from "./MobileControls";
 import { CourseResult } from "./CourseResult";
 import { LogReader } from "./LogReader";
+import { VisitStatus } from "./hud/VisitStatus";
 import { panelFor } from "./panels/panelFor";
-import { runtime, photoOrbit, resetFlightAt } from "@/game/runtime";
+import { runtime, photoOrbit, resetFlightAt, look } from "@/game/runtime";
 import { getWorld } from "@/world/world";
+import { DEBUG } from "@/debug/recorder";
+import { DiagnosticsPanel } from "@/debug/DiagnosticsPanel";
 
 declare global {
   interface Window {
@@ -32,10 +36,12 @@ declare global {
       photoOrbit: typeof photoOrbit;
       resetFlightAt: typeof resetFlightAt;
       world: typeof getWorld;
+      startVisit: typeof startVisit;
+      look: typeof look;
     };
   }
 }
-if (typeof window !== "undefined") window.__skybound = { runtime, store: useGame, audio, photoOrbit, resetFlightAt, world: getWorld };
+if (typeof window !== "undefined") window.__skybound = { runtime, store: useGame, audio, photoOrbit, resetFlightAt, world: getWorld, startVisit, look };
 
 const GameCanvas = lazy(() => import("@/render/GameCanvas"));
 
@@ -105,10 +111,10 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
           if (simRunning(s)) resetToCheckpoint();
           break;
         case "interact": {
-          if (!simRunning(s)) return;
+          if (!simRunning(s) || runtime.phase === "visit") return;
           const id = s.nearby ?? s.discoveryCard;
           const d = id ? destinationById(id) : null;
-          if (d) {
+          if (d && !startVisit(d.id)) {
             audio.play("open");
             s.openPanel(panelFor(d));
           }
@@ -121,6 +127,15 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
       setPressHandler(null);
     };
   }, []);
+
+  // Closing a panel while parked on an island = take off again.
+  useEffect(
+    () =>
+      useGame.subscribe((s, prev) => {
+        if (prev.panel && !s.panel && runtime.visit?.stage === "landed") departVisit(false);
+      }),
+    [],
+  );
 
   // Capture flight keys only while actually flying.
   useEffect(
@@ -152,17 +167,23 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
   }, [world, mode]);
 
   return (
-    <div className={hidden ? "hidden" : "fixed inset-0 overflow-hidden bg-[#f4cfa8] select-none"} aria-hidden={hidden}>
+    <div
+      className={hidden ? "hidden" : "fixed inset-0 overflow-hidden select-none"}
+      style={hidden ? undefined : { background: "linear-gradient(180deg,#6d8fc6 0%,#a9a9d2 30%,#e7c3ad 47%,#f4cfa8 52%,#f1e6e0 64%,#e4e0ee 100%)" }}
+      aria-hidden={hidden}
+    >
       {world && (
         <Suspense fallback={null}>
           <GameCanvas world={world} />
         </Suspense>
       )}
+      {DEBUG && !hidden && <DiagnosticsPanel />}
       <AnimatePresence>{mode === "loading" && <LoadingScreen key="loading" />}</AnimatePresence>
       <AnimatePresence>{mode === "title" && world && <TitleScreen key="title" />}</AnimatePresence>
       {mode === "flying" && world && (
         <>
           {!photo && <HUD world={world} />}
+          {!photo && <VisitStatus />}
           {!photo && <Tutorial />}
           <DiscoveryCard />
           <CourseResult />

@@ -7,6 +7,17 @@ export interface RingDef {
   radius: number;
 }
 
+/** A strip the plane can land on. heading = direction of the landing roll. */
+export interface LandingSite {
+  x: number;
+  y: number;
+  z: number;
+  heading: number;
+  length: number;
+  /** U-turn side after rollout: 1 = right (default), -1 = left. */
+  turn?: number;
+}
+
 export interface Destination {
   id: string;
   regionId: RegionId;
@@ -19,6 +30,7 @@ export interface Destination {
   interactRadius: number;
   ring?: RingDef;
   accent: string;
+  landing?: LandingSite;
 }
 
 export interface CourseDef {

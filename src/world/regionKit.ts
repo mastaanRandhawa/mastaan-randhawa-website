@@ -3,6 +3,7 @@ import { MeshBuilder } from "@/render/geometry/MeshBuilder";
 import { IslandTerrain, type IslandParams } from "./terrain";
 import type { Collider } from "./collision";
 import { mulberry32 } from "./noise";
+import { islandSprings } from "./prefabs/mystic";
 
 /** Animated / textured objects that are instantiated as separate components. */
 export type AnchorType =
@@ -84,6 +85,8 @@ export class RegionKit {
   }
 
   finish(): { islands: BuiltIsland[]; world: BufferGeometry | null } {
+    // Rim springs and waterfalls go in last, so they avoid everything placed above.
+    for (const i of this.islands) islandSprings(i);
     return {
       islands: this.islands.map((i) => {
         i.t.build(i.b);
@@ -102,6 +105,7 @@ export class Isl {
   readonly oy: number;
   readonly oz: number;
   private blocked: { x: number; z: number; r: number }[] = [];
+  private rects: { x: number; z: number; w: number; l: number; ry: number }[] = [];
 
   constructor(
     readonly kit: RegionKit,
@@ -111,7 +115,11 @@ export class Isl {
     this.oy = t.p.y;
     this.oz = t.p.z;
     this.rnd = mulberry32(t.p.seed * 7 + 3);
-    for (const pad of t.p.pads) this.blocked.push({ x: pad.x, z: pad.z, r: Math.max(pad.r, pad.w ?? 0, pad.l ?? 0) + 2 });
+    this.b.ground = (x, z) => t.heightLocal(x, z);
+    for (const pad of t.p.pads) {
+      if (pad.w !== undefined && pad.l !== undefined) this.rects.push({ x: pad.x, z: pad.z, w: pad.w + 2, l: pad.l + 2, ry: pad.ry ?? 0 });
+      else this.blocked.push({ x: pad.x, z: pad.z, r: pad.r + 2 });
+    }
   }
 
   get density() {
@@ -129,6 +137,13 @@ export class Isl {
 
   isFree(x: number, z: number, r = 0) {
     for (const b of this.blocked) if (Math.hypot(x - b.x, z - b.z) < b.r + r) return false;
+    for (const q of this.rects) {
+      const c = Math.cos(-q.ry);
+      const s = Math.sin(-q.ry);
+      const dx = x - q.x;
+      const dz = z - q.z;
+      if (Math.abs(dx * c - dz * s) < q.w + r && Math.abs(dx * s + dz * c) < q.l + r) return false;
+    }
     return true;
   }
 

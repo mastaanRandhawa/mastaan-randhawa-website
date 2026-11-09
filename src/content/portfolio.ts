@@ -402,8 +402,7 @@ export const portfolio: Portfolio = {
     initials: "MR",
     headline: "Software Developer · Data Engineer Intern · CS @ SFU",
     shortRole: "Software Developer & Data Engineer Intern",
-    intro:
-      "Software Developer and Data Engineer Intern at ThoughtsWin Systems, and Computer Science student at Simon Fraser University, turning ideas into digital reality.",
+    intro: "Software Developer and Data Engineer Intern, and Computer Science student at Simon Fraser University, turning ideas into digital reality.",
     location: "Surrey, BC",
     availability: "Available for opportunities",
     email: "mastaanrandhawa@gmail.com",
@@ -438,7 +437,7 @@ export const portfolio: Portfolio = {
       "I have worked with Azure, Event Grid, and Event Hubs.",
       "I build data pipelines and ETL workflows with SQL and Python.",
       "I am a Databricks Certified Data Engineer Associate.",
-      "I have spent 1.5 years interning at ThoughtsWin Systems.",
+      "I have 1.5 years of hands-on industry experience.",
     ],
     links: {
       github: "https://github.com/mastaanRandhawa",

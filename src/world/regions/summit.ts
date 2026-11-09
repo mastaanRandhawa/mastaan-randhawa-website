@@ -6,7 +6,7 @@ import { courseRings } from "../defs";
 import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { tree, rock } from "../prefabs/nature";
-import { flagpole, streetlight, bench } from "../prefabs/structures";
+import { flagpole, streetlight, bench, bridge, skyDock } from "../prefabs/structures";
 import { medalsFor } from "./common";
 import { portfolio } from "@/content/portfolio";
 
@@ -119,6 +119,18 @@ export function buildSummit(kit: RegionKit, def: RegionDef, out: RegionExtras) {
   }
   out.courses.push({ id: "summit-spiral", name: "Summit Spiral", regionId: "summit", description: "Spiral up the mountain to the peak.", timed: true, rings: courseRings(pts, 10), medals: medalsFor(pts) });
 
+  // Floating sky dock off the campus shoulder, joined by a bridge.
+  const rl = Math.hypot(campus.x, campus.z);
+  const ux = campus.x / rl;
+  const uz = campus.z / rl;
+  const dockL = { x: campus.x + ux * 84, z: campus.z + uz * 84 };
+  const dockHeading = Math.atan2(uz, -ux);
+  const dock = skyDock(kit, cx + dockL.x, baseY + campus.h, cz + dockL.z, dockHeading, 78);
+  dock.turn = -1;
+  const bx = campus.x + ux * 27;
+  const bz = campus.z + uz * 27;
+  bridge(kit.world, [cx + dockL.x - ux * 10, baseY + campus.h - 0.2, cz + dockL.z - uz * 10], I.w(bx, I.h(bx, bz) + 0.2, bz), 4, 3);
+
   out.destinations.push({
     id: "education",
     regionId: "summit",
@@ -129,5 +141,6 @@ export function buildSummit(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     interactRadius: 110,
     ring: { pos: I.w(qx + 8, y0 + 34, qz + 78), dir: [0, 0, -1], radius: 12 },
     accent: def.accent,
+    landing: dock,
   });
 }

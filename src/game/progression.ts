@@ -90,7 +90,7 @@ export const MISSIONS: Mission[] = [
   { id: "m-skills", title: "Survey the Skills Archipelago", detail: "Visit all four skill islands.", targets: ALL_SKILL_KEYS, done: (p) => ALL_SKILL_KEYS.every((k) => p.viewed.includes(k)), progress: countViewed(ALL_SKILL_KEYS) },
   { id: "m-harbor", title: "Tour Doxa Studios Harbor", detail: "Open the four client projects.", targets: byCategory("client"), done: (p) => byCategory("client").every((k) => p.viewed.includes(k)), progress: countViewed(byCategory("client")) },
   { id: "m-canyon", title: "Explore Systems Canyon", detail: "Open the five C/C++ systems projects.", targets: byCategory("systems"), done: (p) => byCategory("systems").every((k) => p.viewed.includes(k)), progress: countViewed(byCategory("systems")) },
-  { id: "m-city", title: "Clock in at Experience City", detail: "Visit ThoughtsWin Systems HQ.", targets: ["experience"], done: (p) => p.viewed.includes("experience") },
+  { id: "m-city", title: "Clock in at Experience City", detail: `Visit the ${portfolio.company.name} HQ.`, targets: ["experience"], done: (p) => p.viewed.includes("experience") },
   { id: "m-observatory", title: "Visit the Observatory", detail: "See the Amenity Recommender data project.", targets: byCategory("data"), done: (p) => byCategory("data").every((k) => p.viewed.includes(k)) },
   { id: "m-gardens", title: "Wander the Frontend Gardens", detail: "Open the three early web projects.", targets: byCategory("web"), done: (p) => byCategory("web").every((k) => p.viewed.includes(k)), progress: countViewed(byCategory("web")) },
   { id: "m-summit", title: "Reach the Education Summit", detail: "Land the campus checkpoint at the peak.", targets: ["education"], done: (p) => p.viewed.includes("education") },

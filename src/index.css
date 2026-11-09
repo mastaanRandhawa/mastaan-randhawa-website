@@ -126,3 +126,137 @@ html.game-mode body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
+
+/* ── Skybound UI: "livery" design system ─────────────────────────────────────
+   Built from the portfolio's own identity: Inter for reading, Playfair Display
+   italic for names (the same face as the welcome sign in the world), Azeret Mono
+   for instruments and labels. Cream paper, navy ink and coral, the aircraft's
+   livery. HUD pieces are dark instrument glass; content sits on paper. */
+@layer components {
+  .font-sf {
+    font-family: "Inter", system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.006em;
+  }
+  .font-sf-display {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: -0.012em;
+  }
+  .font-instrument {
+    font-family: "Azeret Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  /* Small tracked capitals for labels, like stencilled panel legends. */
+  .legend {
+    font-family: "Azeret Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  /* Instrument glass: deep navy, hairline bezel, no frosted-blob look. */
+  .mat-dark {
+    background: linear-gradient(180deg, rgba(20, 31, 49, 0.86), rgba(13, 21, 35, 0.9));
+    box-shadow: inset 0 0 0 1px rgba(244, 234, 213, 0.13), inset 0 1px 0 rgba(244, 234, 213, 0.08), 0 10px 30px -14px rgba(8, 12, 22, 0.7);
+    color: #f4ead5;
+  }
+  /* Paper: warm cream with a faint grain, ruled in navy ink. */
+  .mat-light {
+    background-color: #fbf6ec;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .12 0 0 0 0 .2 0 0 0 0 .32 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    box-shadow: inset 0 0 0 1px rgba(31, 53, 82, 0.1), 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 28px 60px -24px rgba(16, 24, 38, 0.5);
+    color: #1f3552;
+  }
+  /* Outline button over the scene. */
+  .mat-glass {
+    background: rgba(20, 31, 49, 0.55);
+    box-shadow: inset 0 0 0 1px rgba(244, 234, 213, 0.38);
+    color: #fbf6ec;
+  }
+  /* Logbook-style grouped list: ruled paper, hairline dividers. */
+  .ios-group {
+    background: #fffdf8;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(31, 53, 82, 0.1);
+  }
+  .ios-group > * + * {
+    box-shadow: inset 0 1px 0 rgba(31, 53, 82, 0.08);
+  }
+  .ios-group-header {
+    padding: 0 4px 7px;
+    font-family: "Azeret Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: #6a7486;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+  .ios-group-footer {
+    padding: 7px 4px 0;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: #6a7486;
+  }
+  /* Keycap: a cream key with an ink legend. */
+  .keycap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    padding: 0 0.45rem;
+    border-radius: 5px;
+    background: linear-gradient(180deg, #fffdf8, #efe5d2);
+    box-shadow: inset 0 0 0 1px rgba(31, 53, 82, 0.22), 0 2px 0 rgba(31, 53, 82, 0.28);
+    color: #1f3552;
+    font-family: "Azeret Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .ios-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #1f3552 var(--fill, 50%), rgba(31, 53, 82, 0.16) var(--fill, 50%));
+    outline: none;
+  }
+  .ios-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: #fbf6ec;
+    box-shadow: inset 0 0 0 1.5px #1f3552, 0 2px 4px rgba(16, 24, 38, 0.25);
+    cursor: pointer;
+  }
+  .ios-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #1f3552;
+    border-radius: 4px;
+    background: #fbf6ec;
+  }
+  .ios-slider:focus-visible {
+    box-shadow: 0 0 0 3px rgba(242, 115, 90, 0.45);
+  }
+  /* Ticket perforation and notches (title card, strips). */
+  .perforated {
+    background-image: radial-gradient(circle, rgba(31, 53, 82, 0.28) 1.2px, transparent 1.6px);
+    background-size: 9px 9px;
+    background-repeat: repeat-y;
+    background-position: center;
+  }
+  .ticket {
+    --notch: 11px;
+    -webkit-mask: radial-gradient(circle var(--notch) at var(--notch-x, 62%) 0, transparent 98%, #000) top / 100% 51% no-repeat,
+      radial-gradient(circle var(--notch) at var(--notch-x, 62%) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+    mask: radial-gradient(circle var(--notch) at var(--notch-x, 62%) 0, transparent 98%, #000) top / 100% 51% no-repeat,
+      radial-gradient(circle var(--notch) at var(--notch-x, 62%) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+  }
+}

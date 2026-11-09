@@ -9,13 +9,13 @@ export const worldUniforms = {
 let shared: MeshStandardMaterial | null = null;
 
 /**
- * Flat-shaded vertex-colour material for all merged scenery.
+ * Faceted vertex-colour material for all merged scenery.
  * - aSway: wind displacement for foliage/flags (vertex shader)
  * - aEmissive: per-vertex glow for windows, lamps and screens
  */
 export function worldMaterial(): MeshStandardMaterial {
   if (shared) return shared;
-  const m = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.86, metalness: 0 });
+  const m = new MeshStandardMaterial({ vertexColors: true, roughness: 0.86, metalness: 0 });
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = worldUniforms.uTime;
     shader.uniforms.uWind = worldUniforms.uWind;
@@ -44,12 +44,24 @@ if (aSway > 0.0) {
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <common>", `#include <common>\nvarying float vEmissive;`)
       .replace(
+        "#include <normal_fragment_begin>",
+        `float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;
+// Faceted low-poly look up close. Far away, triangles shrink below a 2x2 pixel
+// quad and derivative normals become noise that sparkles as the camera moves,
+// so blend to the interpolated vertex normal with distance.
+vec3 flatN = normalize( cross( dFdx( vViewPosition ), dFdy( vViewPosition ) ) );
+vec3 smoothN = normalize( vNormal );
+vec3 normal = normalize( mix( flatN, smoothN, smoothstep( 140.0, 460.0, length( vViewPosition ) ) ) );
+vec3 nonPerturbedNormal = normal;`,
+      )
+      .replace(
         "#include <emissivemap_fragment>",
         `#include <emissivemap_fragment>
-totalEmissiveRadiance += vColor.rgb * vEmissive * 2.4;`,
+// Fade small lights with distance so sub-pixel windows/edge lights never twinkle.
+totalEmissiveRadiance += vColor.rgb * vEmissive * 1.5 * (1.0 - smoothstep(220.0, 650.0, length(vViewPosition)));`,
       );
   };
-  m.customProgramCacheKey = () => "skybound-world-v1";
+  m.customProgramCacheKey = () => "skybound-world-v3";
   shared = m;
   return m;
 }

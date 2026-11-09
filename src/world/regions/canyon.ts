@@ -7,6 +7,7 @@ import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { floatingRocks, rock, tree, decorate } from "../prefabs/nature";
 import { processBuilding } from "../prefabs/landmarks";
+import { skyDock } from "../prefabs/structures";
 import { approachRing, medalsFor, projectIsland } from "./common";
 import { mulberry32 } from "../noise";
 import { projectById } from "@/content/portfolio";
@@ -85,8 +86,8 @@ export function buildCanyon(kit: RegionKit, def: RegionDef, out: RegionExtras) {
   // ── IPC: two process islands joined by a pipe that carries messages ──
   const ipc = projectById("ipc")!;
   const ay = cy + 2;
-  const A = kit.island({ id: "ipc-a", x: cx - 60, y: ay, z: cz + 250, radius: 20, seed: 6301, hilliness: 1.5, depth: 36, palette: PALETTES.tech, pads: [{ x: 0, z: 0, r: 9, h: 0 }] });
-  const B = kit.island({ id: "ipc-b", x: cx + 60, y: ay + 6, z: cz + 250, radius: 20, seed: 6302, hilliness: 1.5, depth: 36, palette: PALETTES.tech, pads: [{ x: 0, z: 0, r: 9, h: 0 }] });
+  const A = kit.island({ id: "ipc-a", x: cx - 60, y: ay, z: cz + 250, radius: 27, seed: 6301, hilliness: 1.5, depth: 42, palette: PALETTES.tech, pads: [{ x: 0, z: 0, r: 9, h: 0 }] });
+  const B = kit.island({ id: "ipc-b", x: cx + 60, y: ay + 6, z: cz + 250, radius: 27, seed: 6302, hilliness: 1.5, depth: 42, palette: PALETTES.tech, pads: [{ x: 0, z: 0, r: 9, h: 0 }] });
   processBuilding(A, 0, 0, "PROCESS A", ipc.color);
   processBuilding(B, 0, 0, "PROCESS B", "#3fb8af");
   for (const I of [A, B]) {
@@ -116,5 +117,6 @@ export function buildCanyon(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     interactRadius: 95,
     ring: approachRing(def, cx, ay, cz + 250, 30, 22, 12),
     accent: ipc.color,
+    landing: skyDock(kit, cx, ay + 2, cz + 297, -Math.PI / 2, 72),
   });
 }

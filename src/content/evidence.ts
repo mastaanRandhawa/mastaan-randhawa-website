@@ -45,7 +45,7 @@ export function evidenceFor(skill: Skill): SkillEvidence {
 export function evidenceSummary(skill: Skill): string {
   const e = evidenceFor(skill);
   const parts: string[] = [];
-  if (e.roles.length) parts.push(`used at ThoughtsWin as ${e.roles.map((r) => r.title).join(" & ")}`);
+  if (e.roles.length) parts.push(`used at ${portfolio.company.name} as ${e.roles.map((r) => r.title).join(" & ")}`);
   if (e.projects.length) parts.push(`${e.projects.length} project${e.projects.length > 1 ? "s" : ""}`);
   if (e.credentials.length) parts.push(`${e.credentials.length} credential${e.credentials.length > 1 ? "s" : ""}`);
   return parts.length ? parts.join(" · ") : "Listed in toolkit";

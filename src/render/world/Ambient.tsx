@@ -23,6 +23,7 @@ import { REGIONS } from "@/world/layout";
 import type { QualityPreset } from "@/config/quality";
 import { worldUniforms } from "../materials/worldMaterial";
 import { C } from "@/world/palette";
+import { Dust } from "./Dust";
 
 // ── Birds: instanced, wing flap in the vertex shader ─────────────────────────
 function birdGeometry() {
@@ -178,7 +179,7 @@ function Airship() {
   });
   return (
     <group ref={ref} scale={3}>
-      <mesh material={m.env} scale={[1, 1, 3.2]} castShadow>
+      <mesh material={m.env} scale={[1, 1, 3.2]}>
         <sphereGeometry args={[4, 16, 10]} />
       </mesh>
       <mesh material={m.band} scale={[1.02, 1.02, 0.5]}>
@@ -222,7 +223,7 @@ function Courier() {
   });
   return (
     <group ref={ref} scale={1.1}>
-      <mesh material={m.body} scale={[0.7, 0.7, 3]} castShadow>
+      <mesh material={m.body} scale={[0.7, 0.7, 3]}>
         <sphereGeometry args={[1, 10, 8]} />
       </mesh>
       <mesh material={m.wing} position={[0, 0, -0.4]}>
@@ -246,6 +247,7 @@ export function Ambient({ preset }: { preset: QualityPreset }) {
       <SpeedLines />
       <Airship />
       <Courier />
+      <Dust />
     </>
   );
 }

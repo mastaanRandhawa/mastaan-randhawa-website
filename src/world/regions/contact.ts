@@ -86,5 +86,6 @@ export function buildContact(kit: RegionKit, def: RegionDef, out: RegionExtras) 
     interactRadius: 120,
     ring: { pos: [cx, cy + 20, cz - 120], dir: [0, 0, 1], radius: 13 },
     accent: def.accent,
+    landing: { x: cx, y: cy + 0.34, z: cz, heading: 0, length: 120 },
   });
 }

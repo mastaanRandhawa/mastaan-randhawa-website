@@ -22,33 +22,11 @@ export default function About() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           {/* Bio */}
           <div>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 sm:mb-6">
-              I'm{" "}
-              <span className="text-zinc-900 dark:text-white font-semibold">Mastaan Randhawa</span>
-              , a Software Developer and Computer Science student at{" "}
-              <span className="text-zinc-900 dark:text-white font-semibold">
-                Simon Fraser University
-              </span>
-              . I'm passionate about using technology to create meaningful change.
-            </p>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 sm:mb-6">
-              For the past year and a half at{" "}
-              <span className="text-zinc-900 dark:text-white font-semibold">
-                ThoughtsWin Systems
-              </span>{" "}
-              I've worked as an App Development Intern and now as a Data Engineer Intern, building
-              applications and data pipelines. I'm a Databricks Certified Data Engineer Associate
-              and a Microsoft Certified Security Operations Analyst, and I've built client websites
-              through Doxa Studios.
-            </p>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 sm:mb-6">
-              I hope to keep expanding my skills, meet people from different walks of life, and one
-              day explore how tech and sales can come together to help others.
-            </p>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              From building low-level systems in C/C++ to crafting interactive web experiences with
-              Three.js and React, I love the entire spectrum of software development.
-            </p>
+            {portfolio.profile.bio.map((para, i) => (
+              <p key={i} className={`text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed ${i < portfolio.profile.bio.length - 1 ? "mb-5 sm:mb-6" : ""}`}>
+                {para}
+              </p>
+            ))}
 
             {/* Quick stats */}
             <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">

@@ -8,7 +8,7 @@ export function Effects({ preset }: { preset: QualityPreset }) {
   return (
     <EffectComposer multisampling={preset.msaa} enableNormalPass={false}>
       {preset.ao ? <N8AO aoRadius={5} intensity={1.6} distanceFalloff={1.2} halfRes quality="performance" color="#3b2d4a" /> : <></>}
-      {preset.bloom ? <Bloom mipmapBlur intensity={0.55} luminanceThreshold={1.05} luminanceSmoothing={0.2} radius={0.7} /> : <></>}
+      {preset.bloom ? <Bloom mipmapBlur intensity={0.4} luminanceThreshold={1.4} luminanceSmoothing={0.25} radius={0.6} /> : <></>}
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <HueSaturation saturation={0.06} />
       <BrightnessContrast contrast={0.04} brightness={0.01} />

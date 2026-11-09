@@ -32,7 +32,7 @@ export const REGIONS: RegionDef[] = [
   { id: "skills", name: "Skills Archipelago", subtitle: "Languages, frameworks & tools", center: [-560, 118, -150], radius: 230, accent: "#3b5bff", order: 1 },
   { id: "harbor", name: "Doxa Studios Harbor", subtitle: "Client web projects", center: [470, 110, -470], radius: 240, accent: "#f97316", order: 2 },
   { id: "canyon", name: "Systems Canyon", subtitle: "C / C++ systems projects", center: [700, 96, 80], radius: 270, accent: "#2a8c8c", order: 3 },
-  { id: "city", name: "Experience City", subtitle: "ThoughtsWin Systems", center: [190, 92, 640], radius: 220, accent: "#3fb8af", order: 4 },
+  { id: "city", name: "Experience City", subtitle: "Work experience", center: [190, 92, 640], radius: 220, accent: "#3fb8af", order: 4 },
   { id: "observatory", name: "Observatory Isle", subtitle: "Data project", center: [-200, 132, 620], radius: 150, accent: "#7a5cd6", order: 5 },
   { id: "gardens", name: "Frontend Gardens", subtitle: "Early web projects", center: [-540, 104, 400], radius: 230, accent: "#c46fc0", order: 6 },
   { id: "summit", name: "Education Summit", subtitle: "Simon Fraser University", center: [-40, 0, -760], radius: 230, accent: "#d9573f", order: 7 },

@@ -5,8 +5,8 @@ import type { RegionExtras } from "../defs";
 import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { decorate, floatingRocks, rock } from "../prefabs/nature";
-import { antenna, bridge, frame, signpost, streetlight } from "../prefabs/structures";
-import { approachRing } from "./common";
+import { airstrip, antenna, bridge, corridorPad, frame, signpost, streetlight, stripPad } from "../prefabs/structures";
+import { approachRing, stripFor } from "./common";
 import { portfolio } from "@/content/portfolio";
 
 function browserWindow(I: Isl, x: number, z: number, ry: number, accent: string) {
@@ -159,22 +159,27 @@ export function buildSkills(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     const x = cx + L.dx;
     const z = cz + L.dz;
     const y = cy + L.dy;
+    const R = L.r * 1.35;
+    const strip = stripFor(def, x, z, R);
     const I = kit.island({
       id: `skills-${L.id}`,
       x,
       y,
       z,
-      radius: L.r,
+      radius: R,
       seed: L.seed,
-      hilliness: 4,
-      depth: L.r * 0.9,
+      hilliness: 5,
+      depth: R * 0.85,
+      rings: 20,
+      segments: 72,
       palette: PALETTES[L.pal],
-      pads: [{ x: 0, z: 0, r: L.r * 0.55, h: 0, blend: 8 }],
+      pads: [{ x: 0, z: 0, r: L.r * 0.55, h: 0, blend: 8 }, corridorPad(0, strip.z, strip.heading, R * 1.4), stripPad(0, strip.z, strip.heading, strip.length)],
     });
     const h =
       L.id === "frontend" ? interfaceIsle(I, cat.color) : L.id === "systems" ? systemsForge(I, cat.color) : L.id === "data-cloud" ? dataLake(I, cat.color) : toolsmith(I, cat.color, out);
-    decorate(I, { trees: 14, bushes: 10, flowers: 12, grass: 16, rocks: 5 });
-    floatingRocks(I, 6);
+    const landing = airstrip(I, 0, strip.z, strip.heading, strip.length);
+    decorate(I, { trees: 30, bushes: 20, flowers: 24, grass: 30, rocks: 10 });
+    floatingRocks(I, 9);
     for (let k = 0; k < 4; k++) {
       const a = (k / 4) * Math.PI * 2 + 0.6;
       const lx = Math.cos(a) * L.r * 0.7;
@@ -184,7 +189,7 @@ export function buildSkills(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     // Rope bridge from the hub edge to the island edge.
     const ang = Math.atan2(L.dz, L.dx);
     const a0: [number, number, number] = [cx + Math.cos(ang) * 14, cy + hub.h(Math.cos(ang) * 14, Math.sin(ang) * 14) + 0.2, cz + Math.sin(ang) * 14];
-    const edge = L.r * 0.92;
+    const edge = R * 0.9;
     const a1: [number, number, number] = [x - Math.cos(ang) * edge, y + I.h(-Math.cos(ang) * edge, -Math.sin(ang) * edge) + 0.2, z - Math.sin(ang) * edge];
     bridge(kit.world, a0, a1, 3.6, 4);
     arrows.push({ text: cat.islandName.toUpperCase(), angle: Math.atan2(L.dx, L.dz) });
@@ -196,9 +201,10 @@ export function buildSkills(kit: RegionKit, def: RegionDef, out: RegionExtras) {
       label: cat.islandName,
       sublabel: `Skills · ${cat.label}`,
       pos: [x, y + h + 8, z],
-      interactRadius: L.r + 55,
-      ring: approachRing(def, x, y, z, L.r + 20, 22, 11),
+      interactRadius: R + 70,
+      ring: approachRing(def, x, y, z, R + 22, 24, 11),
       accent: cat.color,
+      landing,
     });
   }
   signpost(hub, 3, 4, arrows);

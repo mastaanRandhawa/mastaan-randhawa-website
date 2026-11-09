@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { Gauge, Zap } from "lucide-react";
 import { touch } from "@/game/input";
 import { useGame } from "@/game/store";
 import { destinationById } from "@/world/world";
 import { panelFor } from "./panels/panelFor";
+import { startVisit } from "@/game/visit";
 
 /** Virtual flight stick + action buttons (pointer events, no page scroll). */
 export function MobileControls() {
@@ -12,11 +14,14 @@ export function MobileControls() {
   const card = useGame((s) => s.discoveryCard);
   const id = useRef<number | null>(null);
 
-  useEffect(() => () => {
-    touch.active = false;
-    touch.x = touch.y = 0;
-    touch.boost = touch.brake = false;
-  }, []);
+  useEffect(
+    () => () => {
+      touch.active = false;
+      touch.x = touch.y = 0;
+      touch.boost = touch.brake = false;
+    },
+    [],
+  );
 
   const update = (e: React.PointerEvent) => {
     const el = base.current;
@@ -32,13 +37,13 @@ export function MobileControls() {
     }
     setKnob({ x: dx * R * 0.6, y: dy * R * 0.6 });
     touch.x = dx;
-    touch.y = -dy;
+    touch.y = dy; // pull the stick down/back to climb
   };
 
   const hold = (key: "boost" | "brake") => ({
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault();
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       touch[key] = true;
     },
     onPointerUp: () => (touch[key] = false),
@@ -47,17 +52,17 @@ export function MobileControls() {
 
   const explore = () => {
     const d = destinationById(nearby ?? card ?? "");
-    if (d) useGame.getState().openPanel(panelFor(d));
+    if (d && !startVisit(d.id)) useGame.getState().openPanel(panelFor(d));
   };
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-10 select-none" style={{ touchAction: "none" }}>
+    <div className="font-sf pointer-events-none fixed inset-0 z-10 select-none" style={{ touchAction: "none" }}>
       <div
         ref={base}
-        className="pointer-events-auto absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-[max(1.5rem,env(safe-area-inset-left))] h-36 w-36 rounded-full bg-white/10 ring-2 ring-white/30 backdrop-blur-sm"
+        className="mat-dark pointer-events-auto absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-[max(1.5rem,env(safe-area-inset-left))] h-36 w-36 rounded-full"
         onPointerDown={(e) => {
           id.current = e.pointerId;
-          (e.target as HTMLElement).setPointerCapture(e.pointerId);
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
           touch.active = true;
           update(e);
         }}
@@ -72,20 +77,25 @@ export function MobileControls() {
         role="slider"
         aria-valuenow={0}
       >
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/70 shadow-lg" style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 h-14 w-14 rounded-full bg-white shadow-[0_6px_18px_rgba(0,0,0,0.35)]"
+          style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }}
+        />
       </div>
       <div className="pointer-events-auto absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-[max(1.5rem,env(safe-area-inset-right))] flex flex-col items-end gap-3">
         {(nearby || card) && (
-          <button onClick={explore} className="rounded-full bg-[#f2735a] px-5 py-3 font-mono text-xs font-bold text-white shadow-lg">
-            EXPLORE
+          <button onClick={explore} className="h-11 rounded-full bg-[#6fb7e0] px-6 text-[15px] font-semibold text-white shadow-lg">
+            Explore
           </button>
         )}
-        <div className="flex gap-3">
-          <button {...hold("brake")} className="h-16 w-16 rounded-full bg-[#1f3552]/60 font-mono text-[10px] font-bold text-white ring-2 ring-white/30">
-            BRAKE
+        <div className="flex items-end gap-3">
+          <button {...hold("brake")} className="mat-dark grid h-16 w-16 place-items-center rounded-full text-[11px] font-semibold text-white">
+            <Gauge size={20} />
+            Brake
           </button>
-          <button {...hold("boost")} className="h-20 w-20 rounded-full bg-[#ffcf70]/90 font-mono text-[11px] font-bold text-[#1f3552] ring-2 ring-white/50">
-            BOOST
+          <button {...hold("boost")} className="grid h-20 w-20 place-items-center rounded-full bg-[#f2735a] text-[12px] font-semibold text-white shadow-[0_8px_24px_-6px_rgba(255,159,10,0.8)]">
+            <Zap size={22} fill="white" />
+            Boost
           </button>
         </div>
       </div>

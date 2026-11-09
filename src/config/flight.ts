@@ -13,11 +13,15 @@ export interface FlightTuning {
   pitchRate: number;
   pitchResponse: number;
   maxPitch: number;
-  /** How quickly pitch eases back toward level with no input (assist). */
+  /** How quickly pitch eases back toward the horizon when climb/dive is released (1/s). */
   pitchAutoLevel: number;
   rollRate: number;
   maxBank: number;
   bankResponse: number;
+  /** How strongly the wings roll back to level when turn/roll input is released (1/s). */
+  bankAutoLevel: number;
+  /** Fastest the wings roll back to level (rad/s). */
+  bankLevelRate: number;
   /** Bank-induced heading change (coordinated turn strength). */
   turnRate: number;
   /** Immediate yaw from A/D so steering feels responsive before the bank builds. */
@@ -38,51 +42,39 @@ export interface FlightTuning {
   floor: number;
 }
 
-export const ASSISTED: FlightTuning = {
+/**
+ * The one flight model. Releasing the controls rolls the wings back to level and
+ * eases the nose to the horizon; there is no terrain pull-up or other assist.
+ */
+export const FLIGHT: FlightTuning = {
   baseSpeed: 48,
   maxSpeed: 96,
   minSpeed: 24,
   acceleration: 26,
   deceleration: 30,
   gravityEffect: 14,
-  pitchRate: 1.15,
-  pitchResponse: 6,
-  maxPitch: 1.05,
-  pitchAutoLevel: 0.5,
-  rollRate: 4.2,
-  maxBank: 1.0,
-  bankResponse: 4.5,
-  turnRate: 0.95,
-  directYaw: 0.28,
-  pitchBankCoupling: 0.35,
-  grip: 3.2,
-  verticalSpeedLimit: 46,
+  pitchRate: 1.3,
+  pitchResponse: 6.5,
+  maxPitch: 1.45,
+  pitchAutoLevel: 1.4,
+  rollRate: 4.6,
+  maxBank: 1.3,
+  bankResponse: 3.6,
+  bankAutoLevel: 2.6,
+  bankLevelRate: 2.2,
+  turnRate: 1.0,
+  directYaw: 0.22,
+  pitchBankCoupling: 0.8,
+  grip: 2.8,
+  verticalSpeedLimit: 60,
   boostDrain: 0.22,
   boostRecharge: 0.14,
-  terrainAssistClearance: 14,
-  crashImpactSpeed: 46,
+  terrainAssistClearance: 0,
+  crashImpactSpeed: 40,
   bounce: 0.35,
   collisionRadius: 2.6,
   ceiling: 620,
   floor: -60,
-};
-
-export const ADVANCED: FlightTuning = {
-  ...ASSISTED,
-  pitchRate: 1.45,
-  pitchResponse: 7,
-  maxPitch: 1.48,
-  pitchAutoLevel: 0.05,
-  rollRate: 5.2,
-  maxBank: 1.45,
-  bankResponse: 3.2,
-  turnRate: 1.1,
-  directYaw: 0.18,
-  pitchBankCoupling: 1,
-  grip: 2.4,
-  verticalSpeedLimit: 70,
-  terrainAssistClearance: 0,
-  crashImpactSpeed: 36,
 };
 
 export const CAMERA = {

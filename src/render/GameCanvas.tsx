@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ACESFilmicToneMapping, PCFSoftShadowMap } from "three";
+import { ACESFilmicToneMapping, PCFSoftShadowMap, WebGLRenderer } from "three";
 import { useGame } from "@/game/store";
 import { QUALITY, type QualityLevel } from "@/config/quality";
 import { tick } from "@/game/gameplay";
@@ -19,6 +19,10 @@ import { Airplane } from "./airplane/Airplane";
 import { CameraRig } from "./camera/CameraRig";
 import { Effects } from "./Effects";
 import { canvasRef } from "./captureRef";
+import { FrameMonitor } from "./FrameMonitor";
+import { DEBUG } from "@/debug/recorder";
+
+
 
 function Loop() {
   useFrame((_, dt) => {
@@ -34,9 +38,11 @@ function Loop() {
 
 /** Exposes the renderer for photo-mode capture. */
 function Capture() {
-  const { gl, scene, camera } = useThree();
+  const { gl, scene, camera, get } = useThree();
   useEffect(() => {
     canvasRef.gl = { domElement: gl.domElement, render: () => gl.render(scene, camera) };
+    // Dev-only handle for frame-diff diagnostics (flicker / z-fighting hunts).
+    if (import.meta.env.DEV) (window as unknown as { __r3f?: typeof get }).__r3f = get;
     return () => {
       canvasRef.gl = null;
     };
@@ -105,10 +111,20 @@ export default function GameCanvas({ world }: { world: World }) {
       className="!fixed inset-0"
       shadows={preset.shadows ? { type: PCFSoftShadowMap } : false}
       dpr={preset.dpr}
-      gl={{ antialias: !preset.postprocessing, powerPreference: "high-performance", stencil: false, preserveDrawingBuffer: false }}
+      gl={(canvas) => {
+        // A truly opaque canvas. three.js always asks for an alpha context (its
+        // `alpha` option only sets the clear alpha), and a transparent canvas lets
+        // a compositor hiccup show the page behind it for a frame. Creating the
+        // context ourselves with alpha: false removes that path entirely.
+        const attrs = { alpha: false, antialias: !preset.postprocessing, powerPreference: "high-performance" as const, stencil: false, depth: true, preserveDrawingBuffer: false };
+        const el = canvas as HTMLCanvasElement;
+        const context = (el.getContext("webgl2", attrs as WebGLContextAttributes) as unknown as WebGLRenderingContext | null) ?? undefined;
+        return new WebGLRenderer({ canvas: el, context, ...attrs });
+      }}
       camera={{ fov: 50, near: 0.5, far: 6000, position: [20, 110, 90] }}
       onCreated={({ gl }) => {
         gl.toneMapping = ACESFilmicToneMapping;
+        gl.setClearColor(ENV.horizon, 1);
         gl.toneMappingExposure = 1.02;
       }}
       aria-label="3D flight world"
@@ -119,7 +135,7 @@ export default function GameCanvas({ world }: { world: World }) {
       <Suspense fallback={null}>
         <Sky />
         <Lighting preset={preset} />
-        <Clouds density={preset.cloudDensity} />
+        <Clouds density={preset.cloudDensity} world={world} />
         <WorldView world={world} shadows={preset.shadows} />
         <GameplayObjects world={world} />
         <Ambient preset={preset} />
@@ -127,6 +143,7 @@ export default function GameCanvas({ world }: { world: World }) {
         <CameraRig />
         <Loop />
         <Capture />
+        {DEBUG && <FrameMonitor />}
         <Effects preset={preset} />
       </Suspense>
     </Canvas>

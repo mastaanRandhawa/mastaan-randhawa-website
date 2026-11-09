@@ -20,9 +20,9 @@ export function WorldView({ world, shadows }: { world: World; shadows: boolean }
       {world.regions.map((r) => (
         <group key={r.def.id + r.islands[0]?.id}>
           {r.islands.map((isl) => (
-            <mesh key={isl.id} geometry={isl.geometry} material={mat} position={isl.position} castShadow={shadows} receiveShadow={shadows} />
+            <mesh key={isl.id} geometry={isl.geometry} material={mat} position={isl.position} receiveShadow={shadows} />
           ))}
-          {r.world && <mesh geometry={r.world} material={mat} castShadow={shadows} receiveShadow={shadows} />}
+          {r.world && <mesh geometry={r.world} material={mat} receiveShadow={shadows} />}
         </group>
       ))}
       <Signs anchors={get("sign")} />

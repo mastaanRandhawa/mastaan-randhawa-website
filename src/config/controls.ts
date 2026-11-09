@@ -3,8 +3,9 @@ export type AxisAction = "pitchUp" | "pitchDown" | "turnLeft" | "turnRight" | "r
 export type PressAction = "camera" | "map" | "pause" | "interact" | "reset" | "photo";
 
 export const KEY_BINDINGS: Record<AxisAction | PressAction, string[]> = {
-  pitchUp: ["KeyW", "ArrowUp"],
-  pitchDown: ["KeyS", "ArrowDown"],
+  // Flight-stick convention: pull back (S / ↓) to climb, push forward (W / ↑) to dive.
+  pitchUp: ["KeyS", "ArrowDown"],
+  pitchDown: ["KeyW", "ArrowUp"],
   turnLeft: ["KeyA", "ArrowLeft"],
   turnRight: ["KeyD", "ArrowRight"],
   rollLeft: ["KeyQ"],
@@ -20,7 +21,8 @@ export const KEY_BINDINGS: Record<AxisAction | PressAction, string[]> = {
 };
 
 export const CONTROL_HELP: { keys: string[]; label: string }[] = [
-  { keys: ["W", "S"], label: "Pitch up / down" },
+  { keys: ["S"], label: "Climb (pull back)" },
+  { keys: ["W"], label: "Dive (push forward)" },
   { keys: ["A", "D"], label: "Bank & turn" },
   { keys: ["Q", "E"], label: "Roll" },
   { keys: ["Shift"], label: "Boost" },

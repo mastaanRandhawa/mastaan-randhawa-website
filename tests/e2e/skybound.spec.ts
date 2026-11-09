@@ -66,7 +66,8 @@ test("falls back to the portfolio when WebGL is unavailable", async ({ page }) =
   await expect(page.locator("#portfolio")).toBeAttached();
 });
 
-test("fly: takeoff, controls, pause, map and a destination panel", async ({ page }) => {
+test("fly: takeoff, controls, pause, map, landing at a destination and taking off", async ({ page }) => {
+  test.setTimeout(120_000);
   const errors = errorsOf(page);
   await page.goto("/");
   await page.getByRole("button", { name: /start flying/i }).click({ timeout: 30_000 });
@@ -74,9 +75,9 @@ test("fly: takeoff, controls, pause, map and a destination panel", async ({ page
   await expect(page.getByText(/airspeed/i)).toBeVisible();
 
   const before = await page.evaluate(() => window.__skybound!.runtime.flight.pitch);
-  await page.keyboard.down("KeyW");
+  await page.keyboard.down("KeyS"); // S pulls back = climb
   await page.waitForTimeout(600);
-  await page.keyboard.up("KeyW");
+  await page.keyboard.up("KeyS");
   const after = await page.evaluate(() => window.__skybound!.runtime.flight.pitch);
   expect(after).toBeGreaterThan(before + 0.1);
 
@@ -94,11 +95,16 @@ test("fly: takeoff, controls, pause, map and a destination panel", async ({ page
     S.resetFlightAt(d.pos[0] + 30, d.pos[1] + 25, d.pos[2] + 60, 0.3, 30);
   });
   await page.waitForTimeout(300);
+  // F flies to the airfield and lands; the briefing opens once parked.
   await page.keyboard.press("KeyF");
+  await page.waitForFunction(() => window.__skybound!.runtime.phase === "visit", null, { timeout: 5_000 });
   const panel = page.getByRole("dialog", { name: "Mastaan Randhawa" });
-  await expect(panel).toBeVisible();
+  await expect(panel).toBeVisible({ timeout: 40_000 });
   await expect(panel).toContainText("Simon Fraser University");
+  await expect(page.getByRole("button", { name: /take off/i })).toBeVisible();
+  // Closing the sheet takes off again.
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
+  await page.waitForFunction(() => window.__skybound!.runtime.visit?.stage === "takeoff" || window.__skybound!.runtime.visit?.stage === "climb", null, { timeout: 5_000 });
   expect(errors).toEqual([]);
 });

@@ -36,7 +36,7 @@ export const QUALITY: Record<QualityLevel, QualityPreset> = {
     postprocessing: true,
     ao: false,
     bloom: true,
-    msaa: 0,
+    msaa: 4,
     propDensity: 0.75,
     cloudDensity: 0.75,
     drawDistance: 2800,
