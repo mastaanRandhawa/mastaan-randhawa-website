@@ -1,29 +1,37 @@
 import { Mail, Linkedin, Github } from "lucide-react";
+import { portfolio } from "@/content/portfolio";
 
+const SECTIONS = [
+  { label: "Work", href: "#portfolio" },
+  { label: "Skills", href: "#skills" },
+  { label: "Experience", href: "#experience" },
+  { label: "Certifications", href: "#certifications" },
+  { label: "Education", href: "#education" },
+  { label: "About", href: "#about" },
+  { label: "Contact", href: "#contact" },
+  { label: "Resume", href: "#resume" },
+];
+
+const P = portfolio.profile;
 const socials = [
-  {
-    icon: Mail,
-    href: "mailto:mastaanrandhawa@gmail.com",
-    label: "Email",
-  },
-  {
-    icon: Linkedin,
-    href: "https://linkedin.com/in/MastaanRandhawa",
-    label: "LinkedIn",
-  },
-  {
-    icon: Github,
-    href: "https://github.com/mastaanRandhawa",
-    label: "GitHub",
-  },
+  { icon: Mail, href: P.links.email, label: "Email" },
+  { icon: Linkedin, href: P.links.linkedin, label: "LinkedIn" },
+  { icon: Github, href: P.links.github, label: "GitHub" },
 ];
 
 export default function Footer() {
   return (
     <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-10">
+      <nav aria-label="All sections" className="max-w-6xl mx-auto px-6 mb-8 flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2">
+        {[...SECTIONS].map((l) => (
+          <a key={l.href} href={l.href} className="font-mono text-sm text-zinc-500 dark:text-zinc-400 hover:text-accent-blue transition-colors">
+            {l.label}
+          </a>
+        ))}
+      </nav>
       <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
         <p className="font-mono text-sm text-zinc-400 dark:text-zinc-600">
-          © 2025 Mastaan Randhawa. All rights reserved.
+          © {new Date().getFullYear()} {P.name}. All rights reserved.
         </p>
 
         <div className="flex items-center gap-3">

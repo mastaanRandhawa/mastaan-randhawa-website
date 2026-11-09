@@ -1,43 +1,9 @@
 import { Terminal, Globe, Palette, Zap, Database, Cloud } from "lucide-react";
 
-const whatIDo = [
-  {
-    icon: Terminal,
-    title: "System Programming",
-    desc: "Low-level C/C++ development, memory management, OS concepts, and performance-critical applications.",
-    color: "#1f464d",
-  },
-  {
-    icon: Globe,
-    title: "Web Development",
-    desc: "Full-stack web applications using modern frameworks, responsive design, and scalable architectures.",
-    color: "#0015ff",
-  },
-  {
-    icon: Database,
-    title: "Data Engineering",
-    desc: "Building ETL pipelines, validating large datasets, and delivering dashboards with SQL, Python, and Databricks.",
-    color: "#ff5941",
-  },
-  {
-    icon: Cloud,
-    title: "Cloud & Security",
-    desc: "Working with Azure services and event-driven architecture, backed by a Microsoft security operations certification.",
-    color: "#2b5797",
-  },
-  {
-    icon: Palette,
-    title: "UI/UX Design",
-    desc: "Crafting intuitive user interfaces with Figma, translating designs into polished digital experiences.",
-    color: "#E794DA",
-  },
-  {
-    icon: Zap,
-    title: "Performance Optimization",
-    desc: "Profiling, benchmarking, and tuning applications for speed, efficiency, and resource utilization.",
-    color: "#ff5941",
-  },
-];
+import { portfolio } from "@/content/portfolio";
+
+const ICONS = { terminal: Terminal, globe: Globe, database: Database, cloud: Cloud, palette: Palette, zap: Zap };
+const whatIDo = portfolio.profile.focusAreas.map((f) => ({ icon: ICONS[f.icon], title: f.title, desc: f.description, color: f.color }));
 
 export default function About() {
   return (
@@ -56,42 +22,15 @@ export default function About() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           {/* Bio */}
           <div>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 sm:mb-6">
-              I'm{" "}
-              <span className="text-zinc-900 dark:text-white font-semibold">Mastaan Randhawa</span>
-              , a Software Developer and Computer Science student at{" "}
-              <span className="text-zinc-900 dark:text-white font-semibold">
-                Simon Fraser University
-              </span>
-              . I'm passionate about using technology to create meaningful change.
-            </p>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 sm:mb-6">
-              For the past year and a half at{" "}
-              <span className="text-zinc-900 dark:text-white font-semibold">
-                ThoughtsWin Systems
-              </span>{" "}
-              I've worked as an App Development Intern and now as a Data Engineer Intern, building
-              applications and data pipelines. I'm a Databricks Certified Data Engineer Associate
-              and a Microsoft Certified Security Operations Analyst, and I've built client websites
-              through Doxa Studios.
-            </p>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 sm:mb-6">
-              I hope to keep expanding my skills, meet people from different walks of life, and one
-              day explore how tech and sales can come together to help others.
-            </p>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              From building low-level systems in C/C++ to crafting interactive web experiences with
-              Three.js and React, I love the entire spectrum of software development.
-            </p>
+            {portfolio.profile.bio.map((para, i) => (
+              <p key={i} className={`text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed ${i < portfolio.profile.bio.length - 1 ? "mb-5 sm:mb-6" : ""}`}>
+                {para}
+              </p>
+            ))}
 
             {/* Quick stats */}
             <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {[
-                { value: "1.5+", label: "Years Exp." },
-                { value: "12+", label: "Projects" },
-                { value: "7", label: "Credentials" },
-                { value: "SFU", label: "University" },
-              ].map((stat) => (
+              {portfolio.profile.stats.map((stat) => (
                 <div
                   key={stat.label}
                   className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 sm:p-4 text-center"

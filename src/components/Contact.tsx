@@ -1,28 +1,12 @@
 import { useState, FormEvent } from "react";
 import { Mail, Linkedin, Github, Send, CheckCircle } from "lucide-react";
+import { portfolio } from "@/content/portfolio";
 
+const P = portfolio.profile;
 const contactMethods = [
-  {
-    icon: Mail,
-    label: "Email",
-    value: "mastaanrandhawa@gmail.com",
-    href: "mailto:mastaanrandhawa@gmail.com",
-    color: "#ff5941",
-  },
-  {
-    icon: Linkedin,
-    label: "LinkedIn",
-    value: "Connect professionally",
-    href: "https://linkedin.com/in/MastaanRandhawa",
-    color: "#0015ff",
-  },
-  {
-    icon: Github,
-    label: "GitHub",
-    value: "Check out my repositories",
-    href: "https://github.com/mastaanRandhawa",
-    color: "#1f464d",
-  },
+  { icon: Mail, label: "Email", value: P.email, href: P.links.email, color: "#ff5941" },
+  { icon: Linkedin, label: "LinkedIn", value: "Connect professionally", href: P.links.linkedin, color: "#0015ff" },
+  { icon: Github, label: "GitHub", value: "Check out my repositories", href: P.links.github, color: "#1f464d" },
 ];
 
 export default function Contact() {
@@ -33,7 +17,7 @@ export default function Contact() {
     e.preventDefault();
     const { name, email, subject, message } = form;
     const body = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
-    window.location.href = `mailto:mastaanrandhawa@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:${P.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setSent(true);
     setForm({ name: "", email: "", subject: "", message: "" });
     setTimeout(() => setSent(false), 4000);

@@ -1,4 +1,5 @@
 import { Briefcase, MapPin, CalendarDays } from "lucide-react";
+import { portfolio } from "@/content/portfolio";
 
 type Role = {
   title: string;
@@ -8,42 +9,8 @@ type Role = {
   tags: string[];
 };
 
-const company = {
-  name: "ThoughtsWin Systems",
-  location: "Surrey, BC · Remote",
-  period: "Jun 2025 – Present",
-  duration: "1.5 yrs",
-};
-
-// Most recent role first.
-const roles: Role[] = [
-  {
-    title: "Data Engineer Intern",
-    period: "May 2026 – Present",
-    current: true,
-    points: [
-      "Help design, build, and maintain data pipelines and ETL processes.",
-      "Collect, clean, transform, and validate large datasets using SQL and Python.",
-      "Help build and optimize databases, data warehouses, and reporting systems.",
-      "Create dashboards, reports, and visualizations for business and technical teams.",
-      "Monitor data quality, troubleshoot data issues, and automate repetitive data tasks.",
-      "Document data workflows and follow data governance, security, and privacy best practices.",
-    ],
-    tags: ["SQL", "Python", "ETL", "Data Pipelines", "Dashboards"],
-  },
-  {
-    title: "App Development Intern",
-    period: "Jun 2025 – May 2026",
-    points: [
-      "Helped design and develop web and mobile application features alongside developers and designers.",
-      "Wrote, tested, and debugged clean, efficient code, and took part in code reviews.",
-      "Integrated third-party APIs and libraries into the application.",
-      "Ran functional and UI testing, and fixed bugs and performance issues.",
-      "Documented code, processes, and technical specifications, and contributed to project planning.",
-    ],
-    tags: ["Web & Mobile Apps", "APIs", "Testing", "Code Review"],
-  },
-];
+const company = portfolio.company;
+const roles: Role[] = portfolio.company.roles;
 
 export default function Experience() {
   return (

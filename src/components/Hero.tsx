@@ -1,19 +1,9 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Github, Linkedin } from "lucide-react";
 
-const typewriterLines = [
-  "I am passionate about C and C++ development.",
-  "I am experienced with JavaScript and modern web technologies.",
-  "I enjoy crafting clean and responsive designs with HTML and CSS.",
-  "I love bringing ideas to life through Figma and creative design work.",
-  "I am comfortable working with React, Three.js, and Spring Boot.",
-  "I am familiar with managing data using MongoDB, MySQL, and SQLite.",
-  "I have hands-on experience deploying projects with Render and AWS.",
-  "I have worked with Azure, Event Grid, and Event Hubs.",
-  "I build data pipelines and ETL workflows with SQL and Python.",
-  "I am a Databricks Certified Data Engineer Associate.",
-  "I have spent 1.5 years interning at ThoughtsWin Systems.",
-];
+import { portfolio } from "@/content/portfolio";
+
+const typewriterLines = portfolio.profile.typewriterLines;
 
 function useTypewriter(lines: string[]) {
   const [displayed, setDisplayed] = useState("");
@@ -83,11 +73,7 @@ export default function Hero() {
 
           {/* Description */}
           <p className="text-sm sm:text-base lg:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed mb-8 sm:mb-10 max-w-xl">
-            Software Developer and Data Engineer Intern at{" "}
-            <span className="text-zinc-900 dark:text-white font-medium">ThoughtsWin Systems</span>, and
-            Computer Science student at{" "}
-            <span className="text-zinc-900 dark:text-white font-medium">Simon Fraser University</span>,
-            turning ideas into digital reality.
+            {portfolio.profile.intro}
           </p>
 
           {/* CTAs */}
@@ -110,7 +96,7 @@ export default function Hero() {
           {/* Social links */}
           <div className="flex items-center gap-3 sm:gap-4">
             <a
-              href="https://github.com/mastaanRandhawa"
+              href={portfolio.profile.links.github}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"
@@ -119,7 +105,7 @@ export default function Hero() {
               <Github size={17} />
             </a>
             <a
-              href="https://linkedin.com/in/MastaanRandhawa"
+              href={portfolio.profile.links.linkedin}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"

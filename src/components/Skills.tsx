@@ -1,4 +1,5 @@
 import { Gravity, MatterBody } from "@/components/ui/gravity";
+import { portfolio as content } from "@/content/portfolio";
 
 type Skill = {
   name: string;
@@ -10,51 +11,24 @@ type Skill = {
   angle?: number;
 };
 
-const skills: Skill[] = [
-  // Frontend
-  { name: "HTML5",       color: "#E84D1C", textColor: "#fff",     x: "10%", y: "5%",  shape: "squircle", angle: -6  },
-  { name: "CSS3",        color: "#0015ff", textColor: "#fff",     x: "22%", y: "6%",  shape: "pill"                },
-  { name: "JavaScript",  color: "#ffd726", textColor: "#1a1a1a",  x: "36%", y: "4%",  shape: "blob",     angle: 8   },
-  { name: "React.js",    color: "#0015ff", textColor: "#fff",     x: "52%", y: "7%",  shape: "sharp",    angle: -4  },
-  { name: "Three.js",    color: "#1a1a1a", textColor: "#fff",     x: "65%", y: "5%",  shape: "circle"              },
-  { name: "Bootstrap",   color: "#7952b3", textColor: "#fff",     x: "78%", y: "6%",  shape: "tag",      angle: 5   },
-
-  // Backend & Systems
-  { name: "C/C++",       color: "#1f464d", textColor: "#fff",     x: "14%", y: "20%", shape: "pill",     angle: -8  },
-  { name: "Assembly",    color: "#1f464d", textColor: "#fff",     x: "28%", y: "18%", shape: "sharp"               },
-  { name: "Node.js",     color: "#3d9140", textColor: "#fff",     x: "44%", y: "22%", shape: "squircle", angle: 6   },
-  { name: "Python",      color: "#2b5797", textColor: "#fff",     x: "60%", y: "19%", shape: "blob",     angle: -5  },
-  { name: "Spring Boot", color: "#6db33f", textColor: "#fff",     x: "76%", y: "21%", shape: "pill",     angle: 4   },
-
-  // Database & Tools
-  { name: "MongoDB",     color: "#ff5941", textColor: "#fff",     x: "8%",  y: "38%", shape: "circle"              },
-  { name: "MySQL",       color: "#e8710a", textColor: "#fff",     x: "22%", y: "34%", shape: "tag",      angle: -7  },
-  { name: "Docker",      color: "#2496ed", textColor: "#fff",     x: "38%", y: "40%", shape: "squircle", angle: 5   },
-  { name: "Git/GitHub",  color: "#ff5941", textColor: "#fff",     x: "54%", y: "36%", shape: "sharp",    angle: -4  },
-  { name: "AWS",         color: "#f97316", textColor: "#fff",     x: "69%", y: "38%", shape: "blob",     angle: 9   },
-  { name: "Figma",       color: "#E794DA", textColor: "#1a1a1a",  x: "82%", y: "34%", shape: "pill"                },
-  { name: "SQL",         color: "#00758f", textColor: "#fff",     x: "14%", y: "52%", shape: "sharp",    angle: 5   },
-  { name: "Databricks",  color: "#ff3621", textColor: "#fff",     x: "34%", y: "50%", shape: "tag",      angle: -6  },
-  { name: "Azure",       color: "#0078d4", textColor: "#fff",     x: "56%", y: "53%", shape: "squircle", angle: 7   },
-  { name: "TypeScript",  color: "#3178c6", textColor: "#fff",     x: "74%", y: "52%", shape: "pill",     angle: -4  },
-  { name: "Tailwind CSS",color: "#06b6d4", textColor: "#083344",  x: "89%", y: "50%", shape: "blob",     angle: 6   },
-
-  // Data & Cloud
-  { name: "Apache Spark",     color: "#e25a1c", textColor: "#fff",     x: "9%",  y: "66%", shape: "squircle", angle: -5 },
-  { name: "Delta Lake",       color: "#00add4", textColor: "#06232b",  x: "24%", y: "68%", shape: "pill",     angle: 4  },
-  { name: "ETL",              color: "#a855f7", textColor: "#fff",     x: "37%", y: "65%", shape: "circle"             },
-  { name: "Data Pipelines",   color: "#ff5941", textColor: "#fff",     x: "51%", y: "67%", shape: "tag",      angle: -7 },
-  { name: "Microsoft Sentinel", color: "#243a5e", textColor: "#fff",   x: "68%", y: "66%", shape: "sharp",    angle: 5  },
-  { name: "KQL",              color: "#5b21b6", textColor: "#fff",     x: "83%", y: "68%", shape: "blob",     angle: -6 },
-
-  // More tools
-  { name: "REST APIs",   color: "#1f464d", textColor: "#fff",     x: "10%", y: "80%", shape: "pill",     angle: 6   },
-  { name: "SQLite",      color: "#0f80cc", textColor: "#fff",     x: "25%", y: "82%", shape: "sharp",    angle: -4  },
-  { name: "Render",      color: "#46e3b7", textColor: "#1a1a1a",  x: "39%", y: "80%", shape: "squircle", angle: 5   },
-  { name: "Event Hubs",  color: "#005ba1", textColor: "#fff",     x: "54%", y: "82%", shape: "tag",      angle: -5  },
-  { name: "Claude",      color: "#d97757", textColor: "#fff",     x: "69%", y: "80%", shape: "pill",     angle: 4   },
-  { name: "Linux",       color: "#fcc624", textColor: "#1a1a1a",  x: "84%", y: "82%", shape: "squircle", angle: -7  },
-];
+const SHAPES: Skill["shape"][] = ["squircle", "pill", "blob", "sharp", "circle", "tag"];
+// Positions are generated from the shared content model: one band per category.
+const skills: Skill[] = content.skillCategories.flatMap((cat, row) =>
+  cat.skills.map((sk, i) => {
+    const perRow = 6;
+    const r = row * 2 + Math.floor(i / perRow);
+    const col = i % perRow;
+    return {
+      name: sk.name,
+      color: sk.color,
+      textColor: sk.textColor,
+      x: `${8 + col * 15 + (r % 2) * 6}%`,
+      y: `${4 + r * 11}%`,
+      shape: SHAPES[(i + row) % SHAPES.length],
+      angle: ((i * 37 + row * 11) % 17) - 8,
+    };
+  }),
+);
 
 const shapeClass: Record<Skill["shape"], string> = {
   pill:      "rounded-full px-4 py-2 sm:px-5 sm:py-2.5",
@@ -65,12 +39,7 @@ const shapeClass: Record<Skill["shape"], string> = {
   tag:       "rounded-sm rounded-tl-2xl rounded-br-2xl px-4 py-2 sm:px-5 sm:py-2.5",
 };
 
-const categories = [
-  { label: "Frontend",          color: "#0015ff" },
-  { label: "Backend & Systems", color: "#1f464d" },
-  { label: "Database & Tools",  color: "#ff5941" },
-  { label: "Data & Cloud",      color: "#00add4" },
-];
+const categories = content.skillCategories.map((c) => ({ label: c.label, color: c.color }));
 
 export default function Skills() {
   return (
