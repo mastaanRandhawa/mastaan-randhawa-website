@@ -1,6 +1,6 @@
 import { P, T } from "@/render/geometry/MeshBuilder";
 import type { RegionKit } from "../regionKit";
-import type { RegionDef, Vec3 } from "../layout";
+import { SEA_LEVEL, type RegionDef, type Vec3 } from "../layout";
 import type { RegionExtras } from "../defs";
 import { courseRings } from "../defs";
 import { PALETTES } from "../terrain";
@@ -77,7 +77,8 @@ export function buildCanyon(kit: RegionKit, def: RegionDef, out: RegionExtras) {
 
   // ── Project islands on the canyon rims ──
   const cpuIsl = projectIsland(kit, def, out, { projectId: "risc-v", x: cx - 170, y: cy + 12, z: cz - 70, radius: 40, seed: 6201, palette: PALETTES.tech, trees: 10, kinds: ["pine", "poplar"] });
-  out.collectibles.push({ id: "log-riscv", pos: cpuIsl.w(0, -56, 0), hint: "Below the tip of the RISC-V chip island" });
+  // Low over the water off the island's west beach (clear of its flared base).
+  out.collectibles.push({ id: "log-riscv", pos: [cpuIsl.ox - 66, SEA_LEVEL + 15, cpuIsl.oz], hint: "Skimming the waves west of the RISC-V chip island" });
   projectIsland(kit, def, out, { projectId: "ls-command", x: cx - 165, y: cy + 2, z: cz + 95, radius: 32, seed: 6202, palette: PALETTES.meadow, trees: 12 });
   const cacheIsl = projectIsland(kit, def, out, { projectId: "cache", x: cx + 170, y: cy + 4, z: cz - 60, radius: 32, seed: 6203, palette: PALETTES.lavender, trees: 10 });
   out.collectibles.push({ id: "log-cache", pos: cacheIsl.w(0, cacheIsl.h(0, 0) + 30, 0), hint: "On top of the L1 cache" });

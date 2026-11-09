@@ -6,7 +6,7 @@ import { runtime } from "@/game/runtime";
 import type { QualityPreset } from "@/config/quality";
 
 /**
- * Warm golden-hour sun. Only the aircraft casts a shadow (scenery receives it),
+ * Soft, warm midday sun. Only the aircraft casts a shadow (scenery receives it),
  * so the plane always throws a crisp grounding shadow onto whatever it flies
  * over, with no shadow acne or frustum edges sweeping across the islands.
  */
@@ -42,18 +42,19 @@ export function Lighting({ preset }: { preset: QualityPreset }) {
 
   return (
     <>
-      <hemisphereLight args={[ENV.hemiSky, ENV.hemiGround, 1.05]} />
-      <ambientLight intensity={0.18} color="#ffe9d6" />
+      {/* Sky above, sea-blue bounce below: shadows read cool, never muddy. */}
+      <hemisphereLight args={[ENV.hemiSky, ENV.hemiGround, 1.25]} />
+      <ambientLight intensity={0.22} color="#fff4e6" />
       <directionalLight
         ref={sun}
         color={ENV.sunLight}
-        intensity={2.6}
+        intensity={2.2}
         castShadow={preset.shadows}
         shadow-bias={-0.0002}
         shadow-normalBias={0.02}
       />
-      {/* Cool fill from the opposite side keeps shadowed faces readable. */}
-      <directionalLight color="#a9c7ff" intensity={0.35} position={[400, 200, -300]} />
+      {/* Cool fill from the opposite side keeps shadowed faces soft and readable. */}
+      <directionalLight color="#b9dcff" intensity={0.45} position={[400, 200, -300]} />
     </>
   );
 }

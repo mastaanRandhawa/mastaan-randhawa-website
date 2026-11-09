@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ACESFilmicToneMapping, PCFSoftShadowMap, WebGLRenderer } from "three";
+import { NeutralToneMapping, PCFSoftShadowMap, WebGLRenderer } from "three";
 import { useGame } from "@/game/store";
 import { QUALITY, type QualityLevel } from "@/config/quality";
 import { tick } from "@/game/gameplay";
@@ -11,10 +11,12 @@ import type { World } from "@/world/world";
 import { Sky } from "./env/Sky";
 import { Lighting } from "./env/Lighting";
 import { Clouds } from "./env/Clouds";
+import { Ocean } from "./env/Ocean";
 import { ENV } from "./env/environment";
 import { WorldView } from "./world/WorldView";
 import { GameplayObjects } from "./world/GameplayObjects";
 import { Ambient } from "./world/Ambient";
+import { Boats } from "./world/Boats";
 import { Airplane } from "./airplane/Airplane";
 import { CameraRig } from "./camera/CameraRig";
 import { Effects } from "./Effects";
@@ -123,22 +125,24 @@ export default function GameCanvas({ world }: { world: World }) {
       }}
       camera={{ fov: 50, near: 0.5, far: 6000, position: [20, 110, 90] }}
       onCreated={({ gl }) => {
-        gl.toneMapping = ACESFilmicToneMapping;
+        gl.toneMapping = NeutralToneMapping;
         gl.setClearColor(ENV.horizon, 1);
-        gl.toneMappingExposure = 1.02;
+        gl.toneMappingExposure = 1.0;
       }}
       aria-label="3D flight world"
     >
       <color attach="background" args={[ENV.horizon]} />
-      <fog attach="fog" args={[ENV.fog, 380, preset.drawDistance]} />
+      <fog attach="fog" args={[ENV.fog, 420, preset.drawDistance]} />
       <AdaptiveQuality onDecline={() => step(-1)} onIncline={() => step(1)} />
       <Suspense fallback={null}>
         <Sky />
         <Lighting preset={preset} />
-        <Clouds density={preset.cloudDensity} world={world} />
+        <Ocean world={world} density={preset.cloudDensity} />
+        <Clouds density={preset.cloudDensity} />
         <WorldView world={world} shadows={preset.shadows} />
         <GameplayObjects world={world} />
         <Ambient preset={preset} />
+        <Boats world={world} count={Math.round(16 * preset.propDensity)} />
         <Airplane />
         <CameraRig />
         <Loop />

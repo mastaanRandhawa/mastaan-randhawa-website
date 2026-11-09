@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Color, Group, Mesh, MeshBasicMaterial, Quaternion, Vector3, AdditiveBlending, DoubleSide } from "three";
+import { Color, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, AdditiveBlending, DoubleSide } from "three";
 import { useGame } from "@/game/store";
 import { runtime } from "@/game/runtime";
 import type { World } from "@/world/world";
@@ -11,8 +11,21 @@ function ringQuat(r: RingDef) {
   return new Quaternion().setFromUnitVectors(Z, new Vector3(...r.dir));
 }
 
+/**
+ * Painted, softly self-lit material for gameplay markers: solid pastel colour
+ * that stays readable in shade without neon glow. `k` sets how much it lights itself.
+ */
 const glowMat = (c: string, k: number, opacity = 1) =>
-  new MeshBasicMaterial({ color: new Color(c).multiplyScalar(k), toneMapped: false, transparent: opacity < 1, opacity, depthWrite: opacity >= 1 });
+  new MeshStandardMaterial({
+    color: new Color(c),
+    emissive: new Color(c),
+    emissiveIntensity: Math.min(0.85, k * 0.3),
+    roughness: 0.6,
+    metalness: 0,
+    transparent: opacity < 1,
+    opacity,
+    depthWrite: opacity >= 1,
+  });
 
 /** Course rings: next ring glows and pulses, upcoming ones are dim, passed hide. */
 function CourseRings({ world }: { world: World }) {
@@ -21,11 +34,12 @@ function CourseRings({ world }: { world: World }) {
   const refs = useRef<Record<string, (Group | null)[]>>({});
   const mats = useMemo(
     () => ({
-      next: glowMat("#ffcf70", 2.6),
-      upcoming: glowMat("#ffe9c7", 1.1, 0.55),
-      start: glowMat("#7fffd4", 2.2),
-      disc: new MeshBasicMaterial({ color: new Color("#fff1c9"), transparent: true, opacity: 0.12, blending: AdditiveBlending, depthWrite: false, side: DoubleSide }),
-      chevron: glowMat("#ffffff", 1.6),
+      next: glowMat("#ef7f5c", 2.4),
+      upcoming: glowMat("#fff4db", 1.6, 0.6),
+      start: glowMat("#3fbcc0", 2.2),
+      band: glowMat("#fff7ea", 2.6),
+      disc: new MeshBasicMaterial({ color: new Color("#fff4db"), transparent: true, opacity: 0.1, blending: AdditiveBlending, depthWrite: false, side: DoubleSide }),
+      chevron: glowMat("#fff7ea", 2.6),
     }),
     [],
   );
@@ -65,14 +79,21 @@ function CourseRings({ world }: { world: World }) {
           return (
             <group key={`${c.id}${i}`} position={r.pos} quaternion={ringQuat(r)} ref={(g) => ((refs.current[c.id] ??= [])[i] = g)}>
               <mesh material={isStart ? mats.start : isNext ? mats.next : mats.upcoming}>
-                <torusGeometry args={[r.radius, isNext || isStart ? 0.55 : 0.32, 8, 48]} />
+                <torusGeometry args={[r.radius, isNext || isStart ? 0.7 : 0.36, 10, 56]} />
               </mesh>
               <group>
+                {/* Cream racing bands painted around the active ring. */}
+                {(isNext || isStart) &&
+                  Array.from({ length: 8 }, (_, k) => (
+                    <mesh key={`b${k}`} rotation={[0, 0, (k / 8) * Math.PI * 2]} material={mats.band}>
+                      <torusGeometry args={[r.radius, 0.76, 10, 4, 0.16]} />
+                    </mesh>
+                  ))}
                 {(isNext || isStart) &&
                   Array.from({ length: 8 }, (_, k) => (
                     <group key={k} rotation={[0, 0, (k / 8) * Math.PI * 2]}>
-                      <mesh material={mats.chevron} position={[0, r.radius + 1.25, 0]}>
-                        <boxGeometry args={[0.55, 1.3, 0.2]} />
+                      <mesh material={mats.chevron} position={[0, r.radius + 1.6, 0]} rotation={[0, 0, Math.PI]}>
+                        <coneGeometry args={[0.45, 0.9, 3]} />
                       </mesh>
                     </group>
                   ))}
@@ -109,7 +130,7 @@ function DestinationRings({ world }: { world: World }) {
       {ds.map((d, i) => (
         <group key={d.id} position={d.ring!.pos} quaternion={ringQuat(d.ring!)} ref={(g) => (refs.current[i] = g)}>
           <mesh material={mats[i]}>
-            <torusGeometry args={[d.ring!.radius, 0.45, 8, 56]} />
+            <torusGeometry args={[d.ring!.radius, 0.6, 10, 56]} />
           </mesh>
           <mesh material={inner[i]}>
             <torusGeometry args={[d.ring!.radius * 0.86, 0.12, 4, 56, Math.PI * 1.5]} />
@@ -124,7 +145,7 @@ function DestinationRings({ world }: { world: World }) {
 function Collectibles({ world }: { world: World }) {
   const got = useGame((s) => s.progress.collectibles);
   const refs = useRef<(Group | null)[]>([]);
-  const m = useMemo(() => ({ core: glowMat("#ffc65a", 1.9), halo: glowMat("#fff2cf", 1.6, 0.8), beam: glowMat("#ffd27a", 0.9, 0.18) }), []);
+  const m = useMemo(() => ({ core: glowMat("#f6c55a", 2.8), halo: glowMat("#fff4db", 2.6, 0.85), beam: glowMat("#ffe2a0", 2.4, 0.2) }), []);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     refs.current.forEach((g, i) => {

@@ -220,6 +220,10 @@ export interface HouseOpts {
   trim?: string;
   chimney?: boolean;
   stories?: number;
+  /** Floor height (local); defaults to the island top under (x, z). */
+  y?: number;
+  /** Extra stone plinth depth below the floor, for houses set into a slope. */
+  plinth?: number;
 }
 
 /** Darken a hex colour by factor k (0..1). */
@@ -243,12 +247,13 @@ export function house(I: Isl, x: number, z: number, ry: number, o: HouseOpts = {
   const wall = o.wall ?? C.cream;
   const roof = o.roof ?? C.roofRed;
   const trim = o.trim ?? C.woodDark;
-  const y = I.h(x, z);
+  const y = o.y ?? I.h(x, z);
   const M = TP(new Matrix4(), x, y, z, 1, 1, 1, ry).clone();
   const b = I.b;
   const seed = Math.round(x * 3 + z * 5);
   // Footing and walls.
-  b.add(P.box(), TP(M, 0, 0.35, 0, w + 0.5, 0.7, d + 0.5), C.stoneDark);
+  const pl = o.plinth ?? 0;
+  b.add(P.box(), TP(M, 0, 0.35 - pl / 2, 0, w + 0.5, 0.7 + pl, d + 0.5), C.stoneDark);
   b.add(P.box(), TP(M, 0, 0.7 + h / 2, 0, w, h, d), wall);
   // Timber frame: corner posts, sill and eave beams, a mid rail per storey.
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) b.add(P.box(), TP(M, (sx * w) / 2, 0.7 + h / 2, (sz * d) / 2, 0.3, h, 0.3), trim);

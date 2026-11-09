@@ -43,10 +43,10 @@ export interface SkinDef {
 }
 
 export const SKINS: SkinDef[] = [
-  { id: "classic", name: "Classic Explorer", unlock: "Available from the start", body: "#f4ead5", accent: "#f2735a", trim: "#2b5c8a", wing: "#f8f1e2", canopy: "#2d5f7a" },
-  { id: "sunset", name: "Sunset Racer", unlock: "Finish any timed course", body: "#f2a541", accent: "#d9573f", trim: "#fbf8f2", wing: "#f7c96b", canopy: "#4a2f3d" },
-  { id: "midnight", name: "Midnight Engineer", unlock: "Open all five Systems Canyon projects", body: "#1f3552", accent: "#3fb8af", trim: "#e6b64c", wing: "#2a4466", canopy: "#7fe3ff" },
-  { id: "cloud", name: "Cloud Navigator", unlock: "Discover every region", body: "#fbf8f2", accent: "#6fb7e0", trim: "#2b5c8a", wing: "#ffffff", canopy: "#2f6f9a" },
+  { id: "classic", name: "Classic Explorer", unlock: "Available from the start", body: "#f4ebd9", accent: "#e97959", trim: "#264b68", wing: "#f7f0e2", canopy: "#8fb0c6" },
+  { id: "sunset", name: "Sunset Racer", unlock: "Finish any timed course", body: "#f3b25e", accent: "#e2674a", trim: "#fff4e3", wing: "#f7cd7c", canopy: "#7f8fae" },
+  { id: "midnight", name: "Midnight Engineer", unlock: "Open all five Systems Canyon projects", body: "#2f5577", accent: "#5cc6bd", trim: "#ecc15a", wing: "#3a6488", canopy: "#a8dbe6" },
+  { id: "cloud", name: "Cloud Navigator", unlock: "Discover every region", body: "#fffaf0", accent: "#72c2ea", trim: "#2f6496", wing: "#fffdf8", canopy: "#93b8d0" },
 ];
 
 export function unlockedSkins(p: Progress): SkinId[] {

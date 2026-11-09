@@ -4,6 +4,8 @@ import { IslandTerrain, type IslandParams } from "./terrain";
 import type { Collider } from "./collision";
 import { mulberry32 } from "./noise";
 import { islandSprings } from "./prefabs/mystic";
+import { SEA_LEVEL } from "./layout";
+import { decorateShore, type KeepClear } from "./prefabs/shore";
 
 /** Animated / textured objects that are instantiated as separate components. */
 export type AnchorType =
@@ -84,9 +86,18 @@ export class RegionKit {
     this.colliders.push({ type: "sphere", x, y, z, r });
   }
 
+  /**
+   * Ocean islands: fit each hill base around the gameplay spaces (rings,
+   * collectibles, landing paths), then dress its slopes and shore.
+   */
+  fitShores(keepClear: KeepClear[]) {
+    for (const i of this.islands) i.t.fitShore(keepClear);
+    for (const i of this.islands) decorateShore(i, keepClear);
+  }
+
   finish(): { islands: BuiltIsland[]; world: BufferGeometry | null } {
-    // Rim springs and waterfalls go in last, so they avoid everything placed above.
-    for (const i of this.islands) islandSprings(i);
+    // Rim springs only on the few floating (secret) islands; ocean islands stay clean.
+    for (const i of this.islands) if (i.t.p.profile === "taper" && i.t.p.y > SEA_LEVEL) islandSprings(i);
     return {
       islands: this.islands.map((i) => {
         i.t.build(i.b);

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { buildWorldSync } from "./world";
-import { REGIONS } from "./layout";
+import { REGIONS, SEA_LEVEL } from "./layout";
 import { portfolio } from "@/content/portfolio";
 
 describe("world build", () => {
@@ -122,7 +122,7 @@ describe("landing sites", () => {
     expect(problems).toEqual([]);
   });
 
-  it("gives every sizeable island a waterfall, none of them across a landing approach", async () => {
+  it("gives every sizeable floating island a waterfall, none of them across a landing approach", async () => {
     const { landingPlan } = await import("./landing");
     const falls = w.regions.flatMap((r) => r.anchors.filter((a) => a.type === "waterfall"));
     const missing: string[] = [];
@@ -130,7 +130,8 @@ describe("landing sites", () => {
       for (const i of r.islands) {
         const p = i.terrain.p;
         const R = p.radius * Math.max(p.sx, p.sz);
-        if (R < 20) continue;
+        // Ocean islands stay uncluttered; only islands floating above the sea keep rim springs.
+        if (R < 20 || p.profile !== "taper" || p.y <= SEA_LEVEL) continue;
         if (!falls.some((f) => Math.hypot(f.x - p.x, f.z - p.z) < R * 1.4)) missing.push(i.id);
       }
     expect(missing).toEqual([]);

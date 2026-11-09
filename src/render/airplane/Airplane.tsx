@@ -1,15 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import {
-  CanvasTexture,
-  Color,
-  DoubleSide,
-  Group,
-  Mesh,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  Object3D,
-} from "three";
+import { CanvasTexture, Color, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D } from "three";
 import { fuselageGeometry, finGeometry, paintAircraft, stabilizerGeometry, wingGeometry } from "./airplaneGeometry";
 import { runtime } from "@/game/runtime";
 import { useGame } from "@/game/store";
@@ -22,11 +13,11 @@ function propDiscTexture() {
   c.width = c.height = 128;
   const g = c.getContext("2d")!;
   const grad = g.createRadialGradient(64, 64, 6, 64, 64, 64);
-  grad.addColorStop(0, "rgba(40,40,46,0.0)");
-  grad.addColorStop(0.25, "rgba(40,40,46,0.35)");
-  grad.addColorStop(0.8, "rgba(40,40,46,0.22)");
-  grad.addColorStop(0.92, "rgba(236,232,222,0.28)");
-  grad.addColorStop(1, "rgba(236,232,222,0)");
+  grad.addColorStop(0, "rgba(52,58,69,0.0)");
+  grad.addColorStop(0.25, "rgba(52,58,69,0.3)");
+  grad.addColorStop(0.78, "rgba(52,58,69,0.18)");
+  grad.addColorStop(0.88, "rgba(233,121,89,0.35)");
+  grad.addColorStop(1, "rgba(233,121,89,0)");
   g.fillStyle = grad;
   g.fillRect(0, 0, 128, 128);
   return new CanvasTexture(c);
@@ -47,8 +38,12 @@ function tailDecal(text: string, color: string) {
   return t;
 }
 
-const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
-
+/**
+ * The player's aircraft: a chubby, hand-painted toy plane (see
+ * airplaneGeometry). Position and attitude come straight from the flight
+ * model; on top of that the body floats with a soft bob, the control surfaces
+ * follow the inputs and the propeller winds up with engine speed.
+ */
 export function Airplane() {
   const root = useRef<Group>(null);
   const body = useRef<Group>(null);
@@ -62,7 +57,6 @@ export function Airplane() {
   const gearL = useRef<Group>(null);
   const gearR = useRef<Group>(null);
   const gearT = useRef<Group>(null);
-  const scarf = useRef<Mesh>(null);
   const canopyGroup = useRef<Group>(null);
   const spinRate = useRef(0);
   const tipL = useMemo(() => new Object3D(), []);
@@ -85,20 +79,20 @@ export function Airplane() {
 
   const mats = useMemo(
     () => ({
-      paint: new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.5, metalness: 0.08, side: DoubleSide }),
-      accent: new MeshStandardMaterial({ color: skin.accent, flatShading: true, roughness: 0.45, metalness: 0.1 }),
-      spinner: new MeshStandardMaterial({ color: skin.accent, roughness: 0.38, metalness: 0.15 }),
-      trim: new MeshStandardMaterial({ color: skin.trim, flatShading: true, roughness: 0.5 }),
-      body: new MeshStandardMaterial({ color: skin.body, flatShading: true, roughness: 0.5, metalness: 0.05 }),
-      glass: new MeshStandardMaterial({ color: skin.canopy, roughness: 0.06, metalness: 0.55, transparent: true, opacity: 0.82, emissive: new Color(skin.canopy).multiplyScalar(0.15) }),
-      dark: new MeshStandardMaterial({ color: "#2a2c33", roughness: 0.75, flatShading: true }),
-      metal: new MeshStandardMaterial({ color: "#c9ced6", roughness: 0.3, metalness: 0.7, flatShading: true }),
-      blade: new MeshStandardMaterial({ color: "#3a3330", roughness: 0.55, flatShading: true }),
-      leather: new MeshStandardMaterial({ color: "#7a4a2b", roughness: 0.8, flatShading: true }),
-      goggles: new MeshStandardMaterial({ color: "#9fd6ea", roughness: 0.1, metalness: 0.6 }),
-      red: new MeshBasicMaterial({ color: new Color(1.7, 0.22, 0.2), toneMapped: false }),
-      green: new MeshBasicMaterial({ color: new Color(0.2, 1.6, 0.45), toneMapped: false }),
-      white: new MeshBasicMaterial({ color: new Color(1.5, 1.45, 1.35), toneMapped: false }),
+      // Soft, matte, hand-painted surfaces: no metal, no gloss.
+      paint: new MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0, side: DoubleSide }),
+      accent: new MeshStandardMaterial({ color: skin.accent, roughness: 0.6, metalness: 0 }),
+      spinner: new MeshStandardMaterial({ color: skin.body, roughness: 0.5, metalness: 0 }),
+      body: new MeshStandardMaterial({ color: skin.body, roughness: 0.6, metalness: 0 }),
+      glass: new MeshStandardMaterial({ color: skin.canopy, roughness: 0.32, metalness: 0, emissive: new Color(skin.canopy).multiplyScalar(0.12) }),
+      glint: new MeshBasicMaterial({ color: new Color("#f6fbff"), transparent: true, opacity: 0.55, depthWrite: false }),
+      dark: new MeshStandardMaterial({ color: "#2f3540", roughness: 0.8 }),
+      strut: new MeshStandardMaterial({ color: "#3a404b", roughness: 0.7 }),
+      hub: new MeshStandardMaterial({ color: "#efe6d4", roughness: 0.6 }),
+      blade: new MeshStandardMaterial({ color: "#343a45", roughness: 0.7, flatShading: true }),
+      red: new MeshBasicMaterial({ color: new Color(1.5, 0.35, 0.3), toneMapped: false }),
+      green: new MeshBasicMaterial({ color: new Color(0.35, 1.4, 0.6), toneMapped: false }),
+      white: new MeshBasicMaterial({ color: new Color(1.3, 1.28, 1.2), toneMapped: false }),
       disc: new MeshBasicMaterial({ map: propDiscTexture(), transparent: true, opacity: 0, depthWrite: false, side: DoubleSide }),
       decal: new MeshBasicMaterial({ transparent: true, depthWrite: false, side: DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }),
     }),
@@ -110,13 +104,12 @@ export function Airplane() {
   useEffect(() => {
     paintAircraft(geo, skin);
     mats.accent.color.set(skin.accent);
-    mats.spinner.color.set(skin.accent);
-    mats.trim.color.set(skin.trim);
+    mats.spinner.color.set(skin.body);
     mats.body.color.set(skin.body);
     mats.glass.color.set(skin.canopy);
-    mats.glass.emissive.set(skin.canopy).multiplyScalar(0.15);
+    mats.glass.emissive.set(skin.canopy).multiplyScalar(0.12);
     mats.decal.map?.dispose();
-    mats.decal.map = tailDecal("MR", skin.trim);
+    mats.decal.map = tailDecal("MR", skin.body);
     mats.decal.needsUpdate = true;
   }, [skin, geo, mats]);
 
@@ -129,11 +122,15 @@ export function Airplane() {
     g.position.set(p.x, p.y, p.z);
     g.rotation.set(p.pitch, p.heading, -p.roll, "YXZ");
 
-    // Engine vibration + idle bob.
     const vs = runtime.visit?.stage;
     const parked = runtime.phase === "parked" || vs === "landed" || vs === "turn";
     const rpmT = parked ? 0.18 : Math.min(1, 0.45 + (f.speed / FLIGHT.maxSpeed) * 0.55 + (f.boosting ? 0.15 : 0));
-    if (body.current) body.current.position.set(0, parked || reduced ? 0 : Math.sin(t * 1.3) * 0.04, 0);
+    // Gentle toy-like float: a slow bob with a little rock and nod while flying.
+    if (body.current) {
+      const calm = parked || reduced ? 0 : 1;
+      body.current.position.set(0, Math.sin(t * 1.3) * 0.05 * calm, 0);
+      body.current.rotation.set(Math.sin(t * 1.1 + 0.6) * 0.012 * calm, 0, Math.sin(t * 0.9) * 0.02 * calm);
+    }
     // Propeller: the engine winds down while parked and spins up for takeoff.
     const spinTarget = parked ? 0 : 34 + rpmT * 46;
     spinRate.current += (spinTarget - spinRate.current) * (1 - Math.exp(-(parked ? 1.2 : 2.5) * dt));
@@ -141,7 +138,6 @@ export function Airplane() {
     if (prop.current) prop.current.rotation.z -= spin * dt;
     const blur = Math.min(1, Math.max(0, (spin - 14) / 22));
     if (blades.current) blades.current.visible = blur < 0.95;
-    mats.blade.opacity = 1;
     mats.disc.opacity = blur * 0.85;
     if (disc.current) disc.current.visible = blur > 0.02;
 
@@ -161,8 +157,6 @@ export function Airplane() {
       gr.scale.setScalar(0.25 + gear * 0.75);
       gr.visible = gear > 0.02;
     }
-    // Lights are steady position lights: nothing on the airframe blinks.
-    if (scarf.current) scarf.current.rotation.y = (reduced ? 0 : Math.sin(t * 4.2) * 0.12 * rpmT) + wrap(p.roll) * 0.1;
     if (canopyGroup.current) canopyGroup.current.visible = cameraMode !== "cockpit" || useGame.getState().mode !== "flying";
   });
 
@@ -177,131 +171,125 @@ export function Airplane() {
           <mesh geometry={geo.stabs[0]} material={mats.paint} castShadow />
           <mesh geometry={geo.stabs[1]} material={mats.paint} castShadow />
           <mesh geometry={geo.fin} material={mats.paint} castShadow />
-          {/* Tail decals */}
-          <mesh position={[0.085, 1.0, 3.2]} rotation={[0, Math.PI / 2, 0]} material={mats.decal}>
-            <planeGeometry args={[1.0, 0.5]} />
+          {/* Tail initials */}
+          <mesh position={[0.16, 1.05, 2.95]} rotation={[0, Math.PI / 2, 0]} material={mats.decal}>
+            <planeGeometry args={[0.9, 0.45]} />
           </mesh>
-          <mesh position={[-0.085, 1.0, 3.2]} rotation={[0, -Math.PI / 2, 0]} material={mats.decal}>
-            <planeGeometry args={[1.0, 0.5]} />
+          <mesh position={[-0.16, 1.05, 2.95]} rotation={[0, -Math.PI / 2, 0]} material={mats.decal}>
+            <planeGeometry args={[0.9, 0.45]} />
           </mesh>
 
           {/* Control surfaces (hinged at trailing edges) */}
-          <group ref={aileronR} position={[3.3, -0.24, 0.46]}>
-            <mesh position={[0, 0, 0.17]} material={mats.accent} castShadow>
-              <boxGeometry args={[1.6, 0.06, 0.34]} />
+          <group ref={aileronR} position={[3.15, -0.05, 0.86]}>
+            <mesh position={[0, 0, 0.14]} material={mats.accent} castShadow>
+              <boxGeometry args={[1.4, 0.1, 0.28]} />
             </mesh>
           </group>
-          <group ref={aileronL} position={[-3.3, -0.24, 0.46]}>
-            <mesh position={[0, 0, 0.17]} material={mats.accent} castShadow>
-              <boxGeometry args={[1.6, 0.06, 0.34]} />
+          <group ref={aileronL} position={[-3.15, -0.05, 0.86]}>
+            <mesh position={[0, 0, 0.14]} material={mats.accent} castShadow>
+              <boxGeometry args={[1.4, 0.1, 0.28]} />
             </mesh>
           </group>
-          <group ref={elevator} position={[0, 0.16, 3.82]}>
-            <mesh position={[0, 0, 0.14]} material={mats.trim}>
-              <boxGeometry args={[3.1, 0.05, 0.28]} />
+          <group ref={elevator} position={[0, 0.38, 3.48]}>
+            <mesh position={[0, 0, 0.13]} material={mats.accent}>
+              <boxGeometry args={[2.9, 0.09, 0.26]} />
             </mesh>
           </group>
-          <group ref={rudder} position={[0, 0.95, 3.98]}>
-            <mesh position={[0, 0, 0.16]} material={mats.trim}>
-              <boxGeometry args={[0.07, 1.25, 0.32]} />
+          <group ref={rudder} position={[0, 1.15, 3.55]}>
+            <mesh position={[0, 0, 0.13]} material={mats.accent}>
+              <boxGeometry args={[0.12, 1.3, 0.26]} />
             </mesh>
           </group>
 
-          {/* Cowling details */}
-          <mesh position={[0, 0, -3.02]} rotation={[0, 0, 0]} material={mats.dark}>
-            <torusGeometry args={[0.47, 0.06, 6, 20]} />
+          {/* Cowling face and exhaust stubs */}
+          <mesh position={[0, 0, -2.88]} material={mats.dark}>
+            <torusGeometry args={[0.5, 0.08, 8, 24]} />
           </mesh>
-          <mesh position={[0, 0, -3.0]} material={mats.dark}>
-            <circleGeometry args={[0.44, 18]} />
+          <mesh position={[0, 0, -2.87]} rotation={[0, Math.PI, 0]} material={mats.dark}>
+            <circleGeometry args={[0.48, 24]} />
           </mesh>
           {[-1, 1].map((sx) => (
-            <mesh key={sx} position={[sx * 0.7, -0.28, -2.15]} rotation={[Math.PI / 2 - 0.3, 0, 0]} material={mats.metal}>
-              <cylinderGeometry args={[0.07, 0.09, 0.4, 6]} />
+            <mesh key={sx} position={[sx * 0.66, -0.36, -1.7]} rotation={[Math.PI / 2 - 0.25, 0, 0]} material={mats.dark}>
+              <cylinderGeometry args={[0.09, 0.11, 0.36, 8]} />
             </mesh>
           ))}
 
-          {/* Canopy + pilot */}
+          {/* Bubble canopy: soft grey-blue, with a painted glint */}
           <group ref={canopyGroup}>
-            <mesh position={[0, 0.56, -0.35]} scale={[0.6, 0.6, 1.35]} material={mats.glass}>
-              <sphereGeometry args={[1, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <mesh position={[0, 0.6, -0.45]} scale={[0.66, 0.6, 1.2]} material={mats.glass}>
+              <sphereGeometry args={[1, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
             </mesh>
-            <mesh position={[0, 0.58, -0.35]} scale={[0.62, 0.62, 1.37]} rotation={[0, 0, 0]} material={mats.trim}>
-              <torusGeometry args={[1, 0.03, 4, 24, Math.PI]} />
+            <mesh position={[0, 0.62, -0.45]} scale={[0.68, 0.62, 1.22]} material={mats.body}>
+              <torusGeometry args={[1, 0.035, 6, 28, Math.PI]} />
             </mesh>
-            <group position={[0, 0.78, -0.2]}>
-              <mesh material={mats.leather}>
-                <sphereGeometry args={[0.24, 10, 8]} />
-              </mesh>
-              <mesh position={[0, 0.02, -0.17]} material={mats.goggles}>
-                <boxGeometry args={[0.34, 0.09, 0.08]} />
-              </mesh>
-              <mesh ref={scarf} position={[0, -0.18, 0.18]} material={mats.accent}>
-                <boxGeometry args={[0.1, 0.05, 0.42]} />
-              </mesh>
-            </group>
+            <mesh position={[-0.24, 0.98, -0.78]} rotation={[-0.6, -0.35, 0.2]} material={mats.glint}>
+              <planeGeometry args={[0.15, 0.48]} />
+            </mesh>
           </group>
-          <mesh position={[0, 0.56, 0.95]} material={mats.body}>
-            <boxGeometry args={[0.5, 0.18, 0.6]} />
-          </mesh>
 
-          {/* Landing gear */}
-          {[
-            [gearL, -1.55],
-            [gearR, 1.55],
-          ].map(([ref, x]) => (
-            <group key={x as number} ref={ref as React.RefObject<Group>} position={[x as number, -0.45, -0.45]}>
-              <mesh position={[0, -0.4, 0]} material={mats.metal}>
-                <boxGeometry args={[0.1, 0.8, 0.14]} />
+          {/* Gear: chunky tyres under coral wheel spats */}
+          {(
+            [
+              [gearL, -1.3],
+              [gearR, 1.3],
+            ] as const
+          ).map(([ref, x]) => (
+            <group key={x} ref={ref} position={[x, -0.5, -0.7]}>
+              <mesh position={[0, -0.32, 0]} rotation={[0, 0, x > 0 ? -0.2 : 0.2]} material={mats.strut}>
+                <boxGeometry args={[0.14, 0.7, 0.18]} />
               </mesh>
-              <mesh position={[0, -0.8, 0]} rotation={[0, 0, Math.PI / 2]} material={mats.dark}>
-                <cylinderGeometry args={[0.3, 0.3, 0.18, 12]} />
+              <mesh position={[0, -0.72, 0]} rotation={[0, 0, Math.PI / 2]} material={mats.dark}>
+                <cylinderGeometry args={[0.38, 0.38, 0.28, 16]} />
               </mesh>
-              <mesh position={[0, -0.72, 0.02]} scale={[0.17, 0.3, 0.55]} material={mats.accent}>
-                <sphereGeometry args={[1, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
+              <mesh position={[x > 0 ? 0.15 : -0.15, -0.72, 0]} rotation={[0, 0, Math.PI / 2]} material={mats.hub}>
+                <cylinderGeometry args={[0.15, 0.15, 0.04, 12]} />
+              </mesh>
+              <mesh position={[0, -0.6, 0.02]} scale={[0.24, 0.42, 0.62]} material={mats.accent}>
+                <sphereGeometry args={[1, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
               </mesh>
             </group>
           ))}
-          <group ref={gearT} position={[0, -0.25, 3.55]}>
-            <mesh position={[0, -0.2, 0]} material={mats.metal}>
-              <boxGeometry args={[0.06, 0.4, 0.08]} />
+          <group ref={gearT} position={[0, 0.0, 3.2]}>
+            <mesh position={[0, -0.18, 0]} material={mats.strut}>
+              <boxGeometry args={[0.08, 0.36, 0.1]} />
             </mesh>
-            <mesh position={[0, -0.38, 0]} rotation={[0, 0, Math.PI / 2]} material={mats.dark}>
-              <cylinderGeometry args={[0.13, 0.13, 0.08, 10]} />
+            <mesh position={[0, -0.36, 0]} rotation={[0, 0, Math.PI / 2]} material={mats.dark}>
+              <cylinderGeometry args={[0.15, 0.15, 0.1, 10]} />
             </mesh>
           </group>
 
-          {/* Nav + strobe lights */}
-          <mesh position={[-4.8, -0.12, -0.45]} material={mats.red}>
+          {/* Position lights (steady) */}
+          <mesh position={[-4.66, 0.0, -0.45]} material={mats.red}>
             <sphereGeometry args={[0.09, 8, 6]} />
           </mesh>
-          <mesh position={[4.8, -0.12, -0.45]} material={mats.green}>
+          <mesh position={[4.66, 0.0, -0.45]} material={mats.green}>
             <sphereGeometry args={[0.09, 8, 6]} />
           </mesh>
-          <mesh position={[0, 1.92, 3.5]} material={mats.white}>
-            <sphereGeometry args={[0.08, 8, 6]} />
+          <mesh position={[0, 2.38, 3.25]} material={mats.white}>
+            <sphereGeometry args={[0.07, 8, 6]} />
           </mesh>
-          <primitive object={tipL} position={[-4.8, -0.12, -0.2]} />
-          <primitive object={tipR} position={[4.8, -0.12, -0.2]} />
+          <primitive object={tipL} position={[-4.66, 0.0, -0.2]} />
+          <primitive object={tipR} position={[4.66, 0.0, -0.2]} />
 
-          {/* Propeller */}
-          <group ref={prop} position={[0, 0, -3.1]}>
-            <mesh position={[0, 0, -0.3]} rotation={[-Math.PI / 2, 0, 0]} material={mats.spinner} castShadow>
-              <coneGeometry args={[0.32, 0.72, 32]} />
+          {/* Propeller: rounded spinner and two paddle blades with coral tips */}
+          <group ref={prop} position={[0, 0, -2.95]}>
+            <mesh position={[0, 0, -0.2]} scale={[1, 1, 1.45]} material={mats.spinner} castShadow>
+              <sphereGeometry args={[0.34, 20, 14]} />
             </mesh>
             <group ref={blades}>
               {[0, Math.PI].map((r) => (
                 <group key={r} rotation={[0, 0, r]}>
-                  <mesh position={[0, 0.85, -0.05]} rotation={[0, 0.38, 0]} material={mats.blade} castShadow>
-                    <boxGeometry args={[0.22, 1.5, 0.05]} />
+                  <mesh position={[0, 0.78, -0.08]} rotation={[0, 0.35, 0]} material={mats.blade} castShadow>
+                    <boxGeometry args={[0.3, 1.25, 0.07]} />
                   </mesh>
-                  <mesh position={[0, 1.55, -0.05]} rotation={[0, 0.38, 0]} material={mats.body}>
-                    <boxGeometry args={[0.2, 0.14, 0.06]} />
+                  <mesh position={[0, 1.46, -0.08]} rotation={[0, 0.35, 0]} material={mats.accent}>
+                    <boxGeometry args={[0.31, 0.2, 0.08]} />
                   </mesh>
                 </group>
               ))}
             </group>
-            <mesh ref={disc} position={[0, 0, -0.06]} material={mats.disc}>
-              <circleGeometry args={[1.68, 32]} />
+            <mesh ref={disc} position={[0, 0, -0.1]} material={mats.disc}>
+              <circleGeometry args={[1.58, 32]} />
             </mesh>
           </group>
         </group>

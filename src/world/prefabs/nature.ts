@@ -2,6 +2,7 @@ import { Color } from "three";
 import { P, T } from "@/render/geometry/MeshBuilder";
 import type { Isl } from "../regionKit";
 import { C } from "../palette";
+import { SEA_LEVEL } from "../layout";
 
 const tint = new Color();
 function vary(hex: string, rnd: () => number, amt = 0.08): string {
@@ -11,7 +12,53 @@ function vary(hex: string, rnd: () => number, amt = 0.08): string {
   return `#${tint.getHexString()}`;
 }
 
-export type TreeKind = "pine" | "round" | "poplar" | "autumn" | "blossom" | "birch";
+export type TreeKind = "pine" | "round" | "poplar" | "autumn" | "blossom" | "birch" | "palm";
+
+const PALM_LEAF = ["#5fae5a", "#72bd5f", "#4f9e58"];
+
+/**
+ * Leaning palm: a banded, curving trunk and a crown of drooping fronds with a
+ * few coconuts. `lean` tips the trunk toward angle `leanDir` (radians).
+ */
+export function palm(I: Isl, x: number, z: number, s = 1, y = I.h(x, z), leanDir = I.rnd() * Math.PI * 2, lean = 0.35 + I.rnd() * 0.5) {
+  const b = I.b;
+  const r = I.rnd;
+  const H = 7.5 * s;
+  const dx = Math.cos(leanDir);
+  const dz = Math.sin(leanDir);
+  const segs = 4;
+  for (let k = 0; k < segs; k++) {
+    const t0 = k / segs;
+    const t1 = (k + 1) / segs;
+    const tm = (t0 + t1) / 2;
+    const off = lean * tm * tm * H * 0.55;
+    const rad = (0.62 - 0.22 * tm) * s;
+    b.add(P.cyl(6), T(x + dx * off, y + tm * H, z + dz * off, rad, (H / segs) * 1.08, rad, 0, dz * lean * tm * 0.6, -dx * lean * tm * 0.6), k % 2 ? "#c79a6a" : "#ad8158");
+  }
+  const off = lean * H * 0.55;
+  const cx = x + dx * off;
+  const cz = z + dz * off;
+  const cy = y + H;
+  const n = 7;
+  const a0 = r() * Math.PI * 2;
+  for (let i = 0; i < n; i++) {
+    const a = a0 + (i / n) * Math.PI * 2 + (r() - 0.5) * 0.3;
+    const droop = 0.35 + r() * 0.35;
+    const L = (3.4 + r() * 0.8) * s;
+    const ux = Math.cos(droop) * Math.sin(a);
+    const uy = -Math.sin(droop);
+    const uz = Math.cos(droop) * Math.cos(a);
+    b.add(P.cone(4), T(cx + ux * L * 0.5, cy + uy * L * 0.5 + 0.2 * s, cz + uz * L * 0.5, 1.25 * s, L, 0.18 * s, a, Math.PI / 2 + droop), vary(PALM_LEAF[i % 3], r, 0.06), {
+      sway: 0.28 * s,
+      swayBase: cy - 1.5 * s,
+      swayHeight: 2 * s,
+    });
+  }
+  for (let i = 0; i < 2; i++) {
+    const a = i * Math.PI + r();
+    b.add(P.ico(0), T(cx + Math.cos(a) * 0.35 * s, cy - 0.35 * s, cz + Math.sin(a) * 0.35 * s, 0.5 * s, 0.5 * s, 0.5 * s), "#8a6440");
+  }
+}
 
 export function tree(I: Isl, x: number, z: number, kind: TreeKind, s = 1, y = I.h(x, z)) {
   const b = I.b;
@@ -19,6 +66,9 @@ export function tree(I: Isl, x: number, z: number, kind: TreeKind, s = 1, y = I.
   const ry = r() * Math.PI * 2;
   const sw = { swayBase: y + 1.6 * s, swayHeight: 6 * s, sway: 0.32 * s };
   switch (kind) {
+    case "palm":
+      palm(I, x, z, s, y);
+      break;
     case "pine": {
       b.add(P.cyl(6), T(x, y + 1.1 * s, z, 0.55 * s, 2.4 * s, 0.55 * s), C.woodDark);
       const g = vary(r() > 0.5 ? C.pine : C.forest, r);
@@ -68,6 +118,25 @@ export function bush(I: Isl, x: number, z: number, s = 1, color: string = C.leaf
     });
 }
 
+/** A woolly sheep standing at local (x, y, z), facing yaw ry. */
+export function sheep(I: Isl, x: number, y: number, z: number, ry = 0, s = 1) {
+  const b = I.b;
+  const c = Math.cos(ry);
+  const sn = Math.sin(ry);
+  // Local offsets along the body (forward = local +Z).
+  const at = (fx: number, fz: number): [number, number] => [x + fx * c + fz * sn, z - fx * sn + fz * c];
+  for (const [lx, lz] of [[-0.4, -0.6], [0.4, -0.6], [-0.4, 0.6], [0.4, 0.6]]) {
+    const [px, pz] = at(lx * s, lz * s);
+    b.add(P.cyl(4), T(px, y + 0.35 * s, pz, 0.22 * s, 0.8 * s, 0.22 * s), "#4a4440");
+  }
+  b.add(P.ico(1), T(x, y + 1.05 * s, z, 1.5 * s, 1.15 * s, 2 * s, ry), vary("#f7f3ea", I.rnd, 0.04));
+  b.add(P.ico(0), T(x, y + 1.6 * s, z, 0.9 * s, 0.6 * s, 1.1 * s, ry), "#fffdf7");
+  const [hx, hz] = at(0, 1.15 * s);
+  b.add(P.ico(0), T(hx, y + 1.25 * s, hz, 0.6 * s, 0.7 * s, 0.75 * s, ry), "#4a4440");
+  const [ex, ez] = at(0, 0.95 * s);
+  b.add(P.box(), T(ex, y + 1.45 * s, ez, 1.0 * s, 0.14 * s, 0.22 * s, ry), "#4a4440");
+}
+
 const FLOWER_COLORS = ["#ffffff", "#f7d154", "#f2735a", "#c9a6e8", "#ff9fb5"];
 
 export function flowers(I: Isl, x: number, z: number, n = 5, spread = 1.6) {
@@ -104,11 +173,15 @@ export function rock(I: Isl, x: number, z: number, s = 1, color?: string, sink =
   if (s > 2.5) I.sphere(x, y + s * 0.3, z, s * 0.6);
 }
 
-/** Small rocks floating around an island's rim, at varying heights. */
+/**
+ * Small rocks floating around a floating island's rim. Ocean islands get their
+ * coastal boulders from decorateShore instead (after their base is fitted).
+ */
 export function floatingRocks(I: Isl, count: number, spread = 1.35) {
   const r = I.rnd;
   const R = I.t.p.radius;
   const pal = I.t.p.palette;
+  if (I.t.p.profile === "shore" || I.t.p.y < SEA_LEVEL) return;
   for (let i = 0; i < count; i++) {
     const a = r() * Math.PI * 2;
     const d = R * (1.12 + r() * (spread - 1.1));
@@ -136,7 +209,16 @@ export function decorate(
     I.block(x, z, 1.5);
   });
   I.scatter(o.bushes ?? 18, { maxRho: 0.9, spacing: 3.5 }, (x, z) => bush(I, x, z, 0.8 + I.rnd() * 0.7));
-  I.scatter(o.flowers ?? 22, { maxRho: 0.9, spacing: 4 }, (x, z) => flowers(I, x, z, 4 + Math.floor(I.rnd() * 4)));
-  I.scatter(o.grass ?? 30, { maxRho: 0.93, spacing: 2.5 }, (x, z) => grass(I, x, z, 3));
-  I.scatter(o.rocks ?? 10, { minRho: 0.5, maxRho: 0.96, spacing: 6 }, (x, z) => rock(I, x, z, 0.8 + I.rnd() * 1.8));
+  // Small ground detail stays sparse: colour blocking carries the islands, not clutter.
+  I.scatter(Math.round((o.flowers ?? 22) * 0.8), { maxRho: 0.92, spacing: 5 }, (x, z) => flowers(I, x, z, 5 + Math.floor(I.rnd() * 5), 2));
+  I.scatter(Math.round((o.grass ?? 30) * 0.6), { maxRho: 0.94, spacing: 4 }, (x, z) => grass(I, x, z, 3));
+  I.scatter(Math.round((o.rocks ?? 10) * 0.8), { minRho: 0.45, maxRho: 0.96, spacing: 8 }, (x, z) => rock(I, x, z, 0.8 + I.rnd() * 1.8));
+  // A small flock grazing out on the open grass.
+  I.scatter(Math.max(1, Math.round((o.trees ?? 30) / 25)), { maxRho: 0.8, spacing: 18 }, (x, z) => {
+    for (let k = 0; k < 3 + Math.floor(I.rnd() * 3); k++) {
+      const sx = x + (I.rnd() - 0.5) * 8;
+      const sz = z + (I.rnd() - 0.5) * 8;
+      if (I.isFree(sx, sz, 1) && I.t.rho(sx, sz) < 0.85) sheep(I, sx, I.h(sx, sz), sz, I.rnd() * Math.PI * 2, 0.85 + I.rnd() * 0.3);
+    }
+  });
 }

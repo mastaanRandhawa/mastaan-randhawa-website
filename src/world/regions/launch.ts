@@ -1,7 +1,7 @@
 import { P, T } from "@/render/geometry/MeshBuilder";
 import { portfolio } from "@/content/portfolio";
 import type { RegionKit } from "../regionKit";
-import { REGIONS, type RegionDef } from "../layout";
+import { REGIONS, SEA_LEVEL, type RegionDef } from "../layout";
 import { courseRings, type RegionExtras } from "../defs";
 import { PALETTES } from "../terrain";
 import { C } from "../palette";
@@ -154,8 +154,9 @@ export function buildLaunch(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     let ex = 40;
     while (I.t.rho(ex, -18) < 0.985 && ex < 200) ex += 0.5;
     I.anchor("pond", (40 + ex) / 2, -0.6, -18, { data: { w: ex - 40, l: 3.2 } });
-    I.anchor("waterfall", ex + 0.2, I.h(ex, -18) - 0.4, -18, { data: { dir: [1, 0, 0], width: 4.8, height: 82 } });
-    out.collectibles.push({ id: "log-waterfall", pos: [cx + ex + 2.5, cy - 22, cz - 18], hint: "Behind the airfield waterfall" });
+    // Falls down the sandstone cliff and vanishes into the green slope above the beach.
+    I.anchor("waterfall", ex + 0.2, I.h(ex, -18) - 0.4, -18, { data: { dir: [1, 0, 0], width: 4.8, height: (cy - SEA_LEVEL) * 0.55 } });
+    out.collectibles.push({ id: "log-waterfall", pos: [cx + ex + 8, cy - 15, cz - 18], hint: "Beside the airfield waterfall" });
   }
   for (const [x, z] of [[33, -26], [48, -9], [31, -11]] as const) rock(I, x, z, 1.6);
   for (const [x, z] of [[36, -30], [46, -28], [30, -18]] as const) flowers(I, x, z, 5);

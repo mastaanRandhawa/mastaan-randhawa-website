@@ -9,7 +9,7 @@ export function LoadingScreen() {
   const setMode = useGame((s) => s.setMode);
   return (
     <motion.div
-      className="font-sf fixed inset-0 z-50 grid place-items-center bg-gradient-to-b from-[#2f6fb8] via-[#8fbde3] to-[#f4cfa8]"
+      className="font-sf fixed inset-0 z-50 grid place-items-center bg-gradient-to-b from-[#3c9be3] via-[#8fd0f0] to-[#d9eef2]"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.7 } }}
       role="status"

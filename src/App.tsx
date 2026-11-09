@@ -63,7 +63,7 @@ export default function App() {
 
 function BootScreen() {
   return (
-    <div className="fixed inset-0 grid place-items-center bg-[#f4cfa8]">
+    <div className="fixed inset-0 grid place-items-center bg-[#d9eef2]">
       <p className="font-mono text-xs tracking-[0.3em] text-[#1f3552]/70">LOADING</p>
     </div>
   );

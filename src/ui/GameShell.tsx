@@ -169,7 +169,7 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
   return (
     <div
       className={hidden ? "hidden" : "fixed inset-0 overflow-hidden select-none"}
-      style={hidden ? undefined : { background: "linear-gradient(180deg,#6d8fc6 0%,#a9a9d2 30%,#e7c3ad 47%,#f4cfa8 52%,#f1e6e0 64%,#e4e0ee 100%)" }}
+      style={hidden ? undefined : { background: "linear-gradient(180deg,#3c9be3 0%,#62c0f0 30%,#d9eef2 49%,#f5ecdc 51%,#1a86b8 53%,#1468a8 100%)" }}
       aria-hidden={hidden}
     >
       {world && (

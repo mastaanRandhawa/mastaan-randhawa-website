@@ -117,7 +117,7 @@ html.game-mode body {
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: none;
-  background: #f4cfa8;
+  background: #d9eef2;
 }
 @keyframes float {
   0%, 100% { transform: translateY(0); }

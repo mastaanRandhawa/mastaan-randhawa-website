@@ -1,3 +1,4 @@
+import { SEA_LEVEL } from "@/world/layout";
 /**
  * Centralised flight + camera tuning. Units: world units (~metres) and seconds.
  * Angles in radians. Tweak these to change game feel — nothing else hardcodes them.
@@ -74,7 +75,8 @@ export const FLIGHT: FlightTuning = {
   bounce: 0.35,
   collisionRadius: 2.6,
   ceiling: 620,
-  floor: -60,
+  /** Touching the ocean ends the flight (respawn at the last checkpoint). */
+  floor: SEA_LEVEL + 1.2,
 };
 
 export const CAMERA = {

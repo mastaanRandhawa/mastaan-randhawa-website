@@ -51,7 +51,8 @@ if (aSway > 0.0) {
 // so blend to the interpolated vertex normal with distance.
 vec3 flatN = normalize( cross( dFdx( vViewPosition ), dFdy( vViewPosition ) ) );
 vec3 smoothN = normalize( vNormal );
-vec3 normal = normalize( mix( flatN, smoothN, smoothstep( 140.0, 460.0, length( vViewPosition ) ) ) );
+// Mostly soft, painted shading with just a hint of facets; fully smooth far away.
+vec3 normal = normalize( mix( flatN, smoothN, max( 0.62, smoothstep( 140.0, 460.0, length( vViewPosition ) ) ) ) );
 vec3 nonPerturbedNormal = normal;`,
       )
       .replace(
@@ -61,7 +62,7 @@ vec3 nonPerturbedNormal = normal;`,
 totalEmissiveRadiance += vColor.rgb * vEmissive * 1.5 * (1.0 - smoothstep(220.0, 650.0, length(vViewPosition)));`,
       );
   };
-  m.customProgramCacheKey = () => "skybound-world-v3";
+  m.customProgramCacheKey = () => "skybound-world-v4";
   shared = m;
   return m;
 }

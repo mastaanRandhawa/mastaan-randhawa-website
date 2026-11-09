@@ -4,6 +4,7 @@ import type { Isl, RegionKit } from "../regionKit";
 import type { LandingSite } from "../defs";
 import type { Pad } from "../terrain";
 import { C } from "../palette";
+import { SEA_LEVEL } from "../layout";
 import { house, type HouseOpts, framedWindow, faces } from "./architecture";
 
 /** Local building frame at (x, y, z) rotated by ry. */
@@ -192,11 +193,10 @@ export function flagpole(I: Isl, x: number, z: number, color: string, h = 9) {
   I.anchor("flag", x, y + h - 1, z, { data: { color } });
 }
 
-export function windmill(I: Isl, x: number, z: number, ry = 0, s = 1) {
-  const y = I.h(x, z);
+export function windmill(I: Isl, x: number, z: number, ry = 0, s = 1, y = I.h(x, z), plinth = 0) {
   const M = frame(x, y, z, ry);
   const b = I.b;
-  b.add(P.cyl(8), TP(M, 0, 0.4 * s, 0, 7 * s, 0.8 * s, 7 * s), C.stoneDark);
+  b.add(P.cyl(8), TP(M, 0, (0.8 * s - plinth) / 2, 0, 7 * s, 0.8 * s + plinth, 7 * s), C.stoneDark);
   b.add(P.frustum(0.62, 8), TP(M, 0, 5.4 * s, 0, 6 * s, 9.4 * s, 6 * s), C.white);
   b.add(P.cone(8), TP(M, 0, 11.6 * s, 0, 4.6 * s, 3.4 * s, 4.6 * s), C.roofRed);
   b.add(P.box(), TP(M, 0, 1.4 * s, 2.9 * s, 1.3 * s, 2.2 * s, 0.3), C.woodDark);
@@ -340,13 +340,20 @@ export function skyDock(kit: RegionKit, x: number, y: number, z: number, heading
   for (let zz = -length / 2 - 2; zz <= length / 2 + 2; zz += 8) {
     for (const sx of [-1, 1]) b.add(P.cyl(8), TP(M, (sx * (width + 4.5)) / 2, 0.22, zz, 0.46, 0.22, 0.46), Math.abs(zz) > length / 2 ? "#ff8a6a" : C.window, { emissive: 0.45 });
   }
-  // Rocky underside so it reads as part of the floating world.
-  const n = Math.max(3, Math.round(length / 14));
+  // A pier: pairs of slim pylons standing in the sea, with cross beams.
+  const drop = y - SEA_LEVEL + 3;
+  const n = Math.max(3, Math.round(length / 18));
   for (let k = 0; k < n; k++) {
-    const zz = -length / 2 + ((k + 0.5) * length) / n;
-    b.add(P.rock(k), TP(M, 0, -4.5 - (k % 2) * 1.5, zz, width + 3, 7, length / n + 4, k * 0.7), k % 2 ? "#a2826c" : "#8f7262");
+    const zz = -length / 2 + 4 + (k * (length - 8)) / (n - 1);
+    for (const sx of [-1, 1]) {
+      const px = (sx * (width + 2)) / 2;
+      b.add(P.cyl(8), TP(M, px, -drop / 2, zz, 1.5, drop, 1.5), C.cream);
+      b.add(P.cyl(8), TP(M, px, -drop + 2.6, zz, 1.9, 1.2, 1.9), C.coral);
+      const [wx, wz] = rot(px, zz, heading);
+      kit.cyl(x + wx, z + wz, SEA_LEVEL - 3, y - 1.2, 0.8);
+    }
+    b.add(P.box(), TP(M, 0, -2.2, zz, width + 2, 0.9, 1), C.cream);
   }
-  b.add(P.cone(7), TP(M, 0, -14, 0, width, 14, width, 0.3, Math.PI), "#7f6559");
   const [cx, cz] = rot(width / 2 + 2.5, length / 2 + 2, heading);
   kit.anchor("beacon", x + cx, y + 1.2, z + cz, { data: { color: "#ff4b3e", period: 1.4 } });
   kit.box(x, y - 0.6, z, (width + 6) / 2, 0.9, (length + 8) / 2, heading);

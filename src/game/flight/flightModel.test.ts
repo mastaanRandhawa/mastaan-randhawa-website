@@ -129,7 +129,8 @@ describe("flight model", () => {
     const shallow = createFlightState(0, 6, 0, 0, 48);
     shallow.pitch = -0.15;
     shallow.vy = -6;
-    const a = run(shallow, none, 2, ground);
+    // Ground at y = 0 sits below the sea, so disable the water floor for this check.
+    const a = run(shallow, none, 2, ground, { ...FLIGHT, floor: -60 });
     expect(a.crashed).toBe(false);
     expect(shallow.y).toBeGreaterThan(0);
 
@@ -137,7 +138,7 @@ describe("flight model", () => {
     steep.pitch = -1.0;
     steep.vy = -70;
     steep.vz = -55;
-    const b = run(steep, { ...none, pitch: -1 }, 2, ground, { ...FLIGHT, verticalSpeedLimit: 90 });
+    const b = run(steep, { ...none, pitch: -1 }, 2, ground, { ...FLIGHT, floor: -60, verticalSpeedLimit: 90 });
     expect(b.crashed).toBe(true);
   });
 

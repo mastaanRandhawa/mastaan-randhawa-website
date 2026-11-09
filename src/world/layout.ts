@@ -42,9 +42,15 @@ export const REGIONS: RegionDef[] = [
 
 export const regionById = (id: string) => REGIONS.find((r) => r.id === id)!;
 
+/**
+ * Ocean surface height. Island tops keep their gameplay heights; everything
+ * below this line is underwater, and flying into it ends the flight.
+ */
+export const SEA_LEVEL = 60;
+
 export const WORLD = {
   /** Soft boundary: beyond this the assist turns you home. */
   radius: 1250,
-  cloudSeaY: 0,
+  seaY: SEA_LEVEL,
   spawn: { x: 0, z: 62, heading: 0 },
 };

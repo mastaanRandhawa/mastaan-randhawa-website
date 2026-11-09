@@ -1,6 +1,6 @@
 import { P, T } from "@/render/geometry/MeshBuilder";
 import type { RegionKit } from "../regionKit";
-import type { RegionDef, Vec3 } from "../layout";
+import { SEA_LEVEL, type RegionDef, type Vec3 } from "../layout";
 import type { RegionExtras } from "../defs";
 import { courseRings } from "../defs";
 import { PALETTES } from "../terrain";
@@ -13,7 +13,7 @@ import { portfolio } from "@/content/portfolio";
 const SFU_RED = "#a6192e";
 
 /**
- * Education Summit — a mountain rising out of the cloud sea (a nod to SFU's
+ * Education Summit — a mountain island rising out of the ocean (a nod to SFU's
  * hilltop campus) with a terraced concrete campus on its shoulder and a
  * spiral ring course to the peak.
  */
@@ -86,7 +86,7 @@ export function buildSummit(kit: RegionKit, def: RegionDef, out: RegionExtras) {
 
   // Pines on the lower slopes, rocks on the upper ones, a cairn at the peak.
   I.scatter(90, { minRho: 0.35, maxRho: 0.92, spacing: 9 }, (x, z, y) => {
-    if (y < 175) tree(I, x, z, I.rnd() > 0.3 ? "pine" : "poplar", 1.2 + I.rnd() * 0.8, y);
+    if (y < 175 && baseY + y > SEA_LEVEL + 4) tree(I, x, z, I.rnd() > 0.3 ? "pine" : "poplar", 1.2 + I.rnd() * 0.8, y);
   });
   I.scatter(30, { minRho: 0.12, maxRho: 0.5, spacing: 10 }, (x, z) => rock(I, x, z, 2 + I.rnd() * 3));
   const top = I.h(0, 0);
@@ -112,7 +112,8 @@ export function buildSummit(kit: RegionKit, def: RegionDef, out: RegionExtras) {
   const N = 13;
     for (let i = 0; i < N; i++) {
     const t = i / (N - 1);
-    const h = 95 + t * 205;
+    // Starts well above the sea (the mountain's foothills are now underwater).
+    const h = 118 + t * 182;
     const a = -2.2 + t * Math.PI * 2.6;
     const r = mountainR(h - 20) + 34;
     pts.push([cx + Math.cos(a) * r, baseY + h, cz + Math.sin(a) * r]);

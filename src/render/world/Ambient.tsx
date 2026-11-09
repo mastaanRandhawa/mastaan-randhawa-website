@@ -47,7 +47,8 @@ function Birds({ count }: { count: number }) {
     const rnd = mulberry32(99);
     for (let i = 0; i < count; i++) phases[i] = rnd() * 6.28;
     geo.setAttribute("aPhase", new InstancedBufferAttribute(phases, 1));
-    const mat = new MeshStandardMaterial({ color: "#4a4552", side: 2, flatShading: true });
+    // White gulls, like brush flicks against the blue.
+    const mat = new MeshStandardMaterial({ color: "#fbf6ea", emissive: "#fbf6ea", emissiveIntensity: 0.25, side: 2, flatShading: true });
     mat.onBeforeCompile = (s) => {
       s.uniforms.uTime = worldUniforms.uTime;
       s.vertexShader = s.vertexShader
@@ -242,8 +243,8 @@ function Courier() {
 export function Ambient({ preset }: { preset: QualityPreset }) {
   return (
     <>
-      <Birds count={Math.round(70 * preset.propDensity)} />
-      <Motes count={preset.particles} />
+      <Birds count={Math.round(42 * preset.propDensity)} />
+      <Motes count={Math.round(preset.particles * 0.35)} />
       <SpeedLines />
       <Airship />
       <Courier />
