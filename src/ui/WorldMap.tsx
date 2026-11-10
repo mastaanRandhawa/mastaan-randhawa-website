@@ -52,7 +52,7 @@ export function WorldMap({ world }: { world: World }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="font-sf fixed inset-0 z-40 flex items-center justify-center bg-[#0d1523]/55 p-3 sm:p-6"
+      className="font-sf safe-pad fixed inset-0 z-40 flex items-center justify-center bg-[#0d1523]/55 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-label="World map"

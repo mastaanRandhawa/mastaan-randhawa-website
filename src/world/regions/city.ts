@@ -8,7 +8,7 @@ import { C } from "../palette";
 import { floatingRocks, tree, bush, flowers } from "../prefabs/nature";
 import { streetlight, bench } from "../prefabs/structures";
 import { officeTower, type TowerStyle } from "../prefabs/architecture";
-import { approachRing, medalsFor } from "./common";
+import { medalsFor } from "./common";
 import { portfolio } from "@/content/portfolio";
 
 /** City tower in one of the architecture kit's archetypes; returns the roof height (local y). */
@@ -46,6 +46,8 @@ export function buildCity(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     rings: 18,
     segments: 72,
     palette: PALETTES.tech,
+    // Gently rolling developed land; the skyline stays the tallest thing here.
+    kind: "city",
     pads: [
       { x: 0, z: 0, r: 0, w: 140, l: 90, h: 0, blend: 14 },
       { x: 0, z: 0, r: 22, h: 0, color: "#d6d2c9", colorStrength: 0.9 },
@@ -184,7 +186,6 @@ export function buildCity(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     sublabel: "Experience City · HQ",
     pos: [cx, cy + 56, cz - 4],
     interactRadius: 140,
-    ring: approachRing(def, cx, cy, cz - 120, -10, 40, 13),
     accent,
     landing: { x: cx, y: cy + 0.24, z: cz - 40, heading: -Math.PI / 2, length: 200, turn: -1 },
   });

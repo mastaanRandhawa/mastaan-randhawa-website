@@ -119,12 +119,124 @@ html.game-mode body {
   touch-action: none;
   background: #d9eef2;
 }
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(45vw); }
+}
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
+/* The in-game "Reduce motion" setting does the same, for people who want it only here. */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* ── Livery tokens ──────────────────────────────────────────────────────────
+   The same palette as the hex values used across the UI, expressed in OKLCH
+   where supported so hover/pressed states are even lightness steps of one hue. */
+:root {
+  --ink: #1f3552;
+  --ink-hover: #16273e;
+  --ink-soft: #5d6b80;
+  --paper: #fbf6ec;
+  --cream: #f4ead5;
+  --coral: #f2735a;
+  --coral-hover: #ff8c75;
+  --coral-text: #b4442c;
+  --night: #0d1523;
+  --focus: #f2735a;
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+}
+@supports (color: oklch(0% 0 0)) {
+  :root {
+    --ink: oklch(32.6% 0.059 255.8);
+    --ink-hover: oklch(27% 0.05 256);
+    --ink-soft: oklch(52.4% 0.037 258.4);
+    --paper: oklch(97.4% 0.014 84.6);
+    --cream: oklch(93.9% 0.03 85.6);
+    --coral: oklch(70.1% 0.162 32.7);
+    --coral-hover: oklch(76% 0.15 32.7);
+    --coral-text: oklch(53.6% 0.151 33.7);
+    --night: oklch(19.6% 0.031 261.2);
+    --focus: oklch(70.1% 0.162 32.7);
+  }
+}
+
+@layer base {
+  /* Typography: kerning on, balanced headings (no one-word last lines),
+     and "pretty" paragraphs that avoid orphaned words. */
+  html {
+    font-kerning: normal;
+    font-optical-sizing: auto;
+  }
+  h1, h2, h3, h4, legend, figcaption {
+    text-wrap: balance;
+  }
+  p, li, dd, blockquote {
+    text-wrap: pretty;
+  }
+  /* One consistent, visible keyboard focus ring. Components with their own
+     ring (focus-visible:ring-*) set outline:none and keep theirs. */
+  :where(a, button, [role="button"], [role="switch"], [role="radio"], [role="tab"], input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* Grows the pointer/touch target to at least 44×44 without changing the
+     visual size (for compact controls). */
+  .hit-area {
+    position: relative;
+  }
+  .hit-area::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  /* Notch / rounded-corner / home-indicator safe areas. */
+  .safe-layer {
+    position: absolute;
+    top: var(--sat);
+    right: var(--sar);
+    bottom: var(--sab);
+    left: var(--sal);
+  }
+  .safe-fixed {
+    position: fixed;
+    top: var(--sat);
+    right: var(--sar);
+    bottom: var(--sab);
+    left: var(--sal);
+  }
+  .safe-pad {
+    padding-top: max(1rem, var(--sat));
+    padding-right: max(1rem, var(--sar));
+    padding-bottom: max(1rem, var(--sab));
+    padding-left: max(1rem, var(--sal));
+  }
+  .safe-mt { margin-top: var(--sat); }
+  .safe-mr { margin-right: var(--sar); }
+  .safe-mb { margin-bottom: var(--sab); }
+  .safe-ml { margin-left: var(--sal); }
+  /* Comfortable reading width for running text. */
+  .measure { max-width: 66ch; }
+  .tabular { font-variant-numeric: tabular-nums; }
 }
 
 /* ── Skybound UI: "livery" design system ─────────────────────────────────────
@@ -143,7 +255,11 @@ html.game-mode body {
     font-family: "Playfair Display", Georgia, serif;
     font-style: italic;
     font-weight: 700;
-    letter-spacing: -0.012em;
+    /* Large italic display type reads loose; tighten it and use the font's kerning pairs. */
+    letter-spacing: -0.018em;
+    font-kerning: normal;
+    font-feature-settings: "kern", "liga";
+    text-rendering: optimizeLegibility;
   }
   .font-instrument {
     font-family: "Azeret Mono", ui-monospace, monospace;

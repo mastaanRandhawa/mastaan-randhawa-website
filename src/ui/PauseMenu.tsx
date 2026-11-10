@@ -1,18 +1,20 @@
-import { motion } from "framer-motion";
-import { Award, BookOpen, Camera, Check, CheckCircle2, Circle, Gamepad2, Keyboard, LayoutGrid, ListChecks, Lock, Map, Medal, Plane, Play, Settings2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Award, BookOpen, Check, CheckCircle2, Circle, Gamepad2, Keyboard, LayoutGrid, ListChecks, Lock, Map, Medal, Plane, Play, Settings2 } from "lucide-react";
+import { useRef, useState, type ReactNode } from "react";
 import { useGame, type Overlay } from "@/game/store";
 import { ACHIEVEMENTS, MISSIONS, SKINS, completion, unlockedSkins } from "@/game/progression";
 import { CONTROL_HELP } from "@/config/controls";
 import { portfolio } from "@/content/portfolio";
+import { CREDITS } from "@/content/credits";
 import { parkAtSpawn } from "@/game/runtime";
 import { clearSave } from "@/game/save";
 import { Group, Kbd, NavBar, Row, Segmented, Slider, Switch, SYSTEM } from "./kit";
 import { cn } from "@/lib/utils";
+import { useTriggerOrigin } from "./origin";
 
 /** iOS sheet chrome: grouped background, large rounded corners. */
 function Sheet({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("font-sf max-h-[86vh] overflow-y-auto rounded-[16px] bg-[#f3ecdf] pb-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]", className)}>{children}</div>;
+  return <div className={cn("font-sf max-h-[86vh] max-h-[86dvh] overflow-y-auto overscroll-contain rounded-[16px] bg-[#f3ecdf] pb-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]", className)}>{children}</div>;
 }
 
 function LargeTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
@@ -69,6 +71,11 @@ export function SettingsPanel({ onBack, closeLabel }: { onBack: () => void; clos
           <Row title="Music" accessory={<Slider label="Music volume" value={s.musicVolume} onChange={(v) => u({ musicVolume: v })} />} />
           <Row title="Effects" accessory={<Slider label="Effects volume" value={s.sfxVolume} onChange={(v) => u({ sfxVolume: v })} />} />
         </Group>
+        <Group header="Credits" footer="Free 3D models from Sketchfab. Tap one to see the original.">
+          {CREDITS.map((c) => (
+            <Row key={c.source} href={c.source} title={c.title} subtitle={`${c.author} · ${c.license} · ${c.use}`} chevron />
+          ))}
+        </Group>
       </div>
     </Sheet>
   );
@@ -121,9 +128,9 @@ function LogPanel({ onBack }: { onBack: () => void }) {
               <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(120,120,128,0.16)" strokeWidth="4" />
               <circle cx="18" cy="18" r="15.5" fill="none" stroke="#2b5c8a" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${(pct / 100) * 97.4} 97.4`} />
             </svg>
-            <span className="absolute inset-0 grid place-items-center text-[15px] font-semibold text-[#1f3552]">{pct}%</span>
+            <span className="absolute inset-0 grid place-items-center text-[15px] font-semibold tabular-nums text-[#1f3552]">{pct}%</span>
           </div>
-          <div className="text-[13px] leading-relaxed text-[#5d6b80]">
+          <div className="text-[13px] leading-relaxed tabular-nums text-[#5d6b80]">
             <div className="text-[17px] font-semibold text-[#1f3552]">Explored</div>
             {p.discoveredRegions.length} regions · {p.viewed.filter((v) => v.startsWith("project-")).length} of {portfolio.projects.length} projects · {p.collectibles.length} of {portfolio.flightLogs.length} logs ·{" "}
             {Math.round(p.flightSeconds / 60)} min flown
@@ -217,27 +224,50 @@ export function PauseMenu() {
   const overlay = useGame((s) => s.overlay);
   const setOverlay = useGame((s) => s.setOverlay);
   const setMode = useGame((s) => s.setMode);
-  const setPhoto = useGame((s) => s.setPhoto);
   const go = (o: Overlay) => setOverlay(o);
   const back = () => setOverlay("pause");
+  // Sub-panels sit one level below the pause sheet: going in slides left, back slides right.
+  const depth = (o: Overlay | null) => (o === "pause" ? 0 : 1);
+  const [nav, setNav] = useState({ at: overlay, dir: 1 });
+  if (nav.at !== overlay) setNav({ at: overlay, dir: depth(overlay) >= depth(nav.at) ? 1 : -1 });
+  const dir = nav.at !== overlay ? (depth(overlay) >= depth(nav.at) ? 1 : -1) : nav.dir;
+  const sheet = useRef<HTMLDivElement>(null);
+  const origin = useTriggerOrigin(sheet);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="font-sf fixed inset-0 z-40 grid place-items-center bg-[#0d1523]/55 p-4"
+      className="font-sf safe-pad fixed inset-0 z-40 grid place-items-center bg-[#0d1523]/55"
       onClick={(e) => e.target === e.currentTarget && setOverlay(null)}
       role="dialog"
       aria-modal="true"
       aria-label="Pause menu"
     >
       <motion.div
+        ref={sheet}
+        style={{ transformOrigin: origin }}
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.97 }}
+        transition={{ type: "spring", damping: 30, stiffness: 360, mass: 0.8 }}
+        className="relative w-full max-w-[460px]"
+      >
+      <AnimatePresence mode="popLayout" initial={false} custom={dir}>
+      <motion.div
         key={overlay}
-        initial={{ y: 24, opacity: 0, scale: 0.98 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ type: "spring", damping: 28, stiffness: 320 }}
-        className="w-full max-w-[460px]"
+        custom={dir}
+        variants={{
+          enter: (d: number) => ({ x: 36 * d, opacity: 0 }),
+          center: { x: 0, opacity: 1 },
+          exit: (d: number) => ({ x: -36 * d, opacity: 0 }),
+        }}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        transition={{ type: "spring", damping: 34, stiffness: 420, mass: 0.7 }}
+        className="w-full"
       >
         {overlay === "settings" && <SettingsPanel onBack={back} />}
         {overlay === "controls" && <ControlsPanel onBack={back} />}
@@ -255,7 +285,6 @@ export function PauseMenu() {
                 <Row icon={Map} color={SYSTEM.green} title="World Map" chevron onClick={() => go("map")} />
                 <Row icon={ListChecks} color={SYSTEM.orange} title="Mission Log" chevron onClick={() => go("log")} />
                 <Row icon={Plane} color={SYSTEM.indigo} title="Hangar" chevron onClick={() => go("hangar")} />
-                <Row icon={Camera} color={SYSTEM.pink} title="Photo Mode" chevron onClick={() => setPhoto(true)} />
               </Group>
               <Group>
                 <Row icon={Settings2} color={SYSTEM.gray} title="Settings" chevron onClick={() => go("settings")} />
@@ -287,6 +316,8 @@ export function PauseMenu() {
             </div>
           </Sheet>
         )}
+      </motion.div>
+      </AnimatePresence>
       </motion.div>
     </motion.div>
   );

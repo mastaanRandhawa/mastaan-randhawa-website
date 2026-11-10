@@ -30,7 +30,7 @@ function teaser(d: Destination): string {
   }
 }
 
-/** Widget-style card shown when flying through a destination's ring. */
+/** Widget-style card shown when arriving near a destination. */
 export function DiscoveryCard() {
   const id = useGame((s) => s.discoveryCard);
   const set = useGame((s) => s.setDiscoveryCard);
@@ -54,7 +54,7 @@ export function DiscoveryCard() {
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -16 }}
           transition={{ type: "spring", damping: 26, stiffness: 300 }}
-          className="font-sf mat-light fixed left-5 top-[34%] z-20 w-[min(360px,calc(100vw-2.5rem))] rounded-[14px] p-4 max-sm:left-3 max-sm:top-[9.5rem]"
+          className="font-sf mat-light safe-ml fixed left-5 top-[34%] z-20 w-[min(360px,calc(100vw-2.5rem))] rounded-[14px] p-4 max-sm:left-3 max-sm:top-[9.5rem]"
           aria-live="polite"
         >
           <div className="flex items-start gap-3">

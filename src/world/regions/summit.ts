@@ -42,7 +42,9 @@ export function buildSummit(kit: RegionKit, def: RegionDef, out: RegionExtras) {
       { height: 120, radius: 70, x: -70, z: 40, sharpness: 1.6 },
       { height: 95, radius: 60, x: 60, z: -75, sharpness: 1.6 },
     ],
-    rockSlope: 1.05,
+    rockSlope: 1.4,
+    // Ridge arms and flank gullies (see heightLocal) turn the cone into a massif.
+    kind: "mountain",
     palette: PALETTES.alpine,
     snowLine: 215,
     pads: [
@@ -140,7 +142,6 @@ export function buildSummit(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     sublabel: portfolio.education.school,
     pos: I.w(qx, y0 + 30, qz),
     interactRadius: 110,
-    ring: { pos: I.w(qx + 8, y0 + 34, qz + 78), dir: [0, 0, -1], radius: 12 },
     accent: def.accent,
     landing: dock,
   });

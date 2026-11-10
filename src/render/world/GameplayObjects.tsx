@@ -111,36 +111,6 @@ function CourseRings({ world }: { world: World }) {
   );
 }
 
-/** Destination arrival rings in each region's accent colour. */
-function DestinationRings({ world }: { world: World }) {
-  const refs = useRef<(Group | null)[]>([]);
-  const ds = world.destinations.filter((d) => d.ring);
-  const mats = useMemo(() => ds.map((d) => glowMat(d.accent, 1.9)), [ds]);
-  const inner = useMemo(() => ds.map((d) => glowMat(d.accent, 1.2, 0.5)), [ds]);
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    refs.current.forEach((g, i) => {
-      if (!g) return;
-      g.children[1].rotation.z = t * 0.5 + i;
-      g.scale.setScalar(1 + Math.sin(t * 1.6 + i) * 0.03);
-    });
-  });
-  return (
-    <>
-      {ds.map((d, i) => (
-        <group key={d.id} position={d.ring!.pos} quaternion={ringQuat(d.ring!)} ref={(g) => (refs.current[i] = g)}>
-          <mesh material={mats[i]}>
-            <torusGeometry args={[d.ring!.radius, 0.6, 10, 56]} />
-          </mesh>
-          <mesh material={inner[i]}>
-            <torusGeometry args={[d.ring!.radius * 0.86, 0.12, 4, 56, Math.PI * 1.5]} />
-          </mesh>
-        </group>
-      ))}
-    </>
-  );
-}
-
 /** Flight-log collectibles: glowing, rotating capsules with an orbiting halo. */
 function Collectibles({ world }: { world: World }) {
   const got = useGame((s) => s.progress.collectibles);
@@ -181,7 +151,6 @@ export function GameplayObjects({ world }: { world: World }) {
   return (
     <>
       <CourseRings world={world} />
-      <DestinationRings world={world} />
       <Collectibles world={world} />
     </>
   );

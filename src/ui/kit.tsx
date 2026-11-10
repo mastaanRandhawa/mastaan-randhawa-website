@@ -57,14 +57,14 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button({ 
         onClick?.(e);
       }}
       className={cn(
-        "font-sf inline-flex items-center justify-center gap-2 font-semibold transition-all duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#f2735a]/55 disabled:opacity-40 disabled:active:translate-y-0",
+        "font-sf inline-flex select-none items-center justify-center gap-2 font-semibold tracking-[-0.01em] transition-[background-color,color,box-shadow,transform,opacity] duration-150 ease-out active:translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#f2735a]/55 disabled:opacity-40 disabled:active:translate-y-0",
         size === "lg" && "h-[50px] rounded-[10px] px-6 text-[16px]",
         size === "md" && "h-11 rounded-[9px] px-5 text-[14.5px]",
-        size === "sm" && "h-8 rounded-[7px] px-3 text-[13px]",
+        size === "sm" && "hit-area h-8 rounded-[7px] px-3 text-[13px]",
         // Ink button with a coral keel line: the primary action.
-        variant === "filled" && "bg-[#1f3552] text-[#fbf6ec] shadow-[inset_0_-3px_0_#f2735a,0_8px_20px_-10px_rgba(31,53,82,0.8)] hover:bg-[#16273e]",
+        variant === "filled" && "bg-[var(--ink)] text-[var(--paper)] shadow-[inset_0_-3px_0_var(--coral),0_8px_20px_-10px_rgba(31,53,82,0.8)] hover:bg-[var(--ink-hover)]",
         // Paper button for dark backdrops (primary action over the scene).
-        variant === "paper" && "bg-[#fbf6ec] text-[#1f3552] shadow-[inset_0_-3px_0_#f2735a,0_10px_28px_-12px_rgba(0,0,0,0.6)] hover:bg-white",
+        variant === "paper" && "bg-[var(--paper)] text-[var(--ink)] shadow-[inset_0_-3px_0_var(--coral),0_10px_28px_-12px_rgba(0,0,0,0.6)] hover:bg-white hover:shadow-[inset_0_-4px_0_var(--coral),0_14px_30px_-12px_rgba(0,0,0,0.65)]",
         variant === "tinted" && "bg-[#1f3552]/[0.07] text-[#1f3552] shadow-[inset_0_0_0_1px_rgba(31,53,82,0.16)] hover:bg-[#1f3552]/[0.11]",
         variant === "gray" && "bg-transparent text-[#1f3552] shadow-[inset_0_0_0_1px_rgba(31,53,82,0.22)] hover:bg-[#1f3552]/[0.05]",
         variant === "glass" && "mat-glass hover:bg-[rgba(20,31,49,0.6)]",
@@ -89,7 +89,7 @@ export function IconButton({ label, className, children, onClick, ...rest }: But
         onClick?.(e);
       }}
       className={cn(
-        "grid h-9 w-9 place-items-center rounded-[7px] text-[#f4ead5]/85 transition hover:bg-[#f4ead5]/10 hover:text-[#fbf6ec] active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2735a]",
+        "hit-area grid h-9 w-9 place-items-center rounded-[7px] text-[#f4ead5]/85 transition-[background-color,color,transform] duration-150 hover:bg-[#f4ead5]/10 hover:text-[#fbf6ec] active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2735a]",
         className,
       )}
     >
@@ -146,13 +146,13 @@ export function Switch({ value, onChange, label }: { value: boolean; onChange: (
         onChange(!value);
       }}
       className={cn(
-        "relative h-[26px] w-[46px] shrink-0 rounded-[7px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#f2735a]/55",
+        "hit-area relative h-[26px] w-[46px] shrink-0 rounded-[7px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#f2735a]/55",
         value ? "bg-[#1f3552]" : "bg-[#1f3552]/[0.12]",
       )}
     >
       <span
-        className="absolute top-[3px] h-5 w-5 rounded-[5px] bg-[#fbf6ec] shadow-[0_1px_3px_rgba(16,24,38,0.3)] transition-all duration-200"
-        style={{ left: value ? 23 : 3 }}
+        className="absolute left-[3px] top-[3px] h-5 w-5 rounded-[5px] bg-[#fbf6ec] shadow-[0_1px_3px_rgba(16,24,38,0.3)] transition-transform duration-200 ease-out"
+        style={{ transform: `translateX(${value ? 20 : 0}px)` }}
       >
         {value && <span className="absolute inset-x-[7px] top-[5px] h-[10px] rounded-full bg-[#f2735a]" />}
       </span>
@@ -173,7 +173,7 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
             onChange(o.v);
           }}
           className={cn(
-            "min-w-[3.2rem] rounded-[6px] px-2.5 py-[5px] text-[12.5px] font-medium transition",
+            "hit-area min-w-[3.2rem] rounded-[6px] px-2.5 py-[5px] text-[12.5px] font-medium transition-colors focus-visible:outline-offset-0",
             value === o.v ? "bg-[#1f3552] text-[#fbf6ec]" : "text-[#1f3552]/75 hover:text-[#1f3552]",
           )}
         >
@@ -248,7 +248,7 @@ export function Row({
       {chevron && <ChevronRight size={16} className="shrink-0 text-[#1f3552]/35" strokeWidth={2.2} />}
     </>
   );
-  const cls = "flex min-h-[46px] w-full items-center gap-3 px-3.5 text-left";
+  const cls = "flex min-h-[46px] w-full items-center gap-3 px-3.5 text-left focus-visible:outline-offset-[-2px]";
   if (href)
     return (
       <a href={href} target={href.startsWith("mailto") ? undefined : "_blank"} rel="noopener noreferrer" className={cn(cls, "transition hover:bg-[#1f3552]/[0.035] active:bg-[#1f3552]/[0.06]")}>
@@ -275,7 +275,7 @@ export function NavBar({ title, onBack, backLabel = "Back", onDone, doneLabel = 
   return (
     <div className="font-sf relative flex h-12 items-center justify-between px-2">
       {onBack ? (
-        <button onClick={onBack} className="flex items-center gap-0.5 rounded-[7px] px-1.5 py-1 text-[14.5px] font-medium text-[#1f3552] hover:bg-[#1f3552]/[0.06]">
+        <button onClick={onBack} className="hit-area flex items-center gap-0.5 rounded-[7px] px-1.5 py-1 text-[14.5px] font-medium text-[#1f3552] transition-colors hover:bg-[#1f3552]/[0.06] active:bg-[#1f3552]/[0.1]">
           <ChevronLeft size={20} strokeWidth={2.2} className="-ml-0.5" /> {backLabel}
         </button>
       ) : (
@@ -283,7 +283,7 @@ export function NavBar({ title, onBack, backLabel = "Back", onDone, doneLabel = 
       )}
       {title && <span className="legend pointer-events-none absolute inset-x-0 text-center text-[#5d6b80]">{title}</span>}
       {onDone ? (
-        <button onClick={onDone} className="rounded-[7px] bg-[#1f3552] px-3 py-1 text-[13.5px] font-semibold text-[#fbf6ec] shadow-[inset_0_-2px_0_#f2735a] hover:bg-[#16273e]">
+        <button onClick={onDone} className="hit-area rounded-[7px] bg-[var(--ink)] px-3 py-1 text-[13.5px] font-semibold text-[var(--paper)] shadow-[inset_0_-2px_0_var(--coral)] transition-colors hover:bg-[var(--ink-hover)] active:translate-y-px">
           {doneLabel}
         </button>
       ) : (

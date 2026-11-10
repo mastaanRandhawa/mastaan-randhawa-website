@@ -22,7 +22,7 @@ export function Toasts() {
     if (last?.kind === "achievement" || last?.kind === "skin") audio.play("achievement");
   }, [last?.id, last?.kind]);
   return (
-    <div className="font-sf pointer-events-none fixed right-4 top-[70px] z-40 flex w-[min(340px,calc(100vw-2rem))] flex-col gap-2 max-sm:inset-x-0 max-sm:top-2 max-sm:mx-auto" role="status" aria-live="polite">
+    <div className="font-sf safe-mt safe-mr pointer-events-none fixed right-4 top-[70px] z-40 flex w-[min(340px,calc(100vw-2rem))] flex-col gap-2 max-sm:inset-x-0 max-sm:top-2 max-sm:mx-auto" role="status" aria-live="polite">
       <AnimatePresence initial={false}>
         {toasts.map((t) => {
           const Icon = ICON[t.kind];

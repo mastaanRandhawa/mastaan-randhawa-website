@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, MotionConfig } from "framer-motion";
 import { useGame, simRunning } from "@/game/store";
 import { attachInput, setGameKeysActive, setPressHandler } from "@/game/input";
 import { audio } from "@/game/audio";
@@ -16,13 +16,12 @@ import { PauseMenu } from "./PauseMenu";
 import { DetailPanel } from "./panels/DetailPanel";
 import { DiscoveryCard } from "./DiscoveryCard";
 import { WorldMap } from "./WorldMap";
-import { PhotoMode } from "./PhotoMode";
 import { MobileControls } from "./MobileControls";
 import { CourseResult } from "./CourseResult";
 import { LogReader } from "./LogReader";
 import { VisitStatus } from "./hud/VisitStatus";
 import { panelFor } from "./panels/panelFor";
-import { runtime, photoOrbit, resetFlightAt, look } from "@/game/runtime";
+import { runtime, resetFlightAt, look } from "@/game/runtime";
 import { getWorld } from "@/world/world";
 import { DEBUG } from "@/debug/recorder";
 import { DiagnosticsPanel } from "@/debug/DiagnosticsPanel";
@@ -33,7 +32,6 @@ declare global {
       runtime: typeof runtime;
       store: typeof useGame;
       audio: typeof audio;
-      photoOrbit: typeof photoOrbit;
       resetFlightAt: typeof resetFlightAt;
       world: typeof getWorld;
       startVisit: typeof startVisit;
@@ -41,7 +39,7 @@ declare global {
     };
   }
 }
-if (typeof window !== "undefined") window.__skybound = { runtime, store: useGame, audio, photoOrbit, resetFlightAt, world: getWorld, startVisit, look };
+if (typeof window !== "undefined") window.__skybound = { runtime, store: useGame, audio, resetFlightAt, world: getWorld, startVisit, look };
 
 const GameCanvas = lazy(() => import("@/render/GameCanvas"));
 
@@ -49,7 +47,6 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
   const mode = useGame((s) => s.mode);
   const overlay = useGame((s) => s.overlay);
   const panel = useGame((s) => s.panel);
-  const photo = useGame((s) => s.photoMode);
   const isTouch = useGame((s) => s.isTouch);
   const settings = useGame((s) => s.settings);
   const [world, setWorld] = useState<World | null>(null);
@@ -67,7 +64,9 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
       ]),
       new Promise((r) => setTimeout(r, 2500)),
     ]).catch(() => undefined);
-    void fontReady.then(() =>
+    // Every tree is a baked glTF model; the world waits for them (up to 20 s).
+    const treesReady = import("@/render/treeAssets").then((m) => m.loadTreeModels()).catch(() => undefined);
+    void Promise.all([fontReady, treesReady]).then(() =>
       buildWorld(density, (f) => useGame.getState().setLoadProgress(0.15 + f * 0.8)).then((w) => {
         if (cancelled) return;
         setWorld(w);
@@ -91,21 +90,17 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
       if (s.mode !== "flying") return;
       switch (a) {
         case "pause":
-          if (s.photoMode) s.setPhoto(false);
-          else if (s.openLog) s.setOpenLog(null);
+          if (s.openLog) s.setOpenLog(null);
           else if (s.panel) s.closePanel();
           else if (s.overlay && s.overlay !== "pause") s.setOverlay(s.overlay === "map" ? null : "pause");
           else s.setOverlay(s.overlay ? null : "pause");
           audio.play("click");
           break;
         case "map":
-          if (!s.panel && !s.photoMode) s.setOverlay(s.overlay === "map" ? null : "map");
+          if (!s.panel) s.setOverlay(s.overlay === "map" ? null : "map");
           break;
         case "camera":
           if (simRunning(s)) s.cycleCamera();
-          break;
-        case "photo":
-          if (!s.panel && (s.overlay === null || s.overlay === "pause")) s.setPhoto(!s.photoMode);
           break;
         case "reset":
           if (simRunning(s)) resetToCheckpoint();
@@ -157,6 +152,11 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
   }, []);
 
   useEffect(() => audio.setVolumes(settings), [settings]);
+  // The in-game "Reduce motion" setting also quiets CSS transitions (see index.css).
+  useEffect(() => {
+    document.documentElement.classList.toggle("reduce-motion", settings.reducedMotion && !hidden);
+    return () => document.documentElement.classList.remove("reduce-motion");
+  }, [settings.reducedMotion, hidden]);
 
   useEffect(() => {
     if (world && mode === "loading") {
@@ -167,6 +167,8 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
   }, [world, mode]);
 
   return (
+    // Framer animations honour the OS setting, or are always reduced when the player asks.
+    <MotionConfig reducedMotion={settings.reducedMotion ? "always" : "user"}>
     <div
       className={hidden ? "hidden" : "fixed inset-0 overflow-hidden select-none"}
       style={hidden ? undefined : { background: "linear-gradient(180deg,#3c9be3 0%,#62c0f0 30%,#d9eef2 49%,#f5ecdc 51%,#1a86b8 53%,#1468a8 100%)" }}
@@ -182,20 +184,20 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
       <AnimatePresence>{mode === "title" && world && <TitleScreen key="title" />}</AnimatePresence>
       {mode === "flying" && world && (
         <>
-          {!photo && <HUD world={world} />}
-          {!photo && <VisitStatus />}
-          {!photo && <Tutorial />}
+          <HUD world={world} />
+          <VisitStatus />
+          <Tutorial />
           <DiscoveryCard />
           <CourseResult />
-          {isTouch && simRunning({ mode, overlay, panel, photoMode: photo }) && <MobileControls />}
+          {isTouch && simRunning({ mode, overlay, panel }) && <MobileControls />}
           <AnimatePresence>{panel && <DetailPanel key="panel" panel={panel} />}</AnimatePresence>
           <AnimatePresence>{overlay === "map" && <WorldMap key="map" world={world} />}</AnimatePresence>
           <AnimatePresence>{overlay && overlay !== "map" && <PauseMenu key="pause" />}</AnimatePresence>
-          <AnimatePresence>{photo && <PhotoMode key="photo" />}</AnimatePresence>
           <LogReader />
         </>
       )}
       <Toasts />
     </div>
+    </MotionConfig>
   );
 }

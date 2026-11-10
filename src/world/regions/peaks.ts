@@ -6,13 +6,17 @@ import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { floatingRocks, tree } from "../prefabs/nature";
 import { airstrip, flagpole, stripPad } from "../prefabs/structures";
-import { approachRing } from "./common";
 import { portfolio } from "@/content/portfolio";
 
 const ISSUER: Record<string, string> = { Databricks: "#ff5a36", Microsoft: "#2f8ae0", Anthropic: "#d97757" };
 
-function spire(kit: RegionKit, id: string, x: number, y: number, z: number, r: number, seed: number): Isl {
-  return kit.island({ id, x, y, z, radius: r, seed, hilliness: 0.6, depth: y - 20, profile: "column", rings: 4, segments: 18, layers: 12, irregularity: 0.24, palette: PALETTES.spire, pads: [{ x: 0, z: 0, r: r * 0.7, h: 0, blend: 3, color: "#cfc6b6", colorStrength: 0.6 }] });
+/**
+ * A credential crag: the monument sits on a rock summit whose flanks spread
+ * into ridged buttresses and grassy shoulders, so the spires read as one
+ * connected mountain group instead of separate cylinders.
+ */
+function spire(kit: RegionKit, id: string, x: number, y: number, z: number, r: number, seed: number, flareBase = 4.2): Isl {
+  return kit.island({ id, x, y, z, radius: r, seed, hilliness: 0.6, depth: y - 20, profile: "column", flareBase, rings: 4, segments: 40, layers: 14, irregularity: 0.24, palette: PALETTES.spire, pads: [{ x: 0, z: 0, r: r * 0.7, h: 0, blend: 3, color: "#cfc6b6", colorStrength: 0.6 }] });
 }
 
 function monument(I: Isl, color: string, title: string, issuer: string, date: string, big: boolean) {
@@ -35,7 +39,7 @@ export function buildPeaks(kit: RegionKit, def: RegionDef, out: RegionExtras) {
   const certs = portfolio.credentials.filter((c) => c.kind === "certification");
   const badges = portfolio.credentials.filter((c) => c.kind === "badge");
   // Base plateau the spires rise from.
-  const base = kit.island({ id: "peaks-base", x: cx, y: cy - 40, z: cz, radius: 60, seed: 5501, hilliness: 6, depth: 70, palette: PALETTES.spire, pads: [{ x: 0, z: 0, r: 16, h: 0, color: "#cfc6b6", colorStrength: 0.5 }, stripPad(10, 12, Math.PI / 2, 56)] });
+  const base = kit.island({ id: "peaks-base", x: cx, y: cy - 40, z: cz, radius: 60, seed: 5501, hilliness: 6, depth: 70, palette: PALETTES.spire, kind: "mountain", pads: [{ x: 0, z: 0, r: 16, h: 0, color: "#cfc6b6", colorStrength: 0.5 }, stripPad(10, 12, Math.PI / 2, 56)] });
   const peaksLanding = airstrip(base, 10, 12, Math.PI / 2, 56);
   base.scatter(16, { maxRho: 0.85, spacing: 8, minRho: 0.35 }, (x, z, y) => tree(base, x, z, "pine", 1.2, y));
   floatingRocks(base, 10, 1.5);
@@ -73,7 +77,6 @@ export function buildPeaks(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     sublabel: `${certs.length} certifications · ${badges.length} badges`,
     pos: [cx, cy + 30, cz],
     interactRadius: 120,
-    ring: approachRing({ ...def, center: [cx + 300, cy, cz + 300] }, cx, cy + 4, cz, 0, 0, 13),
     accent: def.accent,
     landing: peaksLanding,
   });

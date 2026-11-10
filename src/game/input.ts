@@ -21,7 +21,7 @@ const codeToAxis = new Map<string, AxisAction>();
 const codeToPress = new Map<string, PressAction>();
 for (const [action, codes] of Object.entries(KEY_BINDINGS)) {
   for (const code of codes) {
-    if (["camera", "map", "pause", "interact", "reset", "photo"].includes(action)) codeToPress.set(code, action as PressAction);
+    if (["camera", "map", "pause", "interact", "reset"].includes(action)) codeToPress.set(code, action as PressAction);
     else codeToAxis.set(code, action as AxisAction);
   }
 }

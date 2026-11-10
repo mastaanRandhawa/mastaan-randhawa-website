@@ -28,7 +28,6 @@ export interface Destination {
   /** Label / waypoint anchor. */
   pos: Vec3;
   interactRadius: number;
-  ring?: RingDef;
   accent: string;
   landing?: LandingSite;
 }
@@ -56,8 +55,12 @@ export interface RegionExtras {
   collectibles: CollectibleDef[];
 }
 
+/** Rings are drawn this much larger than each course asks for, to keep courses forgiving. */
+const RING_SCALE = 1.3;
+
 /** Build a ring course from control points; directions follow the path tangent. */
-export function courseRings(points: Vec3[], radius = 9, closed = false): RingDef[] {
+export function courseRings(points: Vec3[], baseRadius = 9, closed = false): RingDef[] {
+  const radius = baseRadius * RING_SCALE;
   return points.map((p, i) => {
     const prev = points[i - 1] ?? (closed ? points[points.length - 1] : null);
     const next = points[i + 1] ?? (closed ? points[0] : null);

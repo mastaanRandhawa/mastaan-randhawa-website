@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Camera as CameraIcon, LayoutGrid, Map, Pause, Video, Volume2, VolumeX } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { LayoutGrid, Map, Pause, Video, Volume2, VolumeX } from "lucide-react";
 import { Vector3 } from "three";
-import { useGame } from "@/game/store";
+import { CAMERA_VIEWS, useGame } from "@/game/store";
 import { onFrame } from "@/game/frameBus";
 import { runtime } from "@/game/runtime";
 import { currentMission, completion, MISSIONS } from "@/game/progression";
@@ -352,7 +352,7 @@ function Labels({ world }: { world: World }) {
                 <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: d.accent }} />
               )}
               <span className={seen ? "text-[#f4ead5]/70" : "text-[#fbf6ec]"}>{d.label}</span>
-              <span data-d className="font-instrument text-[10px] font-normal text-[#f4ead5]/50" />
+              <span data-d className="font-instrument inline-block min-w-[5ch] text-right text-[10px] font-normal text-[#f4ead5]/50" />
             </div>
             <div className="h-3.5 w-px bg-[#f4ead5]/60" />
             <div className="h-[7px] w-[7px] rotate-45 bg-[#fbf6ec] shadow-[0_0_0_1.5px_rgba(13,21,35,0.5)]" />
@@ -485,10 +485,22 @@ function Toolbar() {
   const muted = useGame((s) => s.settings.muted);
   const update = useGame((s) => s.updateSettings);
   const cycle = useGame((s) => s.cycleCamera);
-  const setPhoto = useGame((s) => s.setPhoto);
   const setMode = useGame((s) => s.setMode);
   const fps = useGame((s) => s.settings.showFps);
   const fpsEl = useRef<HTMLSpanElement>(null);
+  // Name the view for a moment after switching cameras.
+  const cameraMode = useGame((s) => s.cameraMode);
+  const [viewLabel, setViewLabel] = useState<string | null>(null);
+  const firstView = useRef(true);
+  useEffect(() => {
+    if (firstView.current) {
+      firstView.current = false;
+      return;
+    }
+    setViewLabel(CAMERA_VIEWS.find((v) => v.id === cameraMode)?.label ?? null);
+    const id = setTimeout(() => setViewLabel(null), 1600);
+    return () => clearTimeout(id);
+  }, [cameraMode]);
   useEffect(
     () =>
       onFrame(() => {
@@ -508,9 +520,6 @@ function Toolbar() {
         <IconButton label="Change camera (C)" onClick={cycle}>
           <Video size={16} strokeWidth={1.9} />
         </IconButton>
-        <IconButton label="Photo mode (O)" onClick={() => setPhoto(true)}>
-          <CameraIcon size={16} strokeWidth={1.9} />
-        </IconButton>
         <IconButton label={muted ? "Unmute" : "Mute"} onClick={() => update({ muted: !muted })}>
           {muted ? <VolumeX size={16} strokeWidth={1.9} /> : <Volume2 size={16} strokeWidth={1.9} />}
         </IconButton>
@@ -519,6 +528,11 @@ function Toolbar() {
           <Pause size={16} strokeWidth={2.4} />
         </IconButton>
       </div>
+      {viewLabel && (
+        <span className="font-sf mat-dark rounded-[6px] px-2 py-0.5 text-[11px] font-medium text-[#f4ead5]" role="status">
+          Camera: {viewLabel}
+        </span>
+      )}
       {fps && <span ref={fpsEl} className="font-instrument mat-dark rounded-[5px] px-1.5 py-px text-[10px] text-[#f4ead5]/80" />}
     </div>
   );
@@ -532,14 +546,18 @@ export function HUD({ world }: { world: World }) {
     // The HUD layer is click-through so drags and mouse steering reach the 3D canvas;
     // only its real controls opt back in to pointer events.
     <div className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${hide ? "opacity-0 [&_*]:!pointer-events-none" : "opacity-100"}`}>
+      {/* World-anchored layers span the full screen... */}
       <Labels world={world} />
       <WaypointArrow />
-      <Compass />
-      <CourseTimer />
-      <Objective />
-      <Toolbar />
-      <Instruments />
-      <InteractPrompt />
+      {/* ...while panels and instruments keep clear of notches and the home indicator. */}
+      <div className="safe-layer pointer-events-none">
+        <Compass />
+        <CourseTimer />
+        <Objective />
+        <Toolbar />
+        <Instruments />
+        <InteractPrompt />
+      </div>
       <Reticle />
       <RespawnFade />
     </div>

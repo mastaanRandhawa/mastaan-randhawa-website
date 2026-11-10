@@ -25,6 +25,7 @@ export function buildContact(kit: RegionKit, def: RegionDef, out: RegionExtras) 
     hilliness: 5,
     depth: 80,
     palette: PALETTES.meadow,
+    kind: "landmark",
     pads: [
       { x: 0, z: 0, r: 0, w: 9, l: 70, h: 0, blend: 10 },
       { x: -26, z: 0, r: 0, w: 12, l: 30, h: 0, blend: 8, color: "#cfc6b6", colorStrength: 0.5 },
@@ -84,7 +85,6 @@ export function buildContact(kit: RegionKit, def: RegionDef, out: RegionExtras) 
     sublabel: "Resume · links · email",
     pos: [cx, cy + 22, cz],
     interactRadius: 120,
-    ring: { pos: [cx, cy + 20, cz - 120], dir: [0, 0, 1], radius: 13 },
     accent: def.accent,
     landing: { x: cx, y: cy + 0.34, z: cz, heading: 0, length: 120 },
   });

@@ -8,7 +8,18 @@ import { portfolio } from "@/content/portfolio";
 
 export type AppMode = "loading" | "title" | "flying" | "portfolio";
 export type Overlay = null | "pause" | "settings" | "map" | "log" | "hangar" | "controls";
-export type CameraMode = "chase" | "cinematic" | "cockpit";
+export type CameraMode = "chase" | "far" | "side" | "overhead" | "front" | "cinematic" | "cockpit";
+
+/** Display names for the camera views, in the order C cycles through them. */
+export const CAMERA_VIEWS: { id: CameraMode; label: string }[] = [
+  { id: "chase", label: "Chase" },
+  { id: "far", label: "Far chase" },
+  { id: "side", label: "Wingman" },
+  { id: "overhead", label: "Overhead" },
+  { id: "front", label: "Head-on" },
+  { id: "cinematic", label: "Cinematic" },
+  { id: "cockpit", label: "Cockpit" },
+];
 
 export interface Toast {
   id: number;
@@ -50,7 +61,6 @@ interface GameStore {
   loadProgress: number;
   overlay: Overlay;
   panel: PanelState | null;
-  photoMode: boolean;
   cameraMode: CameraMode;
   nearby: string | null;
   discoveryCard: string | null;
@@ -74,7 +84,6 @@ interface GameStore {
   setOverlay: (o: Overlay) => void;
   openPanel: (p: PanelState) => void;
   closePanel: () => void;
-  setPhoto: (v: boolean) => void;
   cycleCamera: () => void;
   setNearby: (id: string | null) => void;
   setDiscoveryCard: (id: string | null) => void;
@@ -127,11 +136,11 @@ export const useGame = create<GameStore>((set, get) => {
   };
 
   return {
-    mode: "loading",
+    // The site opens on the classic portfolio; the game starts only when asked for.
+    mode: "portfolio",
     loadProgress: 0,
     overlay: null,
     panel: null,
-    photoMode: false,
     cameraMode: "chase",
     nearby: null,
     discoveryCard: null,
@@ -151,7 +160,7 @@ export const useGame = create<GameStore>((set, get) => {
 
     setVisit: (visit) => set({ visit }),
     setMode: (mode) => {
-      set({ mode, overlay: null, panel: null, photoMode: false });
+      set({ mode, overlay: null, panel: null });
       track("mode", { mode });
     },
     setLoadProgress: (loadProgress) => set({ loadProgress }),
@@ -163,9 +172,8 @@ export const useGame = create<GameStore>((set, get) => {
       track("panel", { key });
     },
     closePanel: () => set({ panel: null }),
-    setPhoto: (photoMode) => set({ photoMode, overlay: null }),
     cycleCamera: () => {
-      const order: CameraMode[] = ["chase", "cinematic", "cockpit"];
+      const order = CAMERA_VIEWS.map((v) => v.id);
       const i = order.indexOf(get().cameraMode);
       set({ cameraMode: order[(i + 1) % order.length] });
     },
@@ -262,6 +270,6 @@ useGame.subscribe((s, prev) => {
 });
 
 /** True when the flight simulation should advance. */
-export function simRunning(s: Pick<GameStore, "mode" | "overlay" | "panel" | "photoMode">) {
-  return s.mode === "flying" && s.overlay === null && s.panel === null && !s.photoMode;
+export function simRunning(s: Pick<GameStore, "mode" | "overlay" | "panel">) {
+  return s.mode === "flying" && s.overlay === null && s.panel === null;
 }

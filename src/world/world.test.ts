@@ -72,11 +72,6 @@ describe("layout clearance", () => {
     expect(problems).toEqual([]);
   });
 
-  it("keeps every destination arrival ring clear", () => {
-    const problems = w.destinations.filter((d) => d.ring && blocked(...d.ring.pos)).map((d) => d.id);
-    expect(problems).toEqual([]);
-  });
-
   it("keeps every collectible reachable (not buried)", () => {
     const problems = w.collectibles.filter((c) => blocked(...c.pos, 1.5)).map((c) => c.id);
     expect(problems).toEqual([]);

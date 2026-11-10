@@ -48,6 +48,15 @@ export function buildLaunch(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     palette: PALETTES.meadow,
     rings: 18,
     segments: 72,
+    // Natural island with a calm airfield: rolling hills inland, a curving
+    // western peninsula for the lighthouse and a sheltered southern cove.
+    kind: "tropical",
+    terrain: { hillHeight: 3, peninsulas: 1, coves: 1 },
+    lighthouse: true,
+    features: [
+      { type: "peninsula", angle: 2.55, strength: 1.5, width: 0.22 },
+      { type: "cove", angle: -2.1, strength: 0.6, width: 0.2 },
+    ],
     pads: [
       { x: 0, z: 0, r: 0, w: 10.5, l: 84, h: 0, blend: 12, color: "#86b25a", colorStrength: 0.6 },
       { x: -27, z: 8, r: 0, w: 15, l: 38, h: 0, blend: 10, color: "#b9b08f", colorStrength: 0.5 },
@@ -208,7 +217,7 @@ export function buildLaunch(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     regionId: "launch",
     description: "Thread six rings around the airfield.",
     timed: false,
-    medals: [60, 80, 120],
+    medals: [80, 110, 160],
     rings: courseRings(
       [
         [cx, cy + 30, cz - 200],

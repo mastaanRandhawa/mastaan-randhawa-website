@@ -28,7 +28,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "ace", title: "Ace Pilot", description: "Earn a gold medal on any timed course.", icon: "medal" },
   { id: "archivist", title: "Archivist", description: "Collect every flight log.", icon: "book" },
   { id: "hiring-signal", title: "Hiring Signal", description: "Open the resume or contact details.", icon: "mail" },
-  { id: "shutterbug", title: "Shutterbug", description: "Capture a photo in photo mode.", icon: "camera" },
 ];
 
 export interface SkinDef {

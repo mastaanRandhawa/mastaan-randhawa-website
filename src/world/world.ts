@@ -60,7 +60,8 @@ function buildRegion(w: World, def: RegionDef, density: number, builder: Builder
   const kit = new RegionKit(def.id, density);
   const extras: RegionExtras = { destinations: [], courses: [], collectibles: [] };
   builder(kit, def, extras);
-  kit.fitShores(gameplaySpaces(extras));
+  const built = w.regions.flatMap((r) => r.islands.map((i) => i.terrain));
+  kit.fitShores(gameplaySpaces(extras), built);
   const done = kit.finish();
   for (const c of kit.colliders) w.collision.add(c);
   w.regions.push({ def, islands: done.islands, world: done.world, anchors: kit.anchors });
@@ -88,7 +89,6 @@ function gameplaySpaces(x: RegionExtras): KeepClear[] {
   }
   for (const c of x.collectibles) out.push({ x: c.pos[0], y: c.pos[1], z: c.pos[2], r: 7 });
   for (const d of x.destinations) {
-    if (d.ring) out.push({ x: d.ring.pos[0], y: d.ring.pos[1], z: d.ring.pos[2], r: d.ring.radius + 4 });
     if (!d.landing) continue;
     const L = landingPlan(d.landing);
     seg(L.entry, L.touchdown, 8);

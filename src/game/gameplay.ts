@@ -237,7 +237,8 @@ function crossed(r: RingDef, ax: number, ay: number, az: number, bx: number, by:
   const px = ax + (bx - ax) * tt;
   const py = ay + (by - ay) * tt;
   const pz = az + (bz - az) * tt;
-  return Math.hypot(px - cx, py - cy, pz - cz) < r.radius + 1.5;
+  // Generous: anything that clips the ring, or passes just outside it, counts.
+  return Math.hypot(px - cx, py - cy, pz - cz) < r.radius * 1.3 + 4;
 }
 
 export function startCourse(id: string) {
@@ -279,13 +280,15 @@ function frameGameplay(dt: number) {
     const c = courseById(run.id)!;
     runtime.courseTime = runtime.simTime - run.startedAt;
     const ring = c.rings[run.next];
-    if (ring && crossed(ring, ax, ay, az, bx, by, bz)) {
-      audio.play("ring", { index: run.next });
+    // Missing a ring isn't fatal on timed courses: flying through the one after it carries on.
+    const after = c.timed ? c.rings[run.next + 1] : undefined;
+    const hit = ring && crossed(ring, ax, ay, az, bx, by, bz) ? run.next : after && crossed(after, ax, ay, az, bx, by, bz) ? run.next + 1 : -1;
+    if (hit >= 0) {
+      audio.play("ring", { index: hit });
       rumble(0.25, 60);
       runtime.ringFlashAt = runtime.simTime;
-      if (run.next === 0 || (!c.timed && run.next === 0)) st.unlock("first-ring");
       st.unlock("first-ring");
-      const next = run.next + 1;
+      const next = hit + 1;
       setCheckpointHere();
       if (next >= c.rings.length) {
         st.setCourse(null);
@@ -306,7 +309,7 @@ function frameGameplay(dt: number) {
           if (next === 4 && st.tutorialStep < 4) st.setTutorialStep(4);
         }
       }
-    } else if (c.timed && runtime.simTime - run.lastRingAt > 28) {
+    } else if (c.timed && runtime.simTime - run.lastRingAt > 60) {
       st.setCourse(null);
       st.toast({ kind: "info", title: `${c.name} abandoned`, body: "Fly through the start ring to try again." });
     }
@@ -325,15 +328,6 @@ function frameGameplay(dt: number) {
     if (tutorialInputTime > 1.6) st.setTutorialStep(2);
   }
   if (st.tutorialStep === 3 && f.boosting) st.setTutorialStep(4);
-
-  // ── Destination arrival rings ──
-  if (!visiting) for (const d of w.destinations) {
-    if (d.ring && crossed(d.ring, ax, ay, az, bx, by, bz)) {
-      audio.play("open");
-      st.setDiscoveryCard(d.id);
-      runtime.ringFlashAt = runtime.simTime;
-    }
-  }
 
   // ── Collectibles ──
   for (const c of w.collectibles) {
@@ -370,6 +364,11 @@ function frameGameplay(dt: number) {
       best = d.id;
       bestD = dist;
     }
+  }
+  // Arriving near an island shows its card (what's there, and whether you can land).
+  if (best && best !== st.nearby) {
+    audio.play("open");
+    st.setDiscoveryCard(best);
   }
   st.setNearby(best);
 

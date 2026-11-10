@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, FileText, Github, LayoutGrid, Linkedin, Mail, RotateCcw, Settings2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useGame } from "@/game/store";
 import { BRAND } from "@/config/brand";
 import { portfolio } from "@/content/portfolio";
@@ -10,6 +10,7 @@ import { completion } from "@/game/progression";
 import { REGIONS } from "@/world/layout";
 import { Button, Kbd } from "./kit";
 import { SettingsPanel } from "./PauseMenu";
+import { useTriggerOrigin } from "./origin";
 
 const P = portfolio.profile;
 
@@ -32,6 +33,52 @@ function Barcode({ seed }: { seed: string }) {
   );
 }
 
+/** Settings sheet over the title: grows from the gear button, Esc closes, focus returns to the trigger. */
+function SettingsDialog({ onClose }: { onClose: () => void }) {
+  const sheet = useRef<HTMLDivElement>(null);
+  const origin = useTriggerOrigin(sheet);
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    sheet.current?.querySelector<HTMLElement>("button, [href], input, [tabindex]")?.focus();
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", key, true);
+    return () => {
+      window.removeEventListener("keydown", key, true);
+      opener?.focus?.();
+    };
+  }, [onClose]);
+  return (
+    <motion.div
+      className="safe-pad fixed inset-0 z-40 grid place-items-center bg-[#0d1523]/55"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        ref={sheet}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Settings"
+        className="w-full max-w-[460px]"
+        style={{ transformOrigin: origin }}
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={{ type: "spring", damping: 30, stiffness: 380, mass: 0.8 }}
+      >
+        <SettingsPanel onBack={onClose} closeLabel="Done" />
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function Field({ k, children, className }: { k: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={className}>
@@ -47,6 +94,7 @@ export function TitleScreen() {
   const progress = useGame((s) => s.progress);
   const isTouch = useGame((s) => s.isTouch);
   const [settings, setSettings] = useState(false);
+  const closeSettings = useMemo(() => () => setSettings(false), []);
 
   const start = (resume: boolean) => {
     audio.init();
@@ -86,7 +134,7 @@ export function TitleScreen() {
         Skip to portfolio
       </a>
 
-      <motion.main variants={stagger} initial="hidden" animate="show" className="relative h-full max-w-[720px] overflow-y-auto px-6 sm:px-12 lg:px-16">
+      <motion.main variants={stagger} initial="hidden" animate="show" className="relative h-full max-w-[720px] overflow-y-auto pl-[max(1.5rem,var(--sal))] pr-6 pt-[var(--sat)] pb-[var(--sab)] sm:pl-[max(3rem,var(--sal))] sm:pr-12 lg:pl-[max(4rem,var(--sal))] lg:pr-16">
         <div className="flex min-h-full flex-col justify-center gap-4 py-7">
         <motion.div variants={item}>
           <p className="legend text-[#f4ead5]/70">
@@ -155,21 +203,21 @@ export function TitleScreen() {
           <Button variant="glass" size="lg" onClick={() => setMode("portfolio")}>
             <LayoutGrid size={16} /> View Portfolio
           </Button>
-          <button aria-label="Settings" onClick={() => setSettings(true)} className="mat-glass grid h-[50px] w-[50px] place-items-center rounded-[10px] hover:bg-[rgba(20,31,49,0.6)]">
+          <button aria-label="Settings" aria-haspopup="dialog" title="Settings" onClick={() => setSettings(true)} className="mat-glass grid h-[50px] w-[50px] place-items-center rounded-[10px] transition-[background-color,transform] duration-150 hover:bg-[rgba(20,31,49,0.6)] active:translate-y-px">
             <Settings2 size={18} />
           </button>
         </motion.div>
 
-        <motion.nav variants={item} aria-label="Quick links" className="flex flex-wrap items-center gap-x-1 gap-y-1">
-          {links.map(({ icon: Icon, label, href }, i) => (
+        <motion.nav variants={item} aria-label="Quick links" className="-ml-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+          {/* Icons delimit the links, so wrapping never strands a divider at a line start. */}
+          {links.map(({ icon: Icon, label, href }) => (
             <span key={label} className="flex items-center">
-              {i > 0 && <span className="mx-1.5 h-3 w-px bg-[#f4ead5]/25" aria-hidden />}
               <a
                 href={href}
                 target={href.startsWith("mailto") ? undefined : "_blank"}
                 rel="noopener noreferrer"
                 onClick={() => label === "Resume" && useGame.getState().markViewed("resume")}
-                className="inline-flex h-8 items-center gap-1.5 rounded-[6px] px-2 text-[13.5px] font-medium text-[#f4ead5] underline-offset-4 transition hover:text-white hover:underline"
+                className="hit-area inline-flex h-8 items-center gap-1.5 rounded-[6px] px-2 text-[13.5px] font-medium text-[#f4ead5] underline-offset-4 transition-colors hover:text-white hover:underline"
               >
                 <Icon size={14} className="text-[#f2735a]" /> {label}
               </a>
@@ -207,13 +255,7 @@ export function TitleScreen() {
         </div>
       </motion.main>
 
-      {settings && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-[#0d1523]/55 p-4" onClick={() => setSettings(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[460px]">
-            <SettingsPanel onBack={() => setSettings(false)} closeLabel="Done" />
-          </div>
-        </div>
-      )}
+      <AnimatePresence>{settings && <SettingsDialog key="settings" onClose={closeSettings} />}</AnimatePresence>
     </motion.div>
   );
 }
