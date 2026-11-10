@@ -5,8 +5,6 @@ import { GameErrorBoundary } from "@/ui/ErrorBoundary";
 
 const GameShell = lazy(() => import("@/ui/GameShell"));
 
-/** Old section anchors stay valid: they open the classic portfolio at that section. */
-const SECTION_IDS = ["portfolio", "skills", "experience", "certifications", "education", "about", "contact", "resume"];
 
 function hasWebGL(): boolean {
   try {
@@ -17,10 +15,11 @@ function hasWebGL(): boolean {
   }
 }
 
-function wantsPortfolio(): boolean {
+/** A direct link into the game (?view=game, #play or #fly); otherwise the site opens on the portfolio. */
+function wantsGame(): boolean {
   const hash = window.location.hash.replace("#", "");
   const params = new URLSearchParams(window.location.search);
-  return SECTION_IDS.includes(hash) || params.get("view") === "portfolio";
+  return params.get("view") === "game" || hash === "play" || hash === "fly";
 }
 
 export default function App() {
@@ -32,8 +31,8 @@ export default function App() {
 
   useEffect(() => {
     useGame.setState({ webglOk: webgl });
-    if (!webgl || wantsPortfolio()) setMode("portfolio");
-    else setGameRequested(true);
+    // The resume site is the landing page; visitors choose to play from it.
+    if (webgl && wantsGame()) setMode("loading");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

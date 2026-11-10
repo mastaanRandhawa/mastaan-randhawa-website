@@ -60,7 +60,7 @@ export default function PortfolioView({ onFly }: { onFly?: () => void }) {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-10 mb-6">
             <button
               onClick={onFly}
-              className="group flex w-full items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#3d78b8] to-[#f2a541] p-4 sm:p-5 text-left text-white shadow-lg transition hover:shadow-xl"
+              className="group flex w-full items-center justify-between gap-4 rounded-2xl bg-zinc-950 dark:bg-zinc-800 p-4 sm:p-5 text-left text-white shadow-lg transition hover:shadow-xl"
             >
               <span>
                 <span className="block font-mono text-[11px] uppercase tracking-[0.25em] text-white/80">{BRAND.tagline}</span>

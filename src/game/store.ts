@@ -136,7 +136,8 @@ export const useGame = create<GameStore>((set, get) => {
   };
 
   return {
-    mode: "loading",
+    // The site opens on the classic portfolio; the game starts only when asked for.
+    mode: "portfolio",
     loadProgress: 0,
     overlay: null,
     panel: null,
