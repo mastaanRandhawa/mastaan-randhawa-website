@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Euler, PerspectiveCamera, Quaternion, Vector3 } from "three";
-import { runtime, photoOrbit, look } from "@/game/runtime";
+import { runtime, look } from "@/game/runtime";
 import { useGame } from "@/game/store";
 import { CAMERA } from "@/config/flight";
 import { tuning } from "@/game/gameplay";
@@ -18,6 +18,11 @@ export function CameraRig() {
     () => ({
       offset: new Vector3(0, 6, 22),
       look: new Vector3(),
+      /** Look-at point relative to the plane (eased in the plane's frame, so its lag doesn't grow with airspeed). */
+      lookRel: new Vector3(),
+      lookInit: false,
+      /** Smoothed extra height that keeps the camera above terrain. */
+      lift: 0,
       pos: new Vector3(),
       fov: CAMERA.fovBase,
       roll: 0,
@@ -38,16 +43,15 @@ export function CameraRig() {
     [],
   );
 
-  // Pointer controls: photo-mode orbit, and free-look while flying.
+  // Pointer controls: free-look while flying.
   useEffect(() => {
     const el = gl.domElement;
-    let mode: "photo" | "look" | null = null;
+    let mode: "look" | null = null;
     let lx = 0;
     let ly = 0;
     const down = (e: PointerEvent) => {
       const g = useGame.getState();
-      if (g.photoMode) mode = "photo";
-      else if (g.mode === "flying" && e.pointerType === "mouse") {
+      if (g.mode === "flying" && e.pointerType === "mouse") {
         // In Mouse steering the left button steers, so look with the right button.
         const allowed = g.settings.controlMode === "mouse" ? e.button === 2 : e.button === 0 || e.button === 2;
         if (!allowed) return;
@@ -64,14 +68,9 @@ export function CameraRig() {
       const dy = e.clientY - ly;
       lx = e.clientX;
       ly = e.clientY;
-      if (mode === "photo") {
-        photoOrbit.yaw -= dx * 0.006;
-        photoOrbit.pitch = Math.max(-0.4, Math.min(1.2, photoOrbit.pitch + dy * 0.005));
-      } else {
-        look.yaw -= dx * 0.006;
-        look.pitch = Math.max(-0.6, Math.min(1.0, look.pitch + dy * 0.004));
-        look.lastInput = performance.now() / 1000;
-      }
+      look.yaw -= dx * 0.006;
+      look.pitch = Math.max(-0.6, Math.min(1.0, look.pitch + dy * 0.004));
+      look.lastInput = performance.now() / 1000;
     };
     const up = () => {
       if (mode === "look") {
@@ -83,8 +82,7 @@ export function CameraRig() {
     const wheel = (e: WheelEvent) => {
       const g = useGame.getState();
       const k = 1 + Math.sign(e.deltaY) * 0.08;
-      if (g.photoMode) photoOrbit.dist = Math.max(7, Math.min(140, photoOrbit.dist * k));
-      else if (g.mode === "flying") look.zoom = Math.max(0.55, Math.min(2.4, look.zoom * k));
+      if (g.mode === "flying") look.zoom = Math.max(0.55, Math.min(2.4, look.zoom * k));
     };
     const context = (e: MouseEvent) => {
       if (useGame.getState().mode === "flying") e.preventDefault();
@@ -128,7 +126,6 @@ export function CameraRig() {
     let mode: string = g.cameraMode;
     const vstage = runtime.visit?.stage;
     if (g.mode === "title" || g.mode === "loading") mode = "title";
-    else if (g.photoMode) mode = "photo";
     else if (vstage === "landed") mode = "parked";
     else if (g.panel) mode = "showcase";
     else if (vstage === "final" || vstage === "rollout" || vstage === "turn") mode = "landing";
@@ -194,13 +191,31 @@ export function CameraRig() {
         fovTarget = 52;
         break;
       }
-      case "photo": {
-        const { yaw, pitch, dist } = photoOrbit;
-        desiredOffset.set(Math.sin(yaw) * Math.cos(pitch) * dist, Math.sin(pitch) * dist + 1.5, Math.cos(yaw) * Math.cos(pitch) * dist);
+      case "side": {
+        // Flying alongside, off the right wingtip.
+        desiredOffset.copy(right).multiplyScalar(17).addScaledVector(fwd, -4).addScaledVector(UP, 2.5);
+        lookOffset.copy(fwd).multiplyScalar(3).addScaledVector(UP, 1);
+        posK = 5;
+        lookK = 9;
+        fovTarget = 55 + speedT * 5;
+        break;
+      }
+      case "overhead": {
+        // High and behind, looking down: good for lining up rings and reading the islands.
+        desiredOffset.copy(fwd).multiplyScalar(-14).addScaledVector(UP, 38);
+        lookOffset.copy(fwd).multiplyScalar(10);
+        posK = 4;
+        lookK = 8;
+        fovTarget = 58;
+        break;
+      }
+      case "front": {
+        // Out ahead, looking back at the plane as it comes at you.
+        desiredOffset.copy(fwd).multiplyScalar(18).addScaledVector(UP, 3).addScaledVector(right, -3);
         lookOffset.set(0, 1, 0);
-        posK = 8;
-        lookK = 12;
-        fovTarget = 50;
+        posK = 6;
+        lookK = 10;
+        fovTarget = 52;
         break;
       }
       case "cinematic": {
@@ -221,9 +236,13 @@ export function CameraRig() {
       default: {
         // Chase (also takeoff intro): offset is damped in the plane's frame.
         const pf = p.pitch * ch.pitchFollow;
-        const back = ch.distance + speedT * ch.boostPullback - slowT * 2.5;
+        // Portrait screens are narrow: pull back (and up a touch) so the wings fit.
+        const portrait = Math.min(1, Math.max(0, (1 - state.size.width / state.size.height) / 0.55));
+        // "far" is the same follow camera pulled well back and up.
+        const far = mode === "far" ? 2.1 : 1;
+        const back = (ch.distance + speedT * ch.boostPullback - slowT * 2.5) * (1 + 0.45 * portrait) * far;
         desiredOffset
-          .set(Math.sin(p.heading) * Math.cos(pf) * back, -Math.sin(pf) * back + ch.height, Math.cos(p.heading) * Math.cos(pf) * back)
+          .set(Math.sin(p.heading) * Math.cos(pf) * back, -Math.sin(pf) * back + ch.height * (1 + 0.3 * portrait) * (far > 1 ? 2.2 : 1), Math.cos(p.heading) * Math.cos(pf) * back)
           .addScaledVector(right, -Math.sin(p.roll) * ch.lateralShift);
         lookOffset.set(-Math.sin(p.heading) * Math.cos(p.pitch) * ch.lookAhead, Math.sin(p.pitch) * ch.lookAhead + 1.4, -Math.cos(p.heading) * Math.cos(p.pitch) * ch.lookAhead);
         rollTarget = -p.roll * ch.rollFollow * (reduced ? 0.4 : 1);
@@ -237,7 +256,7 @@ export function CameraRig() {
       look.yaw = damp(look.yaw, 0, 2.2, dt);
       look.pitch = damp(look.pitch, 0, 2.2, dt);
     }
-    if (mode !== "title" && mode !== "photo" && mode !== "cockpit") {
+    if (mode !== "title" && mode !== "cockpit") {
       if (Math.abs(look.yaw) > 1e-4 || Math.abs(look.pitch) > 1e-4 || look.zoom !== 1) {
         const c = Math.cos(look.yaw);
         const sn = Math.sin(look.yaw);
@@ -281,17 +300,25 @@ export function CameraRig() {
       const kp = 1 - Math.exp(-(1.2 + (posK - 1.2) * blendEase) * dt);
       st.offset.lerp(desiredOffset, kp);
       st.pos.set(p.x + st.offset.x, p.y + st.offset.y, p.z + st.offset.z);
-      // Keep the camera out of the terrain.
+      // Keep the camera out of the terrain: rise quickly, settle back slowly,
+      // so crossing an island edge glides instead of popping up a frame.
+      let need = 0;
       if (worldReady() && mode !== "title") {
         const ground = getWorld().collision.groundAt(st.pos.x, st.pos.z, st.pos.y + 30);
-        if (ground !== -Infinity && st.pos.y < ground + 3) st.pos.y = ground + 3;
+        if (ground !== -Infinity) need = Math.max(0, ground + 3 - st.pos.y);
       }
-      const lookTarget = st.desired.set(p.x + lookOffset.x, p.y + lookOffset.y, p.z + lookOffset.z);
+      st.lift = damp(st.lift, need, need > st.lift ? 16 : 3, dt);
+      st.pos.y += Math.max(st.lift, need - 1.5);
+      const lookRelTarget = st.desired.copy(lookOffset);
       if (glanceW > 0 && runtime.glance) {
-        lookTarget.lerp(new Vector3(runtime.glance.x, runtime.glance.y, runtime.glance.z), glanceW);
+        lookRelTarget.lerp(st.lookPlane.set(runtime.glance.x - p.x, runtime.glance.y - p.y, runtime.glance.z - p.z), glanceW);
       }
-      if (st.look.lengthSq() === 0) st.look.copy(lookTarget);
-      st.look.lerp(lookTarget, 1 - Math.exp(-(1.5 + (lookK - 1.5) * blendEase) * dt));
+      if (!st.lookInit) {
+        st.lookRel.copy(lookRelTarget);
+        st.lookInit = true;
+      }
+      st.lookRel.lerp(lookRelTarget, 1 - Math.exp(-(1.5 + (lookK - 1.5) * blendEase) * dt));
+      st.look.set(p.x + st.lookRel.x, p.y + st.lookRel.y, p.z + st.lookRel.z);
       // Shake
       const sh = g.settings.cameraShake && !reduced ? runtime.shake : 0;
       const tt = state.clock.elapsedTime;

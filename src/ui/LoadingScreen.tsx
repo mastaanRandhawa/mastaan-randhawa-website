@@ -3,32 +3,93 @@ import { useGame } from "@/game/store";
 import { BRAND } from "@/config/brand";
 import { portfolio } from "@/content/portfolio";
 
-/** Launch screen: app icon, name and a thin progress bar. */
+/** What the world builder is doing at a given load fraction (see GameShell). */
+function stage(p: number) {
+  if (p < 0.15) return "Fetching the fleet";
+  if (p < 0.55) return "Raising the islands";
+  if (p < 0.95) return "Planting trees";
+  return "Clear for take-off";
+}
+
+const rise = {
+  hidden: { opacity: 0, y: 8 },
+  show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: 0.08 * i, duration: 0.5, ease: [0.22, 1, 0.36, 1] } }),
+};
+
+/**
+ * Launch screen in the title screen's own voice: mono legend, the italic
+ * wordmark and a hairline progress bar over an open sky.
+ */
 export function LoadingScreen() {
   const p = useGame((s) => s.loadProgress);
   const setMode = useGame((s) => s.setMode);
+  const pct = Math.round(Math.min(1, Math.max(0, p)) * 100);
   return (
     <motion.div
-      className="font-sf fixed inset-0 z-50 grid place-items-center bg-gradient-to-b from-[#3c9be3] via-[#8fd0f0] to-[#d9eef2]"
+      className="font-sf fixed inset-0 z-50 overflow-hidden"
+      style={{ background: "linear-gradient(180deg,#2f86d6 0%,#5fb3ea 38%,#a9daf2 68%,#eaf3ef 100%)" }}
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.7 } }}
-      role="status"
-      aria-live="polite"
     >
-      <div className="flex w-[min(300px,80vw)] flex-col items-center text-center">
-        <div className="grid h-[92px] w-[92px] place-items-center rounded-[12px] bg-gradient-to-b from-[#5aa9ff] to-[#2b5c8a] shadow-[0_18px_40px_-12px_rgba(0,64,160,0.6),inset_0_1px_0_rgba(255,255,255,0.4)]">
-          <svg viewBox="0 0 64 32" className="h-9 w-[4.5rem] animate-[float_3s_ease-in-out_infinite] text-white" aria-hidden>
-            <path d="M4 18 L28 16 L34 6 L38 6 L36 16 L58 15 Q62 16 58 18 L36 18 L38 28 L34 28 L28 19 Z" fill="currentColor" />
-          </svg>
+      {/* Soft drifting cloud banks (stilled by reduced motion). */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-[-25%] top-[12%] h-[34vh] w-[70vw] animate-[drift_60s_linear_infinite]"
+        style={{ background: "radial-gradient(closest-side, rgba(255,255,255,0.28), rgba(255,255,255,0))" }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-[-30%] top-[55%] h-[40vh] w-[80vw] animate-[drift_80s_linear_infinite_reverse]"
+        style={{ background: "radial-gradient(closest-side, rgba(255,255,255,0.35), rgba(255,255,255,0))" }}
+      />
+
+      <div className="safe-pad relative grid h-full place-items-center px-6">
+        <div className="flex w-[min(360px,88vw)] flex-col items-center text-center">
+          <motion.p custom={0} variants={rise} initial="hidden" animate="show" className="legend whitespace-nowrap text-white/80">
+            A playable portfolio
+            <span className="hidden sm:inline">
+              <span className="mx-1.5 text-[#f2735a]">/</span> {BRAND.subtitle}
+            </span>
+          </motion.p>
+          <motion.h1
+            custom={1}
+            variants={rise}
+            initial="hidden"
+            animate="show"
+            className="font-sf-display mt-2 text-[clamp(3rem,9vw,4.6rem)] leading-[0.95] text-white drop-shadow-[0_4px_24px_rgba(13,21,35,0.25)]"
+          >
+            {BRAND.title.charAt(0) + BRAND.title.slice(1).toLowerCase()}
+            <span className="text-[#f2735a]">.</span>
+          </motion.h1>
+
+          <motion.div custom={2} variants={rise} initial="hidden" animate="show" className="mt-9 w-full">
+            <div
+              className="h-[3px] w-full overflow-hidden rounded-full bg-white/30"
+              role="progressbar"
+              aria-label="Loading the world"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={pct}
+            >
+              <div className="h-full origin-left rounded-full bg-white transition-transform duration-300 ease-out" style={{ transform: `scaleX(${pct / 100})` }} />
+            </div>
+            <div className="mt-2.5 flex items-baseline justify-between font-mono text-[11px] uppercase tracking-[0.14em] text-[#1f3552]/80" aria-live="polite">
+              <span>{stage(p)}…</span>
+              <span className="tabular min-w-[4ch] text-right">{pct}%</span>
+            </div>
+          </motion.div>
+
+          <motion.button
+            custom={3}
+            variants={rise}
+            initial="hidden"
+            animate="show"
+            onClick={() => setMode("portfolio")}
+            className="hit-area mt-10 rounded-full px-4 py-2 text-[14px] font-medium text-[#1f3552]/80 underline decoration-[#1f3552]/25 underline-offset-4 transition-colors hover:text-[#1f3552] hover:decoration-[#f2735a]"
+          >
+            Skip to {portfolio.profile.firstName}'s portfolio
+          </motion.button>
         </div>
-        <p className="font-sf-display mt-5 text-[28px] font-bold text-white drop-shadow">{BRAND.title.charAt(0) + BRAND.title.slice(1).toLowerCase()}</p>
-        <div className="mt-6 h-[5px] w-full overflow-hidden rounded-full bg-white/35">
-          <div className="h-full rounded-full bg-white transition-[width] duration-300" style={{ width: `${Math.round(p * 100)}%` }} />
-        </div>
-        <p className="mt-3 text-[13px] font-medium text-[#1f3552]/70">Preparing the skies…</p>
-        <button onClick={() => setMode("portfolio")} className="mt-8 text-[15px] font-medium text-[#2b5c8a] hover:opacity-70">
-          View {portfolio.profile.firstName}'s portfolio instead
-        </button>
       </div>
     </motion.div>
   );

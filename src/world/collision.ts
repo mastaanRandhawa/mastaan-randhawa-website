@@ -202,14 +202,16 @@ function collideIsland(t: IslandTerrain, x: number, y: number, z: number, r: num
   const tt = Math.max(0, Math.min(1, depthFrac));
   // Shore islands flare with height above the sea, not with depth under the rim.
   const shore = p.profile === "shore";
-  const f = shore ? t.shoreProfile(Math.min(y, t.shoulderY), t.thetaOf(lx, lz)) : t.profileAt(tt);
+  const th = t.thetaOf(lx, lz);
+  const f = shore ? t.shoreProfile(Math.min(y, t.shoulderY), th) : t.profileAt(tt, th);
   const pen = (f + pad - rho) * edgeLen;
   if (pen <= 0) return null;
   const ndx = lx / (p.sx * p.sx);
   const ndz = lz / (p.sz * p.sz);
   const nl = Math.hypot(ndx, ndz) || 1;
   // Flared slopes push up and out; floating undersides push down and out.
-  const down = p.profile === "column" ? 0 : shore ? Math.min(1.2, (f - 1) * 1.8) : -0.35 * tt;
+  // Flared crags push up and out like a hillside.
+  const down = p.profile === "column" ? (p.flareBase ? Math.min(1, (f - 1) * 0.6) : 0) : shore ? Math.min(1.2, (f - 1) * 1.8) : -0.35 * tt;
   const inv = 1 / Math.hypot(1, down);
   return { nx: (ndx / nl) * inv, ny: down * inv, nz: (ndz / nl) * inv, depth: Math.min(pen, r * 2), kind: "island" };
 }

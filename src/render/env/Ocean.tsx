@@ -23,7 +23,8 @@ const MAX_DIST = 200; // metres encoded in the map
 /** Coastline (world XZ) of an island at sea level, or null if it never meets the sea. */
 function coastline(t: IslandTerrain): [number, number][] | null {
   const p = t.p;
-  const S = 96;
+  // Fine enough to follow peninsulas and coves.
+  const S = 160;
   const pts: [number, number][] = [];
   if (p.profile === "taper" && p.y > SEA_LEVEL) return null; // floating
   if (p.profile === "taper" && p.y + t.maxTop < SEA_LEVEL) return null; // fully submerged
@@ -38,7 +39,7 @@ function coastline(t: IslandTerrain): [number, number][] | null {
     else if (p.profile === "column") {
       if (p.y - p.depth > SEA_LEVEL) return null;
       const ts = Math.min(1, Math.max(0, (p.y - p.rimDrop - 2.5 - SEA_LEVEL) / Math.max(1, p.depth - 2.5)));
-      f = t.profileAt(ts);
+      f = t.profileAt(ts, t.thetaOf(lx, lz));
     } else {
       // A low island (or a mountain whose foothills are underwater): march in to the waterline.
       let k = 1;

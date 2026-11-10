@@ -56,8 +56,6 @@ export const runtime = {
 /** Free-look around the plane while flying (mouse drag + wheel). Eases back when idle. */
 export const look = { yaw: 0, pitch: 0, zoom: 1, dragging: false, lastInput: -10 };
 
-/** Photo-mode orbit (yaw/pitch around the plane, distance), driven by pointer + wheel. */
-export const photoOrbit = { yaw: 0.6, pitch: 0.25, dist: 18 };
 
 export function resetFlightAt(x: number, y: number, z: number, heading: number, speed: number) {
   const f = createFlightState(x, y, z, heading, speed);

@@ -50,7 +50,6 @@ export function DiagnosticsPanel() {
       if (s.overlay !== p.overlay) changes.overlay = s.overlay;
       if (s.panel !== p.panel) changes.panel = s.panel ? `${s.panel.kind}:${s.panel.id ?? ""}` : null;
       if (s.quality !== p.quality) changes.quality = `${p.quality} -> ${s.quality}`;
-      if (s.photoMode !== p.photoMode) changes.photoMode = s.photoMode;
       if (s.cameraMode !== p.cameraMode) changes.cameraMode = s.cameraMode;
       if (s.visit?.stage !== p.visit?.stage) changes.visitStage = s.visit?.stage ?? null;
       if (s.discoveryCard !== p.discoveryCard) changes.discoveryCard = s.discoveryCard ?? null;

@@ -6,7 +6,7 @@ import { PALETTES } from "../terrain";
 import { C } from "../palette";
 import { decorate, floatingRocks, rock } from "../prefabs/nature";
 import { airstrip, antenna, bridge, corridorPad, frame, signpost, streetlight, stripPad } from "../prefabs/structures";
-import { approachRing, stripFor } from "./common";
+import { stripFor } from "./common";
 import { portfolio } from "@/content/portfolio";
 
 function browserWindow(I: Isl, x: number, z: number, ry: number, accent: string) {
@@ -202,7 +202,6 @@ export function buildSkills(kit: RegionKit, def: RegionDef, out: RegionExtras) {
       sublabel: `Skills · ${cat.label}`,
       pos: [x, y + h + 8, z],
       interactRadius: R + 70,
-      ring: approachRing(def, x, y, z, R + 22, 24, 11),
       accent: cat.color,
       landing,
     });

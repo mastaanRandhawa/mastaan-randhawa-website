@@ -5,7 +5,8 @@ import { mulberry32 } from "../noise";
 import { SEA_LEVEL } from "../layout";
 import { PALETTES } from "../terrain";
 import { C } from "../palette";
-import { palm, sheep, tree, type TreeKind } from "./nature";
+import { bush, flower, grass, groveFloor, palm, rockAt, sheep, tree, type TreeKind } from "./nature";
+import { propTemplates } from "../treeTemplates";
 import { house } from "./architecture";
 import { windmill } from "./structures";
 
@@ -30,7 +31,7 @@ const SAND = "#f1d68e";
 /**
  * Brings an ocean island's hill base to life. Structures go down first
  * (hillside cottages, a windmill, the beach hut, lighthouse) so the forest can
- * grow around them; then tree clumps, flower meadows, sheep, rock outcrops,
+ * grow around them; then tree clumps, flower meadows, sheep, undergrowth,
  * stepping-stone trails, beach life (palms, towels, kayaks, campfires) and a
  * few little islets out in the shallows.
  */
@@ -49,6 +50,8 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
   const cool = p.palette === PALETTES.alpine || p.palette === PALETTES.spire;
   const kinds: TreeKind[] = cool ? ["pine", "pine", "round"] : p.palette === PALETTES.autumn ? ["autumn", "round", "palm"] : ["round", "round", "palm", "round"];
   const pick = <V>(a: V[]) => a[Math.floor(rnd() * a.length)];
+  /** Model packs loaded (always in the game; not in unit tests, which keep the simple shapes). */
+  const hasProps = !!propTemplates("rock");
 
   /** Local point on the waterline at angle th, `out` metres further out. */
   const coast = (th: number, out = 0): [number, number] => {
@@ -65,8 +68,9 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
   const free = (x: number, z: number, r = 0) => taken.every((q) => Math.hypot(q.x - x, q.z - z) > q.r + r);
   /** Rise over run of the slope around (th, u). */
   const grade = (th: number, u: number) => {
-    const [x0, y0, z0] = t.slopePoint(th, Math.max(0, u - 0.05));
-    const [x1, y1, z1] = t.slopePoint(th, Math.min(1, u + 0.05));
+    // The smooth profile is plenty for a steepness estimate.
+    const [x0, y0, z0] = t.slopePoint(th, Math.max(0, u - 0.05), false);
+    const [x1, y1, z1] = t.slopePoint(th, Math.min(1, u + 0.05), false);
     return Math.abs(y0 - y1) / Math.max(0.1, Math.hypot(x1 - x0, z1 - z0));
   };
   /** Outward-facing yaw for a structure at angle th (local +Z points out to sea). */
@@ -87,7 +91,10 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
   const beachPt = (th: number, f: number): [number, number, number] => {
     const [x0, y0, z0] = t.slopePoint(th, 1);
     const [x1, z1] = coast(th, 0);
-    return [x0 + (x1 - x0) * f, y0 + (sea + 0.35 - y0) * f, z0 + (z1 - z0) * f];
+    const x = x0 + (x1 - x0) * f;
+    const z = z0 + (z1 - z0) * f;
+    // On the sand itself (never below the waterline).
+    return [x, Math.max(sea + 0.2, t.surfaceAt(x, z) ?? y0 + (sea + 0.35 - y0) * f), z];
   };
   const findBeach = (minWidth: number) => {
     for (let i = 0; i < 24; i++) {
@@ -201,6 +208,11 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
         const u = 0.02 + (k / steps) * 0.97;
         const th = th0 + Math.sin(k * 0.45) * (6 / (R + spread * u));
         const pt = t.slopePoint(th, u);
+        // A path picks its way down; it doesn't hang off steep drops.
+        if (grade(th, u) > 1.0) {
+          prev = null;
+          continue;
+        }
         if (prev) {
           const [x0, y0, z0] = prev;
           const [x1, y1, z1] = pt;
@@ -214,7 +226,8 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
   }
 
   // ── A striped lighthouse on a headland ──
-  if (R + spread > 30 && rnd() < 0.4) {
+  // Its own random stream, so terrain tweaks elsewhere can't add or remove it.
+  if (R + spread > 30 && (p.lighthouse ?? mulberry32(p.seed * 31 + 7)() < 0.4)) {
     let best = 0;
     let bestTh = 0;
     for (let i = 0; i < 16; i++) {
@@ -234,12 +247,20 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
 
   // ── Tree clumps on the slopes (not on the cliff faces) ──
   if (spread > 6) {
-    const clumps = Math.min(120, Math.round((circ / 13) * density));
+    // Groves gather in the gullies and on gentle ground, with open meadows between
+    // them; steep faces stay bare. Attempts are boosted to make up for rejections.
+    const tp = t.tp;
+    const clumps = Math.min(170, Math.round((circ / 13) * density * tp.treeDensity * (1 + tp.treeClusterStrength * 0.6)));
     for (let c = 0; c < clumps; c++) {
       const th = rnd() * Math.PI * 2;
       if (t.cliff(th) > 0.35) continue;
       const u = 0.12 + rnd() * 0.8;
-      const n = 2 + Math.floor(rnd() * 3);
+      const [gx, , gz] = t.slopePoint(th, u);
+      // Gullies (ridge < 0) are lusher, crests sparser.
+      const want = t.grove(gx, gz) * (1 - 0.35 * t.ridgeAt(th, u));
+      if (rnd() > 1 - tp.treeClusterStrength * (1 - Math.min(1, want))) continue;
+      if (grade(th, u) > tp.maxTreeSlope) continue;
+      const n = 2 + Math.floor(rnd() * (2 + 3 * want));
       for (let k = 0; k < n; k++) {
         const th2 = th + (rnd() - 0.5) * (8 / (R + spread * u));
         const u2 = Math.min(0.95, Math.max(0.08, u + (rnd() - 0.5) * 0.18));
@@ -249,12 +270,18 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
         if (kind === "palm") palm(I, x, z, 0.9 + rnd() * 0.4, y - 0.3, th2 + (rnd() - 0.5), 0.2 + rnd() * 0.4);
         else tree(I, x, z, kind, 1.1 + rnd() * 1.0, y - 0.4);
       }
+      // Mushrooms or a stump in the shade of the thicker groves.
+      if (hasProps && want > 0.6 && rnd() < 0.25) {
+        const [mx, , mz] = t.slopePoint(th + (rnd() - 0.5) * (4 / (R + spread * u)), Math.min(0.95, u + 0.03));
+        if (free(mx, mz, 1.5) && grade(th, u) < 0.6) groveFloor(I, mx, mz);
+      }
       // Round bushes at the clump's foot.
       for (let k = 0; k < 2; k++) {
         const [bx, by, bz] = t.slopePoint(th + (rnd() - 0.5) * (6 / (R + spread * u)), Math.min(0.97, u + 0.06 + rnd() * 0.06));
         if (!free(bx, bz, 1.5)) continue;
         const bs = 1.2 + rnd() * 1.2;
-        b.add(P.ico(k), T(bx, by + bs * 0.35, bz, bs * 2, bs * 1.4, bs * 2, rnd() * 6), BUSH[(c + k) % 3], { sway: 0.1, swayBase: by, swayHeight: bs });
+        if (hasProps) bush(I, bx, bz, bs * 0.6);
+        else b.add(P.ico(k), T(bx, by + bs * 0.35, bz, bs * 2, bs * 1.4, bs * 2, rnd() * 6), BUSH[(c + k) % 3], { sway: 0.1, swayBase: by, swayHeight: bs });
       }
     }
 
@@ -264,12 +291,17 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
       const th = rnd() * Math.PI * 2;
       if (t.cliff(th) > 0.3) continue;
       const u = 0.1 + rnd() * 0.75;
+      // Wildflowers carpet gentle meadows, not steep banks.
+      if (grade(th, u) > 0.55) continue;
       const col = pick(FLOWERS);
-      const n = 8 + Math.floor(rnd() * 8);
+      const species = rnd();
+      const n = (hasProps ? 5 : 8) + Math.floor(rnd() * (hasProps ? 6 : 8));
       for (let k = 0; k < n; k++) {
         const th2 = th + (rnd() - 0.5) * (7 / (R + spread * u));
         const [x, y, z] = t.slopePoint(th2, Math.min(0.96, Math.max(0.05, u + (rnd() - 0.5) * 0.12)));
         if (!free(x, z, 0.5)) continue;
+        // One species per meadow, with the odd stray of another.
+        if (flower(I, x, z, rnd() < 0.85 ? species : rnd(), 1, y)) continue;
         b.add(P.ico(0), T(x, y + 0.25, z, 0.65, 0.5, 0.65, rnd() * 3), k % 4 ? col : C.white, { sway: 0.12, swayBase: y, swayHeight: 0.6, ao: false });
       }
     }
@@ -286,38 +318,31 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
         if (free(x, z, 1.5)) sheep(I, x, y, z, rnd() * Math.PI * 2, 0.9 + rnd() * 0.3);
       }
     }
-  }
 
-  // ── Rock outcrops breaking up the cliff sectors ──
-  if (spread > 6) {
-    const outcrops = Math.round(circ / 40);
-    for (let k = 0, tries = 0; k < outcrops && tries < outcrops * 5; tries++) {
-      const th = rnd() * Math.PI * 2;
-      if (t.cliff(th) < 0.25) continue;
-      const u = 0.15 + rnd() * 0.75;
-      const [x, y, z] = t.slopePoint(th, u);
-      const s = 2.5 + rnd() * 3.5;
-      b.add(P.rock(2 * k), T(x, y + s * 0.15, z, s * 1.4, s, s * 1.2, rnd() * 6), pick([p.palette.rockA, p.palette.rockC]), { ao: false });
-      b.add(P.rock(2 * k + 2), T(x + s * 0.9, y - s * 0.1, z + s * 0.5, s * 0.8, s * 0.6, s * 0.7, rnd() * 6), p.palette.rockB, { ao: false });
-      k++;
-    }
-
-    // ── Shrubs and wind-bent trees clinging to the cliff ledges ──
-    const clingers = Math.min(220, Math.round((circ / 3.5) * density));
-    for (let c = 0; c < clingers; c++) {
-      const th = rnd() * Math.PI * 2;
-      if (t.cliff(th) < 0.3) continue;
-      const u = 0.05 + rnd() * 0.9;
-      const [x, y, z] = t.slopePoint(th, u);
-      if (!free(x, z, 1.5)) continue;
-      if (rnd() < 0.3) tree(I, x, z, cool ? "pine" : rnd() < 0.5 ? "round" : "pine", 0.6 + rnd() * 0.4, y - 0.3);
-      else {
-        const bs = 0.9 + rnd() * 1.1;
-        b.add(P.ico(0), T(x, y + bs * 0.3, z, bs * 2.2, bs * 1.2, bs * 1.8, rnd() * 6), BUSH[c % 3], { sway: 0.08, swayBase: y, swayHeight: bs });
-        if (rnd() < 0.3) b.add(P.ico(0), T(x + bs, y + bs * 0.5, z, 0.6, 0.5, 0.6), pick(FLOWERS), { ao: false });
+    // ── Undergrowth: grass tufts and shrubs over every gentle slope ──
+    // Its own random stream, so adding it never shifts the layout above or below.
+    if (hasProps) {
+      const ur = mulberry32(Math.floor(circ * 13) + 7);
+      const patches = Math.min(160, Math.round((circ / 9) * density));
+      for (let m = 0; m < patches; m++) {
+        const th = ur() * Math.PI * 2;
+        if (t.cliff(th) > 0.35) continue;
+        const u = 0.06 + ur() * 0.88;
+        if (grade(th, u) > 0.6) continue;
+        const shrub = ur() < 0.3;
+        const n = shrub ? 1 + Math.floor(ur() * 2) : 3 + Math.floor(ur() * 4);
+        for (let k = 0; k < n; k++) {
+          const th2 = th + (ur() - 0.5) * (5 / (R + spread * u));
+          const [x, , z] = t.slopePoint(th2, Math.min(0.96, Math.max(0.04, u + (ur() - 0.5) * 0.08)));
+          if (!free(x, z, shrub ? 1.2 : 0.4)) continue;
+          if (shrub) bush(I, x, z, 0.5 + ur() * 0.6);
+          else grass(I, x, z, 2);
+        }
       }
     }
   }
+
+  // Cliff sectors stay bare: no rocks, shrubs or trees stuck to steep mountainsides.
 
   // ── Palms leaning out over the beach ──
   if (!cool) {
@@ -408,8 +433,15 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
     const [x, z] = coast(th, -3 + rnd() * 10);
     if (!free(x, z, 3)) continue;
     const s = 2.5 + rnd() * 5;
-    b.add(P.rock(k), T(x, sea + s * 0.28, z, s * 1.35, s * 1.15, s * 1.2, rnd() * 6), BOULDER[k % 3], { ao: false });
-    if (rnd() > 0.4) b.add(P.rock(k + 3), T(x + s * 1.1, sea + s * 0.1, z - s * 0.6, s * 0.65, s * 0.55, s * 0.6, rnd() * 6), BOULDER[(k + 1) % 3], { ao: false });
+    if (hasProps) {
+      // Bedded into the sand or standing in the shallows, never hovering.
+      const gy = Math.max(sea - 0.4, t.surfaceAt(x, z) ?? sea);
+      rockAt(I, x, gy, z, s, undefined, 0.3, false);
+      if (rnd() > 0.4) rockAt(I, x + s * 1.1, Math.max(sea - 0.4, t.surfaceAt(x + s * 1.1, z - s * 0.6) ?? sea), z - s * 0.6, s * 0.55, undefined, 0.3, false);
+    } else {
+      b.add(P.rock(k), T(x, sea + s * 0.28, z, s * 1.35, s * 1.15, s * 1.2, rnd() * 6), BOULDER[k % 3], { ao: false });
+      if (rnd() > 0.4) b.add(P.rock(k + 3), T(x + s * 1.1, sea + s * 0.1, z - s * 0.6, s * 0.65, s * 0.55, s * 0.6, rnd() * 6), BOULDER[(k + 1) % 3], { ao: false });
+    }
     if (s > 4) I.sphere(x, sea + s * 0.3, z, s * 0.7);
     k++;
   }
@@ -438,7 +470,10 @@ export function decorateShore(I: Isl, keepClear: KeepClear[]) {
       b.add(P.dome(14, 5), T(x, sea - 0.4, z, 8 * s, 2.4 * s, 6.5 * s, rnd() * 3), SAND, { ao: false });
       const np = 1 + Math.floor(rnd() * 2);
       for (let j = 0; j < np; j++) palm(I, x + (j - 0.5) * 2.2 * s, z + (rnd() - 0.5) * 1.5, 0.75 + rnd() * 0.25, sea + 0.6 * s, rnd() * Math.PI * 2, 0.4 + rnd() * 0.4);
-      if (rnd() < 0.5) b.add(P.rock(k), T(x - 2.8 * s, sea + 0.5, z + 1.5 * s, 1.6, 1.1, 1.4, rnd() * 6), BOULDER[k % 3], { ao: false });
+      if (rnd() < 0.5) {
+        if (hasProps) rockAt(I, x - 2.8 * s, sea + 0.3, z + 1.5 * s, 1.3, undefined, 0.3, false);
+        else b.add(P.rock(k), T(x - 2.8 * s, sea + 0.5, z + 1.5 * s, 1.6, 1.1, 1.4, rnd() * 6), BOULDER[k % 3], { ao: false });
+      }
     }
   }
 }

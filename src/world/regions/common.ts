@@ -20,25 +20,8 @@ export interface ProjectIslandOpts {
   pads?: Pad[];
   trees?: number;
   kinds?: TreeKind[];
-  /** Override where the arrival ring sits (world). */
-  ring?: RingDef;
   depth?: number;
   hilliness?: number;
-}
-
-/** Ring placed between the region centre and the island, facing the island. */
-export function approachRing(def: RegionDef, x: number, y: number, z: number, dist: number, height: number, radius = 11): RingDef {
-  let dx = x - def.center[0];
-  let dz = z - def.center[2];
-  if (Math.hypot(dx, dz) < 1) {
-    // Island sits at the region centre: approach from the Launch Airfield side.
-    dx = x;
-    dz = z;
-  }
-  const l = Math.hypot(dx, dz) || 1;
-  dx /= l;
-  dz /= l;
-  return { pos: [x - dx * dist, y + height, z - dz * dist], dir: [dx, 0, dz], radius };
 }
 
 /** Project islands are drawn this much larger than their base radius. */
@@ -76,6 +59,8 @@ export function projectIsland(kit: RegionKit, def: RegionDef, out: RegionExtras,
     palette: o.palette,
     rings: 20,
     segments: 72,
+    // Each project's landmark is the star: the land frames it with gentle shoulders.
+    kind: "landmark",
     pads: [
       { x: 0, z: 0, r: o.radius * 0.5, h: 0, blend: 10 },
       corridorPad(0, strip.z, strip.heading, R * 1.4 * Math.max(o.sx ?? 1, 1)),
@@ -87,7 +72,6 @@ export function projectIsland(kit: RegionKit, def: RegionDef, out: RegionExtras,
   const landing = airstrip(I, 0, strip.z, strip.heading, strip.length);
   decorate(I, { trees: (o.trees ?? 16) * 2, kinds: o.kinds, bushes: 24, flowers: 24, grass: 34, rocks: 12 });
   floatingRocks(I, 9);
-  const ring = o.ring ?? approachRing(def, o.x, o.y, o.z, R * Math.max(o.sx ?? 1, o.sz ?? 1) + 24, 22);
   out.destinations.push({
     id: `project-${p.id}`,
     regionId: def.id,
@@ -97,7 +81,6 @@ export function projectIsland(kit: RegionKit, def: RegionDef, out: RegionExtras,
     sublabel: p.tagline,
     pos: [o.x, o.y + h + 8, o.z],
     interactRadius: R + 70,
-    ring,
     accent: p.color,
     landing,
   });
@@ -121,9 +104,9 @@ export function bridgeBetween(kit: RegionKit, a: Isl, b: Isl, width = 3.6, sag =
   bridge(kit.world, [a.ox + ax, a.oy + a.h(ax, az) + 0.2, a.oz + az], [b.ox + bx, b.oy + b.h(bx, bz) + 0.2, b.oz + bz], width, sag);
 }
 
-/** Medal thresholds from course length (gold needs boost, bronze is relaxed). */
+/** Medal thresholds from course length (gold at a brisk cruise, bronze for anyone who finishes without dawdling). */
 export function medalsFor(points: Vec3[]): [number, number, number] {
   let len = 0;
   for (let i = 1; i < points.length; i++) len += Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1], points[i][2] - points[i - 1][2]);
-  return [Math.round((len / 68) * 10) / 10, Math.round((len / 54) * 10) / 10, Math.round((len / 42) * 10) / 10];
+  return [Math.round((len / 52) * 10) / 10, Math.round((len / 40) * 10) / 10, Math.round((len / 28) * 10) / 10];
 }

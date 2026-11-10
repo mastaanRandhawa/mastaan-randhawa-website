@@ -11,16 +11,18 @@ import type { World } from "@/world/world";
 import { Sky } from "./env/Sky";
 import { Lighting } from "./env/Lighting";
 import { Clouds } from "./env/Clouds";
+import { Mist } from "./env/Mist";
 import { Ocean } from "./env/Ocean";
 import { ENV } from "./env/environment";
 import { WorldView } from "./world/WorldView";
 import { GameplayObjects } from "./world/GameplayObjects";
 import { Ambient } from "./world/Ambient";
 import { Boats } from "./world/Boats";
+import { Critters } from "./world/Critters";
+import { Grass } from "./world/Grass";
 import { Airplane } from "./airplane/Airplane";
 import { CameraRig } from "./camera/CameraRig";
 import { Effects } from "./Effects";
-import { canvasRef } from "./captureRef";
 import { FrameMonitor } from "./FrameMonitor";
 import { DEBUG } from "@/debug/recorder";
 
@@ -38,17 +40,12 @@ function Loop() {
   return null;
 }
 
-/** Exposes the renderer for photo-mode capture. */
+/** Dev-only handle for frame-diff diagnostics (flicker / z-fighting hunts). */
 function Capture() {
-  const { gl, scene, camera, get } = useThree();
+  const get = useThree((s) => s.get);
   useEffect(() => {
-    canvasRef.gl = { domElement: gl.domElement, render: () => gl.render(scene, camera) };
-    // Dev-only handle for frame-diff diagnostics (flicker / z-fighting hunts).
     if (import.meta.env.DEV) (window as unknown as { __r3f?: typeof get }).__r3f = get;
-    return () => {
-      canvasRef.gl = null;
-    };
-  }, [gl, scene, camera]);
+  }, [get]);
   return null;
 }
 
@@ -140,10 +137,16 @@ export default function GameCanvas({ world }: { world: World }) {
         <Ocean world={world} density={preset.cloudDensity} />
         <Clouds density={preset.cloudDensity} />
         <WorldView world={world} shadows={preset.shadows} />
+        <Grass world={world} density={preset.propDensity} />
+        <Mist world={world} density={preset.cloudDensity} />
         <GameplayObjects world={world} />
         <Ambient preset={preset} />
+        <Critters world={world} density={preset.propDensity} />
         <Boats world={world} count={Math.round(16 * preset.propDensity)} />
-        <Airplane />
+        {/* The plane model streams in on its own so the world never waits on it. */}
+        <Suspense fallback={null}>
+          <Airplane />
+        </Suspense>
         <CameraRig />
         <Loop />
         <Capture />

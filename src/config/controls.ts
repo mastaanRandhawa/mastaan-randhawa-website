@@ -1,6 +1,6 @@
 /** Configurable key bindings (KeyboardEvent.code values). */
 export type AxisAction = "pitchUp" | "pitchDown" | "turnLeft" | "turnRight" | "rollLeft" | "rollRight" | "boost" | "brake";
-export type PressAction = "camera" | "map" | "pause" | "interact" | "reset" | "photo";
+export type PressAction = "camera" | "map" | "pause" | "interact" | "reset";
 
 export const KEY_BINDINGS: Record<AxisAction | PressAction, string[]> = {
   // Flight-stick convention: pull back (S / ↓) to climb, push forward (W / ↑) to dive.
@@ -17,7 +17,6 @@ export const KEY_BINDINGS: Record<AxisAction | PressAction, string[]> = {
   pause: ["Escape", "KeyP"],
   interact: ["KeyF", "Enter"],
   reset: ["KeyR"],
-  photo: ["KeyO"],
 };
 
 export const CONTROL_HELP: { keys: string[]; label: string }[] = [
@@ -29,8 +28,7 @@ export const CONTROL_HELP: { keys: string[]; label: string }[] = [
   { keys: ["Space"], label: "Air brake" },
   { keys: ["F"], label: "Interact" },
   { keys: ["M"], label: "World map" },
-  { keys: ["C"], label: "Camera" },
+  { keys: ["C"], label: "Change camera view" },
   { keys: ["R"], label: "Reset to checkpoint" },
-  { keys: ["O"], label: "Photo mode" },
   { keys: ["Esc"], label: "Pause" },
 ];

@@ -8,7 +8,7 @@ import { C } from "../palette";
 import { floatingRocks, rock, tree, decorate } from "../prefabs/nature";
 import { processBuilding } from "../prefabs/landmarks";
 import { skyDock } from "../prefabs/structures";
-import { approachRing, medalsFor, projectIsland } from "./common";
+import { medalsFor, projectIsland } from "./common";
 import { mulberry32 } from "../noise";
 import { projectById } from "@/content/portfolio";
 
@@ -37,11 +37,11 @@ export function buildCanyon(kit: RegionKit, def: RegionDef, out: RegionExtras) {
         hilliness: 1.5,
         depth: top - (cy - 90),
         profile: "column",
-        layers: 9,
-        segments: 20,
-        rings: 4,
+        layers: 12,
+        segments: 30,
+        rings: 5,
         irregularity: 0.2,
-        palette: PALETTES.desert,
+        palette: PALETTES.mesa,
       });
       if (rnd() > 0.4) tree(I, (rnd() - 0.5) * r * 0.6, (rnd() - 0.5) * r * 0.6, rnd() > 0.5 ? "pine" : "autumn", 1);
       if (rnd() > 0.5) rock(I, (rnd() - 0.5) * r * 0.8, (rnd() - 0.5) * r * 0.8, 1.6, undefined, 0.2);
@@ -116,7 +116,6 @@ export function buildCanyon(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     sublabel: ipc.tagline,
     pos: [cx, pipeY + 14, cz + 250],
     interactRadius: 95,
-    ring: approachRing(def, cx, ay, cz + 250, 30, 22, 12),
     accent: ipc.color,
     landing: skyDock(kit, cx, ay + 2, cz + 297, -Math.PI / 2, 72),
   });

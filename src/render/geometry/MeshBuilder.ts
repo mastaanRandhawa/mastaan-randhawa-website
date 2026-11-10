@@ -119,6 +119,30 @@ export class MeshBuilder {
     }
   }
 
+  /**
+   * A pre-coloured template (baked glTF tree): positions transformed by `m`,
+   * colours multiplied by `tint`, with the same sway and ground shading as `add`.
+   */
+  addTemplate(t: { pos: ArrayLike<number>; col: ArrayLike<number>; idx: ArrayLike<number> }, m: Matrix4, tint = 1, opts: AddOptions = {}): this {
+    const base = this.vcount;
+    const sw = opts.sway ?? 0;
+    const sb = opts.swayBase ?? 0;
+    const sh = opts.swayHeight ?? 0;
+    const p0 = this.pos.length;
+    const n = t.pos.length / 3;
+    for (let i = 0; i < n; i++) {
+      tmpV.set(t.pos[i * 3], t.pos[i * 3 + 1], t.pos[i * 3 + 2]).applyMatrix4(m);
+      this.pos.push(tmpV.x, tmpV.y, tmpV.z);
+      this.col.push(t.col[i * 3] * tint, t.col[i * 3 + 1] * tint, t.col[i * 3 + 2] * tint);
+      this.sway.push(sw > 0 && sh > 0 ? sw * Math.min(1, Math.max(0, (tmpV.y - sb) / sh)) : sw);
+      this.emi.push(0);
+    }
+    for (let i = 0; i < t.idx.length; i++) this.idx.push(base + t.idx[i]);
+    this.vcount += n;
+    if (this.ground && opts.ao !== false) this.contactShade(p0, this.pos.length);
+    return this;
+  }
+
   /** Raw triangle soup with per-vertex colours (used by terrain). */
   addRaw(positions: ArrayLike<number>, colors: ArrayLike<number>, indices: ArrayLike<number>, emissive = 0) {
     const base = this.vcount;

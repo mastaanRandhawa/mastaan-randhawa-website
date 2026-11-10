@@ -70,7 +70,7 @@ export function VisitStatus() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -6, scale: 0.98 }}
           transition={{ type: "spring", damping: 26, stiffness: 320 }}
-          className="font-sf pointer-events-none fixed inset-x-0 top-[78px] z-20 mx-auto flex w-fit max-w-[calc(100vw-1.5rem)] max-sm:top-[8.8rem]"
+          className="font-sf safe-mt pointer-events-none fixed inset-x-0 top-[78px] z-20 mx-auto flex w-fit max-w-[calc(100vw-1.5rem)] max-sm:top-[8.8rem]"
         >
           <div className="mat-dark pointer-events-auto flex items-center gap-3 rounded-full py-1.5 pl-1.5 pr-2 text-white">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full" style={{ backgroundColor: d!.accent }}>
@@ -79,7 +79,7 @@ export function VisitStatus() {
             <div className="min-w-0 leading-tight">
               <p className="truncate text-[15px] font-semibold">{title}</p>
               <p className="truncate text-[12px] text-white/60">
-                {visit!.stage === "travel" && <span ref={dist} className="tabular-nums" />}
+                {visit!.stage === "travel" && <span ref={dist} className="inline-block min-w-[6ch] text-right tabular-nums" />}
                 {visit!.stage === "travel" && sub ? " · " : ""}
                 {sub}
               </p>

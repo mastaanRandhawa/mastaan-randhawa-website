@@ -24,7 +24,7 @@ export function LogReader() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16 }}
           transition={{ type: "spring", damping: 26, stiffness: 300 }}
-          className="font-sf mat-light fixed bottom-28 right-5 z-20 w-[min(340px,calc(100vw-2.5rem))] rounded-[14px] p-4"
+          className="font-sf mat-light safe-mr safe-mb fixed bottom-28 right-5 z-20 w-[min(340px,calc(100vw-2.5rem))] rounded-[14px] p-4"
         >
           <div className="flex items-start gap-3">
             <IconTile icon={BookOpen} color={SYSTEM.orange} size={38} />

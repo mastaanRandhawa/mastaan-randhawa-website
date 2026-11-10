@@ -5,6 +5,10 @@ import type { Collider } from "./collision";
 import { mulberry32 } from "./noise";
 import { islandSprings } from "./prefabs/mystic";
 import { SEA_LEVEL } from "./layout";
+
+/** Steepest ground (rise/run, about 33°) that scattered decoration may sit on. */
+const DEFAULT_MAX_SLOPE = 0.65;
+import { grassPoints } from "./grassField";
 import { decorateShore, type KeepClear } from "./prefabs/shore";
 
 /** Animated / textured objects that are instantiated as separate components. */
@@ -49,6 +53,8 @@ export interface BuiltIsland {
   terrain: IslandTerrain;
   geometry: BufferGeometry;
   position: [number, number, number];
+  /** Grass clumps over its open green ground (world space, see grassField.ts). */
+  grass: Float32Array;
 }
 
 export class RegionKit {
@@ -90,8 +96,12 @@ export class RegionKit {
    * Ocean islands: fit each hill base around the gameplay spaces (rings,
    * collectibles, landing paths), then dress its slopes and shore.
    */
-  fitShores(keepClear: KeepClear[]) {
+  fitShores(keepClear: KeepClear[], builtShores: IslandTerrain[] = []) {
     for (const i of this.islands) i.t.fitShore(keepClear);
+    // Keep open water between regions (islands already built elsewhere stay as
+    // they are). Islands within one region may meet at sea level as low land
+    // and sandbars, like an archipelago, instead of being squeezed into walls.
+    for (const i of this.islands) for (const o of builtShores) i.t.separateFrom(o, false);
     for (const i of this.islands) decorateShore(i, keepClear);
   }
 
@@ -100,8 +110,9 @@ export class RegionKit {
     for (const i of this.islands) if (i.t.p.profile === "taper" && i.t.p.y > SEA_LEVEL) islandSprings(i);
     return {
       islands: this.islands.map((i) => {
-        i.t.build(i.b);
-        return { id: i.t.id, terrain: i.t, geometry: i.b.build(), position: [i.ox, i.oy, i.oz] };
+        const raw = i.t.build(i.b);
+        const grass = grassPoints(i, raw, [i.ox, i.oy, i.oz], i.t.p.seed);
+        return { id: i.t.id, terrain: i.t, geometry: i.b.build(), position: [i.ox, i.oy, i.oz], grass };
       }),
       world: this.world.vertexCount ? this.world.build() : null,
     };
@@ -126,7 +137,7 @@ export class Isl {
     this.oy = t.p.y;
     this.oz = t.p.z;
     this.rnd = mulberry32(t.p.seed * 7 + 3);
-    this.b.ground = (x, z) => t.heightLocal(x, z);
+    this.b.ground = (x, z) => this.h(x, z);
     for (const pad of t.p.pads) {
       if (pad.w !== undefined && pad.l !== undefined) this.rects.push({ x: pad.x, z: pad.z, w: pad.w + 2, l: pad.l + 2, ry: pad.ry ?? 0 });
       else this.blocked.push({ x: pad.x, z: pad.z, r: pad.r + 2 });
@@ -137,9 +148,9 @@ export class Isl {
     return this.kit.density;
   }
 
-  /** Local top height. */
+  /** Local ground height: the rendered terrain mesh, so props sit flush on its facets. */
   h(lx: number, lz: number) {
-    return this.t.heightLocal(lx, lz);
+    return this.t.surfaceAt(lx, lz) ?? this.t.heightLocal(lx, lz);
   }
 
   block(x: number, z: number, r: number) {
@@ -156,6 +167,49 @@ export class Isl {
       if (Math.abs(dx * c - dz * s) < q.w + r && Math.abs(dx * s + dz * c) < q.l + r) return false;
     }
     return true;
+  }
+
+  /**
+   * A fast isFree(x, z, r) for many queries once the island is fully dressed:
+   * obstacles are bucketed into a coarse grid, so each test only checks the
+   * few nearby ones instead of the whole list.
+   */
+  freeTest(r: number): (x: number, z: number) => boolean {
+    const CELL = 8;
+    const cells = new Map<number, number[]>();
+    const key = (cx: number, cz: number) => (cx + 4096) * 8192 + (cz + 4096);
+    const add = (i: number, x0: number, z0: number, x1: number, z1: number) => {
+      for (let cx = Math.floor(x0 / CELL); cx <= Math.floor(x1 / CELL); cx++)
+        for (let cz = Math.floor(z0 / CELL); cz <= Math.floor(z1 / CELL); cz++) {
+          const k = key(cx, cz);
+          const list = cells.get(k);
+          if (list) list.push(i);
+          else cells.set(k, [i]);
+        }
+    };
+    this.blocked.forEach((b, i) => add(i, b.x - b.r - r, b.z - b.r - r, b.x + b.r + r, b.z + b.r + r));
+    this.rects.forEach((q, i) => {
+      const e = Math.hypot(q.w, q.l) + r;
+      add(-1 - i, q.x - e, q.z - e, q.x + e, q.z + e);
+    });
+    return (x, z) => {
+      const list = cells.get(key(Math.floor(x / CELL), Math.floor(z / CELL)));
+      if (!list) return true;
+      for (const i of list) {
+        if (i >= 0) {
+          const b = this.blocked[i];
+          if (Math.hypot(x - b.x, z - b.z) < b.r + r) return false;
+        } else {
+          const q = this.rects[-1 - i];
+          const c = Math.cos(-q.ry);
+          const s = Math.sin(-q.ry);
+          const dx = x - q.x;
+          const dz = z - q.z;
+          if (Math.abs(dx * c - dz * s) < q.w + r && Math.abs(dx * s + dz * c) < q.l + r) return false;
+        }
+      }
+      return true;
+    };
   }
 
   box(lx: number, ly: number, lz: number, hx: number, hy: number, hz: number, ry = 0) {
@@ -182,7 +236,11 @@ export class Isl {
   /** Random points on the island top, respecting blocked areas. */
   scatter(
     count: number,
-    opts: { maxRho?: number; minRho?: number; spacing?: number; cx?: number; cz?: number; radius?: number },
+    /**
+     * `cluster` (0..1) gathers points into groves with open ground between;
+     * `maxSlope` (rise/run) keeps them off steep ground (default DEFAULT_MAX_SLOPE).
+     */
+    opts: { maxRho?: number; minRho?: number; spacing?: number; cx?: number; cz?: number; radius?: number; cluster?: number; maxSlope?: number },
     fn: (x: number, z: number, y: number, i: number) => void,
   ) {
     const n = Math.round(count * this.density);
@@ -209,6 +267,13 @@ export class Isl {
       if (rho > maxRho || rho < minRho) continue;
       if (!this.isFree(x, z, spacing * 0.5)) continue;
       if (placed.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < spacing * spacing)) continue;
+      if (opts.cluster && this.rnd() > 1 - opts.cluster * (1 - this.t.grove(x, z))) continue;
+      // Nothing goes on steep mountainsides unless a caller explicitly allows it.
+      {
+        const e = 1.5;
+        const g = Math.hypot(this.h(x + e, z) - this.h(x - e, z), this.h(x, z + e) - this.h(x, z - e)) / (2 * e);
+        if (g > (opts.maxSlope ?? DEFAULT_MAX_SLOPE)) continue;
+      }
       placed.push([x, z]);
       fn(x, z, this.h(x, z), placed.length - 1);
     }
