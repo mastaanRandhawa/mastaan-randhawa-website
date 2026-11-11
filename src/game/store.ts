@@ -4,7 +4,6 @@ import { ACHIEVEMENTS, derivedAchievements, unlockedSkins, SKINS } from "./progr
 import { loadSave, writeSave, hasProgress, defaultProgress, type Progress, type Settings, type SkinId, type Medal } from "./save";
 import { track } from "./analytics";
 import type { PanelKind } from "@/world/layout";
-import { portfolio } from "@/content/portfolio";
 
 export type AppMode = "loading" | "title" | "flying" | "portfolio";
 export type Overlay = null | "pause" | "settings" | "map" | "log" | "hangar" | "controls";
@@ -116,22 +115,24 @@ function initialQuality(s: Settings): QualityLevel {
 
 export const useGame = create<GameStore>((set, get) => {
   /** Apply a progress mutation, then derive achievements / skins and toast new ones. */
-  const commit = (next: Progress) => {
+  const commit = (next: Progress, extra: string[] = []) => {
     const prev = get().progress;
-    const derived = derivedAchievements(next).filter((a) => !next.achievements.includes(a));
-    if (derived.length) next = { ...next, achievements: [...next.achievements, ...derived] };
+    const auto = derivedAchievements(next).filter((a) => !next.achievements.includes(a));
+    if (auto.length) next = { ...next, achievements: [...next.achievements, ...auto] };
+    const derived = [...extra, ...auto];
     set({ progress: next });
-    for (const id of derived) {
-      const a = ACHIEVEMENTS.find((x) => x.id === id);
-      if (a) get().toast({ kind: "achievement", title: a.title, body: a.description });
-      track("achievement", { id });
-    }
+    for (const id of derived) track("achievement", { id });
+    // One slip per change: several achievements and any skin they unlock fold together.
     const before = unlockedSkins(prev);
-    for (const s of unlockedSkins(next)) {
-      if (!before.includes(s)) {
-        const def = SKINS.find((k) => k.id === s)!;
-        get().toast({ kind: "skin", title: `New skin: ${def.name}`, body: "Equip it in the Hangar (pause menu).", accent: def.accent });
-      }
+    const skins = unlockedSkins(next).filter((s) => !before.includes(s)).map((s) => SKINS.find((k) => k.id === s)!);
+    const skinNote = skins.length ? `New skin: ${skins.map((k) => k.name).join(", ")}. Equip it in the Hangar.` : undefined;
+    if (derived.length === 1) {
+      const a = ACHIEVEMENTS.find((x) => x.id === derived[0]);
+      if (a) get().toast({ kind: "achievement", title: a.title, body: skinNote ?? a.description });
+    } else if (derived.length > 1) {
+      get().toast({ kind: "achievement", title: `${derived.length} achievements unlocked`, body: skinNote ?? "See them in the pause menu." });
+    } else if (skins.length) {
+      get().toast({ kind: "skin", title: `New skin: ${skins.map((k) => k.name).join(", ")}`, body: "Equip it in the Hangar (pause menu).", accent: skins[0].accent });
     }
   };
 
@@ -186,9 +187,14 @@ export const useGame = create<GameStore>((set, get) => {
     setCourseResult: (courseResult) => set({ courseResult }),
     setTutorialStep: (tutorialStep) => set({ tutorialStep }),
     toast: (t) => {
+      const cur = get().toasts;
+      // Never repeat a slip that's already on screen.
+      if (cur.some((x) => x.title === t.title)) return;
       const id = toastId++;
-      set({ toasts: [...get().toasts.slice(-3), { ...t, id }] });
-      setTimeout(() => get().dismissToast(id), t.kind === "achievement" || t.kind === "skin" ? 5200 : 4200);
+      // Phones show one slip at a time; larger screens at most two.
+      const keep = get().isTouch || window.innerWidth < 640 || window.innerHeight < 500 ? 0 : 1;
+      set({ toasts: [...cur.slice(cur.length - keep), { ...t, id }].slice(-(keep + 1)) });
+      setTimeout(() => get().dismissToast(id), t.kind === "achievement" || t.kind === "skin" ? 4000 : 3200);
     },
     dismissToast: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
     setQuality: (quality) => set({ quality }),
@@ -216,12 +222,7 @@ export const useGame = create<GameStore>((set, get) => {
     collect: (id) => {
       const p = get().progress;
       if (p.collectibles.includes(id)) return false;
-      const log = portfolio.flightLogs.find((l) => l.id === id);
-      get().toast({
-        kind: "collectible",
-        title: `Flight log found: ${log?.title ?? id}`,
-        body: `${p.collectibles.length + 1} / ${portfolio.flightLogs.length} — read it in the Flight Log`,
-      });
+      // No slip here: the flight-log card that opens is the announcement.
       commit({ ...p, collectibles: [...p.collectibles, id] });
       set({ openLog: id });
       return true;
@@ -229,10 +230,8 @@ export const useGame = create<GameStore>((set, get) => {
     unlock: (id) => {
       const p = get().progress;
       if (p.achievements.includes(id)) return;
-      const a = ACHIEVEMENTS.find((x) => x.id === id);
-      if (a) get().toast({ kind: "achievement", title: a.title, body: a.description });
-      track("achievement", { id });
-      commit({ ...p, achievements: [...p.achievements, id] });
+      // commit() announces it (merged with anything it unlocks in turn).
+      commit({ ...p, achievements: [...p.achievements, id] }, [id]);
     },
     recordCourse: (id, name, time, medals) => {
       const p = get().progress;

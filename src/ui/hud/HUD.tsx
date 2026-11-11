@@ -105,7 +105,7 @@ function Instruments() {
   );
   return (
     <div
-      className="font-sf mat-dark pointer-events-none absolute bottom-5 left-5 rounded-[12px] px-3 pb-2.5 pt-2 max-sm:bottom-auto max-sm:left-auto max-sm:right-3 max-sm:top-[3.6rem] max-sm:origin-top-right max-sm:scale-[0.62]"
+      className="font-sf mat-dark pointer-events-none absolute bottom-5 left-5 rounded-[12px] px-3 pb-2.5 pt-2 max-sm:bottom-auto max-sm:left-auto max-sm:right-3 max-sm:top-[3.6rem] max-sm:origin-top-right max-sm:scale-[0.62] short:bottom-auto short:left-auto short:right-3 short:top-[3.4rem] short:origin-top-right short:scale-[0.62]"
       aria-hidden
     >
       <div className="flex gap-3">
@@ -230,11 +230,11 @@ function Objective() {
   const [have, need] = c ? [course!.next, c.rings.length] : m?.progress ? m.progress(progress) : [0, 0];
   return (
     <div
-      className="font-sf mat-light absolute left-5 top-4 flex w-[min(340px,calc(100vw-2.5rem))] overflow-hidden rounded-[6px] max-sm:left-3 max-sm:top-[3.6rem] max-sm:w-[58vw]"
+      className="font-sf mat-light absolute left-5 top-4 flex w-[min(340px,calc(100vw-2.5rem))] overflow-hidden rounded-[6px] max-sm:left-3 max-sm:top-[3.6rem] max-sm:w-[54vw] short:left-3 short:top-3 short:w-[260px]"
       aria-live="polite"
     >
       <span className="w-[5px] shrink-0 bg-[#f2735a]" />
-      <div className="flex w-[64px] shrink-0 flex-col justify-between border-r border-dashed border-[#1f3552]/20 px-2.5 py-2 max-sm:hidden">
+      <div className="flex w-[64px] shrink-0 flex-col justify-between border-r border-dashed border-[#1f3552]/20 px-2.5 py-2 max-sm:hidden short:hidden">
         <span className="legend text-[9px] text-[#5d6b80]">Leg</span>
         <span className="font-instrument text-[19px] font-semibold leading-none text-[#1f3552]">
           {String(Math.min(leg, MISSIONS.length)).padStart(2, "0")}
@@ -261,7 +261,7 @@ function Objective() {
         ) : m ? (
           <>
             <p className="mt-0.5 truncate text-[14.5px] font-semibold leading-snug text-[#1f3552]">{m.title}</p>
-            <p className="line-clamp-2 text-[12px] leading-snug text-[#5d6b80]">{m.detail}</p>
+            <p className="line-clamp-2 text-[12px] leading-snug text-[#5d6b80] short:hidden">{m.detail}</p>
           </>
         ) : (
           <p className="mt-0.5 text-[14px] font-semibold text-[#1f3552]">Every destination logged. Free flight.</p>
@@ -433,8 +433,10 @@ function InteractPrompt() {
   const nearby = useGame((s) => s.nearby);
   const isTouch = useGame((s) => s.isTouch);
   const visiting = useGame((s) => !!s.visit);
+  const card = useGame((s) => !!s.discoveryCard);
   const d = nearby ? destinationById(nearby) : null;
-  if (!d || visiting) return null;
+  // The island card already offers landing, and on touch the Explore button does.
+  if (!d || visiting || card || isTouch) return null;
   return (
     <div className="font-sf pointer-events-none absolute bottom-24 left-1/2 -translate-x-1/2 sm:bottom-7">
       <div className="mat-dark flex items-stretch overflow-hidden rounded-[10px]">
@@ -509,7 +511,7 @@ function Toolbar() {
     [],
   );
   return (
-    <div className="font-sf pointer-events-auto absolute right-4 top-4 flex flex-col items-end gap-1.5 max-sm:right-3 max-sm:top-2">
+    <div className="font-sf pointer-events-auto absolute right-4 top-4 flex flex-col items-end gap-1.5 max-sm:right-3 max-sm:top-2 short:right-3 short:top-2">
       <div className="mat-dark flex items-center gap-0.5 rounded-[10px] p-1">
         <IconButton label="View classic portfolio" onClick={() => setMode("portfolio")}>
           <LayoutGrid size={16} strokeWidth={1.9} />

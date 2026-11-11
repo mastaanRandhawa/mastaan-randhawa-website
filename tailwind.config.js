@@ -49,5 +49,9 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // `short:` = phones held sideways (wide enough to dodge max-sm, but little height).
+    // A plugin variant rather than a raw screen, which would disable the max-* variants.
+    ({ addVariant }) => addVariant("short", "@media (max-height: 500px)"),
+  ],
 };

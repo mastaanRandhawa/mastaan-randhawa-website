@@ -17,14 +17,16 @@ export function Toasts() {
   const toasts = useGame((s) => s.toasts);
   const reduced = useGame((s) => s.settings.reducedMotion);
   const dismiss = useGame((s) => s.dismissToast);
+  // Menus and reading panels get the screen to themselves.
+  const covered = useGame((s) => !!s.overlay || !!s.panel);
   const last = toasts[toasts.length - 1];
   useEffect(() => {
     if (last?.kind === "achievement" || last?.kind === "skin") audio.play("achievement");
   }, [last?.id, last?.kind]);
   return (
-    <div className="font-sf safe-mt safe-mr pointer-events-none fixed right-4 top-[70px] z-40 flex w-[min(340px,calc(100vw-2rem))] flex-col gap-2 max-sm:inset-x-0 max-sm:top-2 max-sm:mx-auto" role="status" aria-live="polite">
+    <div className="font-sf safe-mt safe-mr pointer-events-none fixed right-4 top-[70px] z-40 flex w-[min(340px,calc(100vw-2rem))] flex-col gap-2 max-sm:inset-x-0 max-sm:top-[3.6rem] max-sm:mx-auto short:inset-x-0 short:top-[3.4rem] short:mx-auto short:w-[300px]" role="status" aria-live="polite">
       <AnimatePresence initial={false}>
-        {toasts.map((t) => {
+        {!covered && toasts.map((t) => {
           const Icon = ICON[t.kind];
           const tint = t.kind === "region" && t.accent ? t.accent : TINT[t.kind];
           return (
@@ -48,7 +50,7 @@ export function Toasts() {
                     <span className="legend text-[9px] text-[#5d6b80]/70">now</span>
                   </div>
                   <p className="mt-0.5 text-[14.5px] font-semibold leading-snug text-[#1f3552]">{t.title}</p>
-                  {t.body && t.kind !== "region" && <p className="text-[12.5px] leading-snug text-[#4a5a70]">{t.body}</p>}
+                  {t.body && t.kind !== "region" && <p className="text-[12.5px] leading-snug text-[#4a5a70] max-sm:line-clamp-1 short:line-clamp-1">{t.body}</p>}
                 </div>
               </div>
             </motion.button>

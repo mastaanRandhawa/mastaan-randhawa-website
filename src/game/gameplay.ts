@@ -226,6 +226,8 @@ const last = { x: 0, y: 0, z: 0, valid: false };
 let checkpointTimer = 0;
 let flightTimer = 0;
 let tutorialInputTime = 0;
+/** Destinations whose arrival card already popped this session. */
+const cardShown = new Set<string>();
 
 function crossed(r: RingDef, ax: number, ay: number, az: number, bx: number, by: number, bz: number) {
   const [cx, cy, cz] = r.pos;
@@ -294,8 +296,8 @@ function frameGameplay(dt: number) {
         st.setCourse(null);
         audio.play("finish");
         if (c.timed) {
-          const r = st.recordCourse(c.id, c.name, runtime.courseTime, c.medals);
-          st.toast({ kind: "course", title: `${c.name} complete`, body: `${r.time.toFixed(2)}s · ${r.medal.toUpperCase()}${r.newBest ? " · New best!" : ""}` });
+          // The result card announces it; no extra slip.
+          st.recordCourse(c.id, c.name, runtime.courseTime, c.medals);
         } else {
           st.setTutorialDone();
           st.setTutorialStep(5);
@@ -366,9 +368,16 @@ function frameGameplay(dt: number) {
     }
   }
   // Arriving near an island shows its card (what's there, and whether you can land).
-  if (best && best !== st.nearby) {
-    audio.play("open");
-    st.setDiscoveryCard(best);
+  // Only the first pass by an island you haven't read yet pops the card; after that the
+  // HUD prompt (and the touch Explore button) is enough.
+  if (best && best !== st.nearby && !cardShown.has(best)) {
+    cardShown.add(best);
+    const d = w.destinations.find((x) => x.id === best);
+    const key = d ? (d.kind === "project" ? `project-${d.contentId}` : d.kind === "skills" ? `skills-${d.contentId}` : d.kind) : best;
+    if (!st.progress.viewed.includes(key)) {
+      audio.play("open");
+      st.setDiscoveryCard(best);
+    }
   }
   st.setNearby(best);
 
