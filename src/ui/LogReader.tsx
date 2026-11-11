@@ -24,7 +24,7 @@ export function LogReader() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16 }}
           transition={{ type: "spring", damping: 26, stiffness: 300 }}
-          className="font-sf mat-light safe-mr safe-mb fixed bottom-28 right-5 z-20 w-[min(340px,calc(100vw-2.5rem))] rounded-[14px] p-4"
+          className="font-sf mat-light safe-mr safe-mb fixed bottom-28 right-5 z-20 w-[min(340px,calc(100vw-2.5rem))] rounded-[14px] p-4 max-sm:bottom-auto max-sm:right-3 max-sm:top-[9.5rem] max-sm:p-3 short:inset-x-0 short:bottom-auto short:top-[8.75rem] short:mx-auto short:p-3"
         >
           <div className="flex items-start gap-3">
             <IconTile icon={BookOpen} color={SYSTEM.orange} size={38} />
@@ -38,7 +38,7 @@ export function LogReader() {
               <X size={14} strokeWidth={2.6} />
             </button>
           </div>
-          <p className="mt-2 text-[15px] leading-snug text-[#33425a]">{log.body}</p>
+          <p className="mt-2 text-[15px] leading-snug text-[#33425a] max-sm:line-clamp-4 max-sm:text-[13.5px] short:line-clamp-2 short:text-[13.5px]">{log.body}</p>
         </motion.aside>
       )}
     </AnimatePresence>

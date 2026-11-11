@@ -22,7 +22,7 @@ export function CourseResult() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ type: "spring", damping: 22, stiffness: 320 }}
-          className="font-sf mat-light fixed inset-x-0 top-[24%] z-30 mx-auto w-[min(290px,calc(100vw-2rem))] overflow-hidden rounded-[16px] text-center"
+          className="font-sf mat-light fixed inset-x-0 top-[24%] z-30 short:top-[12%] mx-auto w-[min(290px,calc(100vw-2rem))] overflow-hidden rounded-[16px] text-center"
           role="alertdialog"
           aria-label={`${r.name} complete`}
         >

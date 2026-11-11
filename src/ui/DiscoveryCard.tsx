@@ -41,9 +41,9 @@ export function DiscoveryCard() {
 
   useEffect(() => {
     if (!id) return;
-    const t = setTimeout(() => set(null), 11000);
+    const t = setTimeout(() => set(null), isTouch ? 8000 : 11000);
     return () => clearTimeout(t);
-  }, [id, set]);
+  }, [id, set, isTouch]);
 
   return (
     <AnimatePresence>
@@ -54,21 +54,21 @@ export function DiscoveryCard() {
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -16 }}
           transition={{ type: "spring", damping: 26, stiffness: 300 }}
-          className="font-sf mat-light safe-ml fixed left-5 top-[34%] z-20 w-[min(360px,calc(100vw-2.5rem))] rounded-[14px] p-4 max-sm:left-3 max-sm:top-[9.5rem]"
+          className="font-sf mat-light safe-ml fixed left-5 top-[34%] z-20 w-[min(360px,calc(100vw-2.5rem))] rounded-[14px] p-4 max-sm:left-3 max-sm:top-[9.5rem] max-sm:p-3 short:inset-x-0 short:left-0 short:top-[8.75rem] short:mx-auto short:w-[340px] short:p-3"
           aria-live="polite"
         >
           <div className="flex items-start gap-3">
             <IconTile icon={MapPin} color={d.accent} size={40} />
             <div className="min-w-0 flex-1">
               <p className="text-[12px] font-semibold text-[#5d6b80]">{d.sublabel}</p>
-              <h3 className="font-sf-display text-[22px] font-bold leading-tight text-[#1f3552]">{d.label}</h3>
+              <h3 className="font-sf-display text-[22px] font-bold leading-tight text-[#1f3552] max-sm:text-[19px] short:text-[18px]">{d.label}</h3>
             </div>
             <button onClick={() => set(null)} aria-label="Dismiss" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[rgba(120,120,128,0.14)] text-[#5d6b80] hover:bg-[rgba(120,120,128,0.22)]">
               <X size={14} strokeWidth={2.6} />
             </button>
           </div>
-          <p className="mt-2.5 line-clamp-4 text-[15px] leading-snug text-[#33425a]">{teaser(d)}</p>
-          <div className="mt-3.5 flex items-center gap-2">
+          <p className="mt-2.5 line-clamp-4 text-[15px] leading-snug text-[#33425a] max-sm:line-clamp-2 max-sm:text-[13.5px] short:hidden">{teaser(d)}</p>
+          <div className="mt-3.5 flex items-center gap-2 short:mt-2.5">
             <Button variant="filled" size="md" onClick={() => (startVisit(d.id) ? undefined : open(panelFor(d)))} className="flex-1">
               Fly There & Land
             </Button>

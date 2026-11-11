@@ -100,6 +100,9 @@ export default function GameCanvas({ world }: { world: World }) {
 
   const step = (dir: 1 | -1) => {
     if (!auto) return;
+    // Phones never step back up: a burst of headroom on a 120 Hz screen turns into
+    // heat and throttling a minute later.
+    if (dir > 0 && useGame.getState().isTouch) return;
     const i = ORDER.indexOf(useGame.getState().quality);
     const n = ORDER[Math.max(0, Math.min(2, i + dir))];
     if (n !== useGame.getState().quality) setQuality(n);
