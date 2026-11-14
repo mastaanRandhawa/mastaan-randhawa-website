@@ -1,120 +1,108 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ArrowRight, Github, Linkedin } from "lucide-react";
 
 import { portfolio } from "@/content/portfolio";
 
-const typewriterLines = portfolio.profile.typewriterLines;
+const P = portfolio.profile;
+/** Hero illustration: an island under a clear sky, the same mood as the flyable version. */
+const HERO_IMAGE = "imgs/hero-island.jpg";
 
+const iconLink =
+  "w-10 h-10 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-[#0d1b3e] hover:text-[#0d1b3e] dark:hover:border-white dark:hover:text-white transition-colors duration-200";
+
+/** Types each line, pauses, deletes it, moves to the next. Shows the first line still if the user prefers reduced motion. */
 function useTypewriter(lines: string[]) {
-  const [displayed, setDisplayed] = useState("");
-  const [lineIndex, setLineIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
+  const [reduced] = useState(() => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  const [line, setLine] = useState(0);
+  const [chars, setChars] = useState(0);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    const current = lines[lineIndex];
-
-    if (!deleting && charIndex < current.length) {
-      const t = setTimeout(() => setCharIndex((c) => c + 1), 45);
-      return () => clearTimeout(t);
-    }
-
-    if (!deleting && charIndex === current.length) {
-      const t = setTimeout(() => setDeleting(true), 1800);
-      return () => clearTimeout(t);
-    }
-
-    if (deleting && charIndex > 0) {
-      const t = setTimeout(() => setCharIndex((c) => c - 1), 22);
-      return () => clearTimeout(t);
-    }
-
-    if (deleting && charIndex === 0) {
+    if (reduced) return;
+    const text = lines[line];
+    let t: ReturnType<typeof setTimeout>;
+    if (!deleting && chars < text.length) t = setTimeout(() => setChars((c) => c + 1), 45);
+    else if (!deleting) t = setTimeout(() => setDeleting(true), 1800);
+    else if (chars > 0) t = setTimeout(() => setChars((c) => c - 1), 22);
+    else t = setTimeout(() => {
       setDeleting(false);
-      setLineIndex((i) => (i + 1) % lines.length);
-    }
-  }, [charIndex, deleting, lineIndex, lines]);
+      setLine((i) => (i + 1) % lines.length);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [chars, deleting, line, lines, reduced]);
 
-  useEffect(() => {
-    setDisplayed(lines[lineIndex].substring(0, charIndex));
-  }, [charIndex, lineIndex, lines]);
+  return reduced ? lines[0] : lines[line].slice(0, chars);
+}
 
-  return displayed;
+function HeroImage() {
+  return (
+    <figure className="order-first lg:order-none w-full max-w-sm lg:max-w-none lg:mx-auto">
+      {/* Square frame to match the square illustration, so nothing is cropped. */}
+      <div className="aspect-square overflow-hidden rounded-2xl border-2 border-zinc-700 dark:border-zinc-300 bg-sky-400">
+        <img
+          src={HERO_IMAGE}
+          alt="Illustration of a small green island with a white lighthouse, in a turquoise sea under a bright blue sky"
+          width={1199}
+          height={1204}
+          className="h-full w-full object-cover"
+        />
+      </div>
+    </figure>
+  );
 }
 
 export default function Hero() {
-  const typewriterText = useTypewriter(typewriterLines);
+  const typed = useTypewriter(P.typewriterLines);
 
   return (
-    <section className="min-h-screen flex items-center pt-16 bg-white dark:bg-zinc-950">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20 lg:py-24 w-full">
-        <div className="max-w-3xl">
-          {/* Label */}
-          <div className="inline-flex items-center gap-2 font-mono text-xs text-zinc-500 dark:text-zinc-400 mb-6 sm:mb-8 border border-zinc-200 dark:border-zinc-800 rounded-full px-4 py-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Available for opportunities
-          </div>
-
-          {/* Heading */}
-          <h1 className="font-serif italic text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-zinc-900 dark:text-white leading-tight mb-5 sm:mb-6">
-            Hi, I'm{" "}
-            <span className="text-accent-blue">Mastaan</span>
-            <br />
-            Randhawa.
+    <section className="pt-32 pb-24 sm:pt-40 sm:pb-28 bg-white dark:bg-zinc-950">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-12 lg:gap-16 items-center">
+        {/* Who: name, role, what I build, ways in. */}
+        <div>
+          <h1 className="font-serif font-bold tracking-tight text-5xl sm:text-6xl lg:text-7xl leading-none text-[#0d1b3e] dark:text-white">
+            {P.name}
           </h1>
 
-          {/* Typewriter — min-height so wrapping text doesn't collapse the block */}
-          <div className="min-h-[2.5rem] mb-5 sm:mb-6">
-            <p className="font-mono text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              {typewriterText}
-              <span className="animate-blink border-r-2 border-accent-blue ml-0.5">&nbsp;</span>
-            </p>
-          </div>
-
-          {/* Description */}
-          <p className="text-sm sm:text-base lg:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed mb-8 sm:mb-10 max-w-xl">
-            {portfolio.profile.intro}
+          <p className="mt-4 text-base sm:text-lg font-semibold text-zinc-500 dark:text-zinc-400">
+            {[...P.headline.split(" · "), P.location].map((part, i) => (
+              <Fragment key={part}>
+                {i > 0 && " · "}
+                <span className="whitespace-nowrap">{part}</span>
+              </Fragment>
+            ))}
           </p>
 
-          {/* CTAs */}
-          <div className="flex flex-wrap gap-3 sm:gap-4 mb-10 sm:mb-12">
+          {/* Fixed height so wrapping lines don't push the buttons around. */}
+          <p className="mt-8 min-h-[3.5rem] sm:min-h-[4rem] text-xl sm:text-2xl text-zinc-800 dark:text-zinc-200" aria-label={`I build ${P.typewriterLines.join(", ")}`}>
+            <span aria-hidden="true">
+              I build <span className="font-semibold text-accent-blue">{typed}</span>
+              <span className="animate-blink border-r-2 border-accent-blue ml-0.5">&nbsp;</span>
+            </span>
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
             <a
               href="#portfolio"
-              className="inline-flex items-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-mono text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 rounded-full hover:bg-accent-blue dark:hover:bg-accent-blue dark:hover:text-white transition-all duration-200 group"
+              className="inline-flex items-center gap-2 bg-[#0d1b3e] dark:bg-white text-white dark:text-zinc-900 font-semibold text-sm px-6 py-3 rounded-full hover:bg-accent-blue dark:hover:bg-accent-blue dark:hover:text-white transition-colors duration-200 group"
             >
-              View My Work
-              <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+              See the projects
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </a>
-            <a
-              href="#contact"
-              className="inline-flex items-center gap-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 font-mono text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 rounded-full hover:border-accent-blue hover:text-accent-blue dark:hover:border-accent-blue dark:hover:text-accent-blue transition-all duration-200"
-            >
-              Get In Touch
+            <a href={P.links.email} className="font-semibold text-sm text-zinc-700 dark:text-zinc-300 hover:text-accent-blue transition-colors">
+              {P.email}
             </a>
-          </div>
-
-          {/* Social links */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            <a
-              href={portfolio.profile.links.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub"
-              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-accent-blue hover:text-accent-blue dark:hover:border-accent-blue dark:hover:text-accent-blue transition-all duration-200"
-            >
-              <Github size={17} />
-            </a>
-            <a
-              href={portfolio.profile.links.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn"
-              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-accent-blue hover:text-accent-blue dark:hover:border-accent-blue dark:hover:text-accent-blue transition-all duration-200"
-            >
-              <Linkedin size={17} />
-            </a>
+            <span className="flex items-center gap-3">
+              <a href={P.links.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className={iconLink}>
+                <Github size={17} />
+              </a>
+              <a href={P.links.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className={iconLink}>
+                <Linkedin size={17} />
+              </a>
+            </span>
           </div>
         </div>
+
+        <HeroImage />
       </div>
     </section>
   );

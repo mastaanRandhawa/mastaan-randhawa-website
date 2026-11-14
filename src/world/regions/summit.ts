@@ -41,6 +41,9 @@ export function buildSummit(kit: RegionKit, def: RegionDef, out: RegionExtras) {
       { height: peakH, radius: 175, sharpness: 1.25 },
       { height: 120, radius: 70, x: -70, z: 40, sharpness: 1.6 },
       { height: 95, radius: 60, x: 60, z: -75, sharpness: 1.6 },
+      // Lower, differently shaped neighbours: a sharp horn and a broad, worn hump.
+      { height: 78, radius: 48, x: -110, z: -55, sharpness: 2.3, arms: 2 },
+      { height: 52, radius: 70, x: 125, z: -10, sharpness: 0.9, arms: 5 },
     ],
     rockSlope: 1.4,
     // Ridge arms and flank gullies (see heightLocal) turn the cone into a massif.
@@ -117,7 +120,8 @@ export function buildSummit(kit: RegionKit, def: RegionDef, out: RegionExtras) {
     // Starts well above the sea (the mountain's foothills are now underwater).
     const h = 118 + t * 182;
     const a = -2.2 + t * Math.PI * 2.6;
-    const r = mountainR(h - 20) + 34;
+    // Divide by the chord sag so the straight line between rings also clears the slopes.
+    const r = mountainR(h - 20) / Math.cos((Math.PI * 2.6) / (N - 1) / 2) + 30;
     pts.push([cx + Math.cos(a) * r, baseY + h, cz + Math.sin(a) * r]);
   }
   out.courses.push({ id: "summit-spiral", name: "Summit Spiral", regionId: "summit", description: "Spiral up the mountain to the peak.", timed: true, rings: courseRings(pts, 10), medals: medalsFor(pts) });

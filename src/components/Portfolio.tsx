@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { portfolio as content } from "@/content/portfolio";
+import SectionHeading from "./SectionHeading";
 
 type Project = {
   title: string;
@@ -82,18 +83,9 @@ export default function Portfolio() {
     <section id="portfolio" className="py-16 sm:py-24 bg-zinc-50 dark:bg-zinc-900/50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-8 sm:mb-12">
-          <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">
-            My Work
-          </span>
-          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
-            Portfolio
-          </h2>
-          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
-            A collection of projects showcasing my skills in web development, system programming,
-            and software engineering, including client sites built at Doxa Studios.
-          </p>
-        </div>
+        <SectionHeading n="01" title="Projects">
+          Client sites I built with Doxa Studios, plus systems work from SFU courses and a few older web projects.
+        </SectionHeading>
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

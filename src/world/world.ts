@@ -92,9 +92,12 @@ function gameplaySpaces(x: RegionExtras): KeepClear[] {
     if (!d.landing) continue;
     const L = landingPlan(d.landing);
     seg(L.entry, L.touchdown, 8);
-    seg(L.stop, L.park, 6);
+    // Both departure corridors: straight on, and the U-turn back out over the approach.
     seg(L.park, L.liftoff, 6);
     seg(L.liftoff, L.climbOut, 8);
+    seg(L.stop, L.lane, 6);
+    seg(L.lane, L.backLiftoff, 6);
+    seg(L.backLiftoff, L.backClimbOut, 8);
   }
   return out;
 }

@@ -39,7 +39,7 @@ void main() {
   vec3 col = mix(uHorizon, uMid, smoothstep(0.0, 0.22, hh));
   col = mix(col, uZenith, smoothstep(0.18, 0.85, hh));
   // Warm haze hugging the horizon line.
-  col = mix(col, uHaze, (1.0 - smoothstep(0.0, 0.09, abs(hh))) * 0.55);
+  col = mix(col, uHaze, (1.0 - smoothstep(0.0, 0.07, abs(hh))) * 0.35);
   col = mix(col, uBelow, smoothstep(0.0, -0.25, h));
   float sd = max(dot(d, uSunDir), 0.0);
   col = mix(col, uGlow, pow(sd, 8.0) * 0.35 + pow(sd, 90.0) * 0.5);

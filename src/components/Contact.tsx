@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Mail, Linkedin, Github, Send, CheckCircle } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
+import SectionHeading from "./SectionHeading";
 
 const P = portfolio.profile;
 const contactMethods = [
@@ -27,28 +28,12 @@ export default function Contact() {
     <section id="contact" className="py-16 sm:py-24 bg-white dark:bg-zinc-950">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-10 sm:mb-16">
-          <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">
-            Contact
-          </span>
-          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
-            Get In Touch
-          </h2>
-          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
-            Have a project in mind or want to collaborate? I'd love to hear from you!
-          </p>
-        </div>
+        <SectionHeading n="07" title={portfolio.contact.heading}>{portfolio.contact.intro}</SectionHeading>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: Contact info */}
           <div>
-            <h3 className="font-mono font-semibold text-zinc-900 dark:text-white mb-2">
-              Let's Connect
-            </h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">
-              I'm always interested in new opportunities and exciting projects. Whether you have a
-              question, want to collaborate, or just want to say hi — feel free to reach out!
-            </p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{portfolio.contact.connectText}</p>
 
             <div className="flex flex-col gap-3 sm:gap-4">
               {contactMethods.map(({ icon: Icon, label, value, href, color }) => (

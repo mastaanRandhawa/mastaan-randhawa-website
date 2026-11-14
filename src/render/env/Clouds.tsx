@@ -42,6 +42,7 @@ uniform vec3 uSunDir;
 uniform vec3 uLit;
 uniform vec3 uShadow;
 uniform vec3 uRim;
+uniform vec3 uWarm;
 varying vec3 vN;
 varying vec3 vWorld;
 varying vec3 vLocal;
@@ -74,8 +75,9 @@ void main() {
   float ndl = dot(n, uSunDir) + (brush - 0.5) * 0.35;
   float lit = smoothstep(-0.18, 0.32, ndl);
   vec3 col = mix(uShadow, uLit, lit);
-  // Flat undersides sit in shade.
-  col = mix(col, uShadow * 0.96, smoothstep(0.12, -0.25, vLocal.y) * 0.6);
+  // Sunlit tops take a warm pink blush; flat undersides sit in lavender-blue shade.
+  col = mix(col, uWarm, lit * smoothstep(0.15, 0.85, n.y + (brush - 0.5) * 0.3) * 0.55);
+  col = mix(col, uShadow * 0.96, smoothstep(0.12, -0.25, vLocal.y) * 0.7);
   // Soft bright rim and gentle paper texture.
   col = mix(col, uRim, pow(edge, 3.0) * 0.35 * lit);
   col *= 0.97 + brush * 0.06;
@@ -99,6 +101,7 @@ function makeCloudMaterial(drift: number) {
       uLit: { value: ENV.cloudLit },
       uShadow: { value: ENV.cloudShadow },
       uRim: { value: ENV.cloudRim },
+      uWarm: { value: ENV.cloudWarm },
     },
   });
 }

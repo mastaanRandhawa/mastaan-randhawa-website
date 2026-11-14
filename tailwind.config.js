@@ -14,9 +14,13 @@ export default {
     extend: {
       opacity: { 4: "0.04", 8: "0.08", 12: "0.12", 14: "0.14", 18: "0.18", 22: "0.22", 92: "0.92" },
       fontFamily: {
-        mono: ["'Azeret Mono'", "ui-monospace", "monospace"],
-        serif: ["'Playfair Display'", "Georgia", "serif"],
-        sans: ["'Inter'", "system-ui", "sans-serif"],
+        // Zain for headings, Nunito for everything else (labels included). Azeret Mono stays
+        // only for the in-game instrument readouts, which need fixed-width digits.
+        display: ["'Zain'", "'Nunito'", "system-ui", "sans-serif"],
+        serif: ["'Zain'", "'Nunito'", "system-ui", "sans-serif"],
+        mono: ["'Nunito'", "system-ui", "sans-serif"],
+        sans: ["'Nunito'", "system-ui", "sans-serif"],
+        instrument: ["'Azeret Mono'", "ui-monospace", "monospace"],
       },
       colors: {
         accent: {

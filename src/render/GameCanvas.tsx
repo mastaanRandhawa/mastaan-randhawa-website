@@ -132,7 +132,7 @@ export default function GameCanvas({ world }: { world: World }) {
       aria-label="3D flight world"
     >
       <color attach="background" args={[ENV.horizon]} />
-      <fog attach="fog" args={[ENV.fog, 420, preset.drawDistance]} />
+      <fog attach="fog" args={[ENV.fog, 700, preset.drawDistance * 1.3]} />
       <AdaptiveQuality onDecline={() => step(-1)} onIncline={() => step(1)} />
       <Suspense fallback={null}>
         <Sky />

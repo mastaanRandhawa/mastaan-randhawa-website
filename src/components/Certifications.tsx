@@ -1,5 +1,6 @@
 import { ExternalLink } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
+import SectionHeading from "./SectionHeading";
 
 type Credential = {
   title: string;
@@ -100,18 +101,9 @@ export default function Certifications() {
     <section id="certifications" className="py-16 sm:py-24 bg-white dark:bg-zinc-950">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-8 sm:mb-12">
-          <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">
-            Credentials
-          </span>
-          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
-            Certifications
-          </h2>
-          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
-            Professional certifications and badges in data engineering, cloud security, and AI.
-            Click any badge to verify it with the issuer.
-          </p>
-        </div>
+        <SectionHeading n="04" title="Certifications">
+          Each badge links to the issuer's own verification page.
+        </SectionHeading>
 
         {/* Certifications */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

@@ -1,5 +1,6 @@
 import { Briefcase, MapPin, CalendarDays } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
+import SectionHeading from "./SectionHeading";
 
 type Role = {
   title: string;
@@ -17,18 +18,7 @@ export default function Experience() {
     <section id="experience" className="py-16 sm:py-24 bg-zinc-50 dark:bg-zinc-900/50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-8 sm:mb-12">
-          <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">
-            Experience
-          </span>
-          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
-            Where I've Worked
-          </h2>
-          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
-            Over a year and a half of hands-on industry experience, from building applications to
-            engineering data pipelines.
-          </p>
-        </div>
+        <SectionHeading n="03" title="Experience">{portfolio.company.summary}</SectionHeading>
 
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-8">
           {/* Company */}

@@ -240,23 +240,19 @@ html.reduce-motion *::after {
 }
 
 /* ── Skybound UI: "livery" design system ─────────────────────────────────────
-   Built from the portfolio's own identity: Inter for reading, Playfair Display
-   italic for names (the same face as the welcome sign in the world), Azeret Mono
-   for instruments and labels. Cream paper, navy ink and coral, the aircraft's
+   Built from the portfolio's own identity: Nunito for reading and labels, Zain
+   for names and titles, Azeret Mono only for instrument readouts. Cream paper, navy ink and coral, the aircraft's
    livery. HUD pieces are dark instrument glass; content sits on paper. */
 @layer components {
   .font-sf {
-    font-family: "Inter", system-ui, sans-serif;
-    font-feature-settings: "cv11", "ss01";
+    font-family: "Nunito", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    letter-spacing: -0.006em;
   }
   .font-sf-display {
-    font-family: "Playfair Display", Georgia, serif;
-    font-style: italic;
-    font-weight: 700;
-    /* Large italic display type reads loose; tighten it and use the font's kerning pairs. */
-    letter-spacing: -0.018em;
+    font-family: "Zain", "Nunito", system-ui, sans-serif;
+    font-weight: 800;
+    /* Zain sets a little loose at display sizes; tighten it and use the font's kerning pairs. */
+    letter-spacing: -0.01em;
     font-kerning: normal;
     font-feature-settings: "kern", "liga";
     text-rendering: optimizeLegibility;
@@ -268,9 +264,9 @@ html.reduce-motion *::after {
   }
   /* Small tracked capitals for labels, like stencilled panel legends. */
   .legend {
-    font-family: "Azeret Mono", ui-monospace, monospace;
+    font-family: "Nunito", system-ui, sans-serif;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
   }
@@ -305,9 +301,9 @@ html.reduce-motion *::after {
   }
   .ios-group-header {
     padding: 0 4px 7px;
-    font-family: "Azeret Mono", ui-monospace, monospace;
+    font-family: "Nunito", system-ui, sans-serif;
     font-size: 10.5px;
-    font-weight: 500;
+    font-weight: 700;
     color: #6a7486;
     text-transform: uppercase;
     letter-spacing: 0.14em;
@@ -330,9 +326,9 @@ html.reduce-motion *::after {
     background: linear-gradient(180deg, #fffdf8, #efe5d2);
     box-shadow: inset 0 0 0 1px rgba(31, 53, 82, 0.22), 0 2px 0 rgba(31, 53, 82, 0.28);
     color: #1f3552;
-    font-family: "Azeret Mono", ui-monospace, monospace;
+    font-family: "Nunito", system-ui, sans-serif;
     font-size: 11.5px;
-    font-weight: 600;
+    font-weight: 800;
   }
   .ios-slider {
     -webkit-appearance: none;

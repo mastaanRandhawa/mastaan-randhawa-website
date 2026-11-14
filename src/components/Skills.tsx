@@ -1,5 +1,6 @@
 import { Gravity, MatterBody } from "@/components/ui/gravity";
 import { portfolio as content } from "@/content/portfolio";
+import SectionHeading from "./SectionHeading";
 
 type Skill = {
   name: string;
@@ -46,17 +47,9 @@ export default function Skills() {
     <section id="skills" className="py-16 sm:py-24 bg-white dark:bg-zinc-950">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-4">
-          <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">
-            Technical Skills
-          </span>
-          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
-            My Toolkit
-          </h2>
-          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl mb-5 sm:mb-6">
-            A comprehensive overview of my technical expertise. Grab and toss the skill pills around!
-          </p>
-        </div>
+        <SectionHeading n="02" title="Skills">
+          What I've actually used, at work or in the projects above. They're physics objects, so you can pick them up and throw them.
+        </SectionHeading>
 
         {/* Legend */}
         <div className="flex flex-wrap gap-3 sm:gap-4 mb-5 sm:mb-6">
@@ -94,10 +87,6 @@ export default function Skills() {
             ))}
           </Gravity>
         </div>
-
-        <p className="font-mono text-xs text-zinc-400 dark:text-zinc-600 mt-3 text-center">
-          Physics-powered — grab and throw the skills around
-        </p>
       </div>
     </section>
   );

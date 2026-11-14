@@ -212,8 +212,10 @@ export class IslandTerrain {
   private apronT: Float32Array | null = null;
   private ridgeT: Float32Array | null = null;
   private coveT: Float32Array | null = null;
-  /** Ridge-arm angles and weights for each mountain peak. */
-  private arms: { a: number; w: number }[][] = [];
+  /** Ridge-arm angles, weights, sharpness and shoulder bumps for each mountain peak. */
+  private arms: { a: number; w: number; e: number; bumpD: number; bumpH: number }[][] = [];
+  /** Per-peak asymmetry: stretch axis and amount, and how far the summit leans off-centre. */
+  private peakShape: { c: number; s: number; stretch: number; leanX: number; leanZ: number; crag: number }[] = [];
   private maxProf = 1;
 
   constructor(params: IslandParams) {
@@ -269,9 +271,23 @@ export class IslandTerrain {
       const r = mulberry32(this.p.seed + 400 + k * 17);
       const n = pk.arms ?? 3 + Math.floor(r() * 3);
       const a0 = r() * Math.PI * 2;
-      const list: { a: number; w: number }[] = [];
-      for (let j = 0; j < n; j++) list.push({ a: a0 + (j / n) * Math.PI * 2 + (r() - 0.5) * 1.1, w: 0.65 + r() * 0.35 });
+      const list: { a: number; w: number; e: number; bumpD: number; bumpH: number }[] = [];
+      for (let j = 0; j < n; j++) {
+        list.push({
+          a: a0 + (j / n) * Math.PI * 2 + (r() - 0.5) * 1.3,
+          // Some spurs run long and narrow, others are short, broad shoulders.
+          w: 0.45 + r() * 0.55,
+          e: 5 + r() * 12,
+          // A sub-summit partway down most spurs breaks up the silhouette.
+          bumpD: 0.35 + r() * 0.3,
+          bumpH: r() < 0.7 ? 0.06 + r() * 0.12 : 0,
+        });
+      }
       this.arms.push(list);
+      const ax = r() * Math.PI;
+      const la = r() * Math.PI * 2;
+      const lean = 0.06 + r() * 0.16;
+      this.peakShape.push({ c: Math.cos(ax), s: Math.sin(ax), stretch: 1 + r() * 0.55, leanX: Math.cos(la) * lean, leanZ: Math.sin(la) * lean, crag: 0.6 + r() * 0.8 });
     });
     if (this.p.profile === "shore") this.buildShoreTables();
     // Estimate max height for collision broad-phase.
@@ -460,25 +476,44 @@ export class IslandTerrain {
       const ridge = fbm2(lx * 0.014, lz * 0.014, p.seed + 3, 4);
       for (let k = 0; k < p.peaks.length; k++) {
         const pk = p.peaks[k];
-        const dx = lx - (pk.x ?? 0);
-        const dz = lz - (pk.z ?? 0);
+        const sh = this.peakShape[k];
+        let dx = lx - (pk.x ?? 0);
+        let dz = lz - (pk.z ?? 0);
+        // Lean: the summit sits off-centre, so one face is steep and the opposite one long.
+        const pr0 = clamp(Math.hypot(dx, dz) / pk.radius, 0, 1);
+        const pull = (1 - pr0) * (1 - pr0) * pk.radius;
+        dx -= sh.leanX * pull;
+        dz -= sh.leanZ * pull;
+        // Stretch along a random axis: a ridge-shaped massif rather than a round cone.
+        const u = dx * sh.c + dz * sh.s;
+        const w = (-dx * sh.s + dz * sh.c) * sh.stretch;
+        const ang = Math.atan2(dz, dx);
         // Ridge arms push the mountain out along a few spurs, with valleys between.
         let arm = 0;
         const list = this.arms[k];
-        if (list.length) {
-          const ang = Math.atan2(dz, dx);
-          for (const a of list) arm = Math.max(arm, a.w * Math.pow(Math.max(0, Math.cos(angDiff(ang, a.a))), 10));
-        }
-        const rEff = pk.radius * (list.length ? 0.8 + 0.32 * arm : 1);
-        const pr = clamp(Math.hypot(dx, dz) / rEff, 0, 1);
+        for (const a of list) arm = Math.max(arm, a.w * Math.pow(Math.max(0, Math.cos(angDiff(ang, a.a))), a.e));
+        const rEff = pk.radius * (list.length ? 0.78 + 0.4 * arm : 1);
+        const dist = Math.hypot(u, w);
+        const pr = clamp(dist / rEff, 0, 1);
         const bell = Math.pow((1 + Math.cos(Math.PI * pr)) / 2, pk.sharpness ?? 1.4);
-        h += pk.height * bell * (0.88 + ridge * 0.3);
+        h += pk.height * bell * (0.86 + ridge * 0.34);
         if (list.length) {
           // Ridged gullies on the flanks (none at the summit or the foot).
           const flank = 4 * bell * (1 - bell);
           const g = 1 - Math.abs(fbm2(lx * 0.03 + k * 7, lz * 0.03, p.seed + 71 + k, 3) * 1.7);
-          h += pk.height * 0.07 * flank * (clamp(g, 0, 1) - 0.45);
+          h += pk.height * 0.09 * flank * (clamp(g, 0, 1) - 0.45);
+          // Sub-summits along the spurs.
+          for (const a of list) {
+            if (!a.bumpH) continue;
+            const bx = Math.cos(a.a) * a.bumpD * rEff;
+            const bz = Math.sin(a.a) * a.bumpD * rEff;
+            const d2 = ((dx - bx) ** 2 + (dz - bz) ** 2) / (pk.radius * 0.16) ** 2;
+            if (d2 < 9) h += pk.height * a.bumpH * Math.exp(-d2) * (1 - pr);
+          }
         }
+        // Broken, craggy crest near the top instead of a smooth dome.
+        const crest = 1 - Math.abs(fbm2(lx * 0.045 + k * 13, lz * 0.045, p.seed + 91 + k, 3) * 1.8);
+        h += pk.height * 0.05 * sh.crag * bell * bell * (clamp(crest, 0, 1) - 0.5);
       }
     }
     if (shore) {

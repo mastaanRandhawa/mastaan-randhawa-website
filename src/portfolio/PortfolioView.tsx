@@ -60,14 +60,14 @@ export default function PortfolioView({ onFly }: { onFly?: () => void }) {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-10 mb-6">
             <button
               onClick={onFly}
-              className="group flex w-full items-center justify-between gap-4 rounded-2xl bg-zinc-950 dark:bg-zinc-800 p-4 sm:p-5 text-left text-white shadow-lg transition hover:shadow-xl"
+              className="group flex w-full items-center justify-between gap-4 rounded-2xl border-2 border-zinc-700 dark:border-zinc-300 bg-transparent p-4 sm:p-5 text-left text-zinc-800 dark:text-zinc-100 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
             >
               <span>
-                <span className="block font-mono text-[11px] uppercase tracking-[0.25em] text-white/80">{BRAND.tagline}</span>
-                <span className="block font-serif italic text-2xl sm:text-3xl">
+                <span className="block font-mono text-[11px] uppercase tracking-[0.25em] text-zinc-500 dark:text-zinc-400">{BRAND.tagline}</span>
+                <span className="block font-serif font-bold text-3xl sm:text-4xl leading-tight">
                   {title} — {BRAND.subtitle}
                 </span>
-                <span className="block text-sm text-white/85">Fly a little plane between floating islands that hold every project on this page.</span>
+                <span className="block text-sm text-zinc-600 dark:text-zinc-300">Fly a little plane between floating islands that hold every project on this page.</span>
               </span>
               <Plane className="shrink-0 transition-transform group-hover:translate-x-1" size={28} />
             </button>
