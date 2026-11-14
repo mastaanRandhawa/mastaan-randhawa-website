@@ -181,12 +181,13 @@ void main() {
   float d = uMaxDist;
   if (cuv.x > 0.0 && cuv.x < 1.0 && cuv.y > 0.0 && cuv.y < 1.0) d = texture2D(uCoast, cuv).r * uMaxDist;
 
-  // Broad painted depth: large soft dark shapes over open blue.
+  // Broad painted depth: big flat darker shapes with crisp, brushy edges over open blue.
   float n1 = fbm(p * 0.0011 + 4.2);
   float n2 = fbm(p * 0.0045 - 1.7);
   float n3 = vn(p * 0.05);
-  vec3 col = mix(uOpen, uDeep, smoothstep(0.44, 0.6, n1) * 0.9);
-  col = mix(col, uMid, smoothstep(0.58, 0.74, n2) * 0.22);
+  float edgeJ = (vn(p * 0.012) - 0.5) * 0.04;
+  vec3 col = mix(uOpen, uDeep, smoothstep(0.49, 0.52, n1 + edgeJ) * 0.85);
+  col = mix(col, uMid, smoothstep(0.6, 0.63, n2 + edgeJ) * 0.25);
 
   // Shallows: turquoise rings with irregular painted edges.
   float dn = d + (n2 - 0.5) * 26.0 + (n3 - 0.5) * 3.0;
@@ -213,10 +214,10 @@ void main() {
   vec2 dd = f - c;
   float len = 1.4 + 2.4 * h21(cell + 11.7);
   float seg = length(vec2(max(abs(dd.x) - len, 0.0), dd.y));
-  float dash = 1.0 - smoothstep(0.14, 0.14 + aa * 0.5, seg);
-  float life = smoothstep(0.2, 0.85, sin(uTime * 0.55 + rid * 40.0));
-  dash *= life * step(0.72, rid) * (1.0 - smoothstep(140.0, 420.0, dist)) * smoothstep(8.0, 30.0, d);
-  col = mix(col, uFoam, dash * 0.6);
+  float dash = 1.0 - smoothstep(0.16, 0.16 + aa * 0.5, seg);
+  float life = smoothstep(0.1, 0.7, sin(uTime * 0.55 + rid * 40.0));
+  dash *= life * step(0.55, rid) * (1.0 - smoothstep(260.0, 900.0, dist)) * smoothstep(8.0, 30.0, d);
+  col = mix(col, uFoam, dash * 0.85);
 
   // Cloud shadows drift with the clouds.
   float sh = 0.0;
@@ -226,9 +227,10 @@ void main() {
     float cx = mod(cl.x + uTime * uDrift + uWrap, uWrap * 2.0) - uWrap;
     vec2 rel = (p - vec2(cx, cl.y)) / cl.zw;
     float r = length(rel) + (vn(p * 0.02 + float(i) * 7.0) - 0.5) * 0.35;
-    sh = max(sh, 1.0 - smoothstep(0.55, 1.0, r));
+    sh = max(sh, 1.0 - smoothstep(0.82, 0.92, r));
   }
-  col = mix(col, uShade, sh * 0.32);
+  // Painted cloud shadows: flat, darker patches with a fairly crisp edge.
+  col = mix(col, uShade, sh * 0.5);
 
   // The plane's soft silhouette, projected along the sun.
   if (uPlaneInfo.y > 0.0) {
@@ -239,7 +241,7 @@ void main() {
     float sdf = box(lp - vec2(0.0, -0.2), vec2(span, 0.95), 0.6);
     sdf = min(sdf, box(lp - vec2(0.0, 0.3), vec2(0.75, 3.1), 0.7));
     sdf = min(sdf, box(lp - vec2(0.0, 3.0), vec2(2.0 * max(0.3, abs(cos(uPlane.w))), 0.5), 0.35));
-    float soft = 0.4 + uPlaneInfo.x * 0.012;
+    float soft = 0.25 + uPlaneInfo.x * 0.006;
     float a = 1.0 - smoothstep(-soft, soft, sdf);
     col = mix(col, uShade, a * uPlaneInfo.y);
   }
@@ -251,7 +253,8 @@ void main() {
 
   // Paper grain and distance haze.
   col *= 0.985 + vn(p * 0.9) * 0.03;
-  col = mix(col, uFar, smoothstep(700.0, 3600.0, dist) * 0.85);
+  // Lighter blue toward the horizon, never milky.
+  col = mix(col, uFar, smoothstep(800.0, 3800.0, dist) * 0.8);
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -307,8 +310,8 @@ export function Ocean({ world, density }: { world: World; density: number }) {
     const h = Math.max(0, p.y - SEA_LEVEL);
     const sd = ENV.sunDir;
     mat.uniforms.uPlane.value.set(p.x - (sd.x / sd.y) * h, p.z - (sd.z / sd.y) * h, p.heading, p.roll);
-    // Crisp and dark when skimming the water, fading out with altitude.
-    mat.uniforms.uPlaneInfo.value.set(h, 0.42 * (1 - Math.min(1, Math.max(0, (h - 25) / 330))));
+    // Crisp and dark when skimming the water, fading slowly with altitude.
+    mat.uniforms.uPlaneInfo.value.set(h, 0.6 * (1 - Math.min(1, Math.max(0, (h - 40) / 600))));
   });
 
   return <mesh ref={ref} geometry={geo} material={mat} frustumCulled={false} renderOrder={-5} />;

@@ -402,23 +402,23 @@ export const portfolio: Portfolio = {
     initials: "MR",
     headline: "Software Developer · Data Engineer Intern · CS @ SFU",
     shortRole: "Software Developer & Data Engineer Intern",
-    intro: "Software Developer and Data Engineer Intern, and Computer Science student at Simon Fraser University, turning ideas into digital reality.",
+    intro: "I'm a data engineering intern at ThoughtsWin Systems and a computer science student at SFU. At work I write pipelines in SQL and Python; on the side I build websites for clients; at school I've built a RISC-V processor in C and assembly.",
     location: "Surrey, BC",
     availability: "Available for opportunities",
     email: "mastaanrandhawa@gmail.com",
     bio: [
-      "I'm Mastaan Randhawa, a Software Developer and Computer Science student at Simon Fraser University. I'm passionate about using technology to create meaningful change.",
-      "For the past year and a half at ThoughtsWin Systems I've worked as an App Development Intern and now as a Data Engineer Intern, building applications and data pipelines. I'm a Databricks Certified Data Engineer Associate and a Microsoft Certified Security Operations Analyst, and I've built client websites through Doxa Studios.",
-      "I hope to keep expanding my skills, meet people from different walks of life, and one day explore how tech and sales can come together to help others.",
-      "From building low-level systems in C/C++ to crafting interactive web experiences with Three.js and React, I love the entire spectrum of software development.",
+      "I study computer science at Simon Fraser University. Since June 2025 I've worked at ThoughtsWin Systems, first as an app development intern and, since May 2026, as a data engineering intern.",
+      "These days that mostly means SQL, Python and Databricks: pulling data in, cleaning it, checking it's right and getting it into dashboards people use. Before that I worked on web and mobile app features and testing.",
+      "Outside work I build client websites through Doxa Studios. At school I've spent a lot of time in C, C++ and assembly: a RISC-V processor, a cache simulator, a version of ls.",
+      "Longer term I'd like to work somewhere tech and sales meet.",
     ],
     focusAreas: [
-      { icon: "terminal", title: "System Programming", description: "Low-level C/C++ development, memory management, OS concepts, and performance-critical applications.", color: "#1f464d" },
-      { icon: "globe", title: "Web Development", description: "Full-stack web applications using modern frameworks, responsive design, and scalable architectures.", color: "#0015ff" },
-      { icon: "database", title: "Data Engineering", description: "Building ETL pipelines, validating large datasets, and delivering dashboards with SQL, Python, and Databricks.", color: "#ff5941" },
-      { icon: "cloud", title: "Cloud & Security", description: "Working with Azure services and event-driven architecture, backed by a Microsoft security operations certification.", color: "#2b5797" },
-      { icon: "palette", title: "UI/UX Design", description: "Crafting intuitive user interfaces with Figma, translating designs into polished digital experiences.", color: "#E794DA" },
-      { icon: "zap", title: "Performance Optimization", description: "Profiling, benchmarking, and tuning applications for speed, efficiency, and resource utilization.", color: "#ff5941" },
+      { icon: "terminal", title: "Systems programming", description: "C, C++ and assembly from SFU courses: a RISC-V processor, a multi-level cache, IPC and a Unix ls clone.", color: "#1f464d" },
+      { icon: "globe", title: "Web", description: "Client sites for Doxa Studios in React, TypeScript and Tailwind, and a Three.js site deployed with Docker.", color: "#0015ff" },
+      { icon: "database", title: "Data engineering", description: "ETL pipelines, data validation and dashboards in SQL, Python and Databricks at ThoughtsWin.", color: "#ff5941" },
+      { icon: "cloud", title: "Cloud & security", description: "Azure, Event Hubs, Sentinel and KQL; certified as a Microsoft Security Operations Analyst.", color: "#2b5797" },
+      { icon: "palette", title: "Design", description: "Figma mockups, and 90+ event graphics for SFU's Google Developer Student Club.", color: "#E794DA" },
+      { icon: "zap", title: "Performance", description: "LRU/LFU eviction that cut cache misses by 25%, and a Pandas rewrite that ran up to 50x faster.", color: "#ff5941" },
     ],
     stats: [
       { value: "1.5+", label: "Years Exp." },
@@ -427,17 +427,13 @@ export const portfolio: Portfolio = {
       { value: "SFU", label: "University" },
     ],
     typewriterLines: [
-      "I am passionate about C and C++ development.",
-      "I am experienced with JavaScript and modern web technologies.",
-      "I enjoy crafting clean and responsive designs with HTML and CSS.",
-      "I love bringing ideas to life through Figma and creative design work.",
-      "I am comfortable working with React, Three.js, and Spring Boot.",
-      "I am familiar with managing data using MongoDB, MySQL, and SQLite.",
-      "I have hands-on experience deploying projects with Render and AWS.",
-      "I have worked with Azure, Event Grid, and Event Hubs.",
-      "I build data pipelines and ETL workflows with SQL and Python.",
-      "I am a Databricks Certified Data Engineer Associate.",
-      "I have 1.5 years of hands-on industry experience.",
+      // Typed after "I build " in the hero.
+      "data pipelines in SQL, Python and Databricks.",
+      "client websites in React and TypeScript.",
+      "3D sites with Three.js.",
+      "low-level things in C, C++ and assembly.",
+      "REST APIs with Node.js and Spring Boot.",
+      "a flyable version of this site.",
     ],
     links: {
       github: "https://github.com/mastaanRandhawa",
@@ -457,8 +453,7 @@ export const portfolio: Portfolio = {
     location: "Surrey, BC · Remote",
     period: "Jun 2025 – Present",
     duration: "1.5 yrs",
-    summary:
-      "Over a year and a half of hands-on industry experience, from building applications to engineering data pipelines.",
+    summary: "Two internships at one company: app development first, then data engineering.",
     roles: [
       {
         id: "data-engineer",
@@ -596,10 +591,9 @@ export const portfolio: Portfolio = {
     { id: "log-credentials", title: "Seven credentials", body: "Databricks Data Engineer Associate, Microsoft Security Operations Analyst Associate, Anthropic's Introduction to Agent Skills, and four Databricks knowledge badges.", source: "site" },
   ],
   contact: {
-    heading: "Get In Touch",
-    intro: "Have a project in mind or want to collaborate? I'd love to hear from you!",
-    connectText:
-      "I'm always interested in new opportunities and exciting projects. Whether you have a question, want to collaborate, or just want to say hi — feel free to reach out!",
+    heading: "Contact",
+    intro: "Email is the quickest way to reach me.",
+    connectText: "If you're hiring for a data or software role, or have a website you want built, send me a note. The form just opens your email app with everything filled in.",
   },
 };
 

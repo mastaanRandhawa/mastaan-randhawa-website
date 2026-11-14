@@ -58,9 +58,9 @@ export default function GameShell({ hidden }: { hidden: boolean }) {
     const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
     const fontReady = Promise.race([
       Promise.all([
-        fonts?.load("700 48px 'Azeret Mono'"),
-        fonts?.load("italic 800 48px 'Playfair Display'"),
-        fonts?.load("500 48px 'Azeret Mono'"),
+        fonts?.load("700 48px 'Nunito'"),
+        fonts?.load("800 48px 'Zain'"),
+        fonts?.load("800 48px 'Nunito'"),
       ]),
       new Promise((r) => setTimeout(r, 2500)),
     ]).catch(() => undefined);

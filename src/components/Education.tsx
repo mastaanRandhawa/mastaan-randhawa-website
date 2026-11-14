@@ -1,15 +1,13 @@
 import { GraduationCap, MapPin, CalendarDays } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
+import SectionHeading from "./SectionHeading";
 
 export default function Education() {
   const e = portfolio.education;
   return (
     <section id="education" className="py-16 sm:py-24 bg-zinc-50 dark:bg-zinc-900/50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="mb-8 sm:mb-12">
-          <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">Education</span>
-          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2">Where I Study</h2>
-        </div>
+        <SectionHeading n="05" title="Education" />
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-8 flex items-start gap-4 sm:gap-5">
           <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center flex-shrink-0">
             <GraduationCap size={20} className="text-accent-blue" />

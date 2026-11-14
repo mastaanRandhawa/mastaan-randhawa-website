@@ -105,13 +105,16 @@ describe("landing sites", () => {
       const checks: [string, P3, P3][] = [
         ["approach", lift(L.entry), lift(L.touchdown)],
         ["rollout", lift(L.touchdown), lift(L.stop)],
-        ["park", lift(L.stop), lift(L.park)],
-        ["takeoff", lift(L.park), lift(L.liftoff)],
-        ["climb", lift(L.liftoff), L.climbOut],
       ];
       for (const [name, a, b] of checks) {
         const hit = firstHit(a, b);
         if (hit) problems.push(`${d.id} ${name} blocked at ${hit}`);
+      }
+      // Departure: straight on if that's clear, otherwise the U-turn back out over the approach must be.
+      const straight = firstHit(lift(L.park), lift(L.liftoff)) ?? firstHit(lift(L.liftoff), L.climbOut);
+      if (straight) {
+        const back = firstHit(lift(L.stop), lift(L.lane)) ?? firstHit(lift(L.lane), lift(L.backLiftoff)) ?? firstHit(lift(L.backLiftoff), L.backClimbOut);
+        if (back) problems.push(`${d.id} departure blocked both ways (${straight} / ${back})`);
       }
     }
     expect(problems).toEqual([]);

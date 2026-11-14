@@ -1,34 +1,37 @@
 import { Color, Vector3 } from "three";
 
 /**
- * Sunny illustrated-ocean palette shared by sky, fog, ocean, clouds and lights:
- * clean blue sky with a warm hazy horizon, rich painted blues and turquoise
- * shallows, creamy clouds with pale blue shade.
+ * Bright painted-seascape palette shared by sky, fog, ocean, clouds and lights:
+ * saturated cyan sky paling to a clean horizon, a deep royal-blue sea in flat
+ * shapes (lighter toward the horizon), big soft clouds with pink-white tops and
+ * lavender-blue undersides. Little haze, so colours stay clear at distance.
  */
 export const ENV = {
   sunDir: new Vector3(-0.5, 0.72, 0.48).normalize(),
-  zenith: new Color("#3c9be3"),
-  skyMid: new Color("#62c0f0"),
-  horizon: new Color("#d9eef2"),
-  haze: new Color("#f5ecdc"),
-  below: new Color("#7fb7d0"),
-  sunGlow: new Color("#fff0d2"),
-  fog: new Color("#cfe6ee"),
-  sunLight: new Color("#fff1de"),
-  hemiSky: new Color("#cfe9ff"),
-  hemiGround: new Color("#8fc3c6"),
-  cloudLit: new Color("#fff5ec"),
-  cloudShadow: new Color("#b8d9e9"),
-  cloudRim: new Color("#fff9f0"),
+  zenith: new Color("#1290e6"),
+  skyMid: new Color("#3fb0f2"),
+  horizon: new Color("#b9e4f8"),
+  haze: new Color("#e6f4fb"),
+  below: new Color("#2a6cc0"),
+  sunGlow: new Color("#fff4e2"),
+  fog: new Color("#9fd0f2"),
+  sunLight: new Color("#fff3e4"),
+  hemiSky: new Color("#cbe8ff"),
+  hemiGround: new Color("#3f7fca"),
+  cloudLit: new Color("#fffaf7"),
+  cloudShadow: new Color("#a9c3ee"),
+  cloudRim: new Color("#ffffff"),
+  /** Warm blush on the sunlit tops of clouds. */
+  cloudWarm: new Color("#ffdfe3"),
   ocean: {
-    deep: new Color("#104b86"),
-    open: new Color("#1468a8"),
-    mid: new Color("#1a86b8"),
-    shallow: new Color("#21b6c4"),
-    lagoon: new Color("#6fd6d2"),
-    foam: new Color("#f4fbf8"),
-    shade: new Color("#0d3f72"),
-    far: new Color("#8ec5dc"),
+    deep: new Color("#143f92"),
+    open: new Color("#1c58b0"),
+    mid: new Color("#2468bd"),
+    shallow: new Color("#259fd0"),
+    lagoon: new Color("#69cfe0"),
+    foam: new Color("#f7fbff"),
+    shade: new Color("#123a85"),
+    far: new Color("#4f98d8"),
   },
 };
 

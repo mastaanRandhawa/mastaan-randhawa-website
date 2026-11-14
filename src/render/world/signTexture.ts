@@ -66,7 +66,7 @@ export function signTexture(d: SignData): CanvasTexture {
     g.strokeStyle = "#6b4428";
     g.stroke();
     g.fillStyle = fg;
-    g.font = `600 ${Math.round(H * 0.42)}px 'Azeret Mono', ui-monospace, monospace`;
+    g.font = `800 ${Math.round(H * 0.42)}px 'Nunito', sans-serif`;
     g.textBaseline = "middle";
     g.textAlign = "center";
     const cx = d.flip ? (W + tip) / 2 : (W - tip) / 2;
@@ -85,29 +85,29 @@ export function signTexture(d: SignData): CanvasTexture {
     g.textBaseline = "middle";
     g.fillStyle = fg;
     if (d.style === "welcome") {
-      g.font = `500 ${Math.round(H * 0.11)}px 'Azeret Mono', monospace`;
+      g.font = `700 ${Math.round(H * 0.11)}px 'Nunito', sans-serif`;
       g.fillText(d.lines[0], W / 2, H * 0.2);
-      g.font = `italic 800 ${Math.round(H * 0.32)}px 'Playfair Display', Georgia, serif`;
+      g.font = `800 ${Math.round(H * 0.34)}px 'Zain', 'Nunito', sans-serif`;
       g.fillStyle = accent;
       g.fillText(d.lines[1], W / 2, H * 0.5);
       g.fillStyle = fg;
-      g.font = `600 ${Math.round(H * 0.1)}px 'Azeret Mono', monospace`;
+      g.font = `800 ${Math.round(H * 0.1)}px 'Nunito', sans-serif`;
       g.fillText(d.lines[2] ?? "", W / 2, H * 0.78);
     } else if (d.style === "board") {
       g.textAlign = "left";
-      g.font = `700 ${Math.round(H * 0.15)}px 'Azeret Mono', monospace`;
+      g.font = `700 ${Math.round(H * 0.15)}px 'Nunito', sans-serif`;
       g.fillText(d.lines[0], W * 0.08, H * 0.18);
       g.fillStyle = accent;
       g.fillRect(W * 0.08, H * 0.3, W * 0.84, H * 0.025);
       g.fillStyle = fg;
-      g.font = `500 ${Math.round(H * 0.105)}px 'Azeret Mono', monospace`;
+      g.font = `700 ${Math.round(H * 0.105)}px 'Nunito', sans-serif`;
       d.lines.slice(1).forEach((l, i) => g.fillText(`▪ ${l}`, W * 0.08, H * (0.45 + i * 0.16)));
     } else {
       const n = d.lines.length;
       const size = d.font ? (d.font / 100) * H : H / (n * 1.55);
       d.lines.forEach((l, i) => {
         const big = i === 0;
-        g.font = `${big ? 700 : 500} ${Math.round(size * (big ? 1 : 0.78))}px 'Azeret Mono', monospace`;
+        g.font = `${big ? 800 : 700} ${Math.round(size * (big ? 1 : 0.78))}px 'Nunito', sans-serif`;
         let text = l;
         while (g.measureText(text).width > W * 0.92 && text.length > 3) text = text.slice(0, -2) + "…";
         g.fillText(text, W / 2, (H * (i + 0.5)) / n);

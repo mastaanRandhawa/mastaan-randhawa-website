@@ -5,8 +5,8 @@ import { audio } from "@/game/audio";
 
 /**
  * Skybound UI primitives, "livery" design system: cream paper, navy ink and a
- * coral accent (the aircraft's paint scheme), Inter for reading, Playfair
- * Display italic for names, Azeret Mono for instruments and labels.
+ * coral accent (the aircraft's paint scheme), Nunito for reading and labels,
+ * Zain for names and titles, Azeret Mono only for instrument readouts.
  *
  * The key names below are kept from the earlier system so call sites read the
  * same; the values are the livery palette.

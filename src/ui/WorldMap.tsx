@@ -13,7 +13,7 @@ import { audio } from "@/game/audio";
 
 const VB = { x: -1150, y: -1080, w: 2300, h: 2000 };
 const MONO = `"Azeret Mono", ui-monospace, monospace`;
-const DISPLAY = `"Playfair Display", Georgia, serif`;
+const DISPLAY = `"Zain", "Nunito", sans-serif`;
 
 /** Irregular island outline around a centre (deterministic per seed). */
 function islandPath(cx: number, cy: number, r: number, seed: number) {
@@ -104,7 +104,7 @@ export function WorldMap({ world }: { world: World }) {
                 <g key={r.id}>
                   <path d={islandPath(r.center[0], r.center[2], R, r.order + 3)} fill={found ? r.accent : "url(#hatch)"} fillOpacity={found ? 0.2 : 1} stroke="#1f3552" strokeOpacity={found ? 0.55 : 0.25} strokeWidth="3.5" strokeDasharray={found ? undefined : "10 10"} />
                   {found && <path d={islandPath(r.center[0], r.center[2], R * 0.62, r.order + 9)} fill="none" stroke="#1f3552" strokeOpacity="0.16" strokeWidth="3" />}
-                  <text x={r.center[0]} y={r.center[2] - R - 46} textAnchor="middle" fontFamily={DISPLAY} fontStyle="italic" fontWeight={700} fontSize="44" fill="#1f3552" fillOpacity={found ? 0.95 : 0.4}>
+                  <text x={r.center[0]} y={r.center[2] - R - 46} textAnchor="middle" fontFamily={DISPLAY} fontWeight={800} fontSize="48" fill="#1f3552" fillOpacity={found ? 0.95 : 0.4}>
                     {found ? r.name : "Uncharted"}
                   </text>
                   {found && (

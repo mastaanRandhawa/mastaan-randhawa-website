@@ -17,7 +17,7 @@ const rise = {
 };
 
 /**
- * Launch screen in the title screen's own voice: mono legend, the italic
+ * Launch screen in the title screen's own voice: mono legend, the bold
  * wordmark and a hairline progress bar over an open sky.
  */
 export function LoadingScreen() {

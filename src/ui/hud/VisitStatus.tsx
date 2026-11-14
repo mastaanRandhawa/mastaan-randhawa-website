@@ -42,11 +42,12 @@ export function VisitStatus() {
         sub = "Gear down · final approach";
         break;
       case "rollout":
-      case "turn":
         icon = <PlaneLanding size={16} />;
         title = "Touchdown";
         sub = `Welcome to ${d.label}`;
         break;
+      // "turn" is the departure taxi U-turn on strips that leave back over the approach.
+      case "turn":
       case "takeoff":
       case "climb":
         icon = <PlaneTakeoff size={16} />;
@@ -65,7 +66,7 @@ export function VisitStatus() {
     <AnimatePresence>
       {show && (
         <motion.div
-          key={`${visit!.destId}-${visit!.stage === "turn" ? "rollout" : visit!.stage === "climb" ? "takeoff" : visit!.stage}`}
+          key={`${visit!.destId}-${visit!.stage === "turn" || visit!.stage === "climb" ? "takeoff" : visit!.stage}`}
           initial={{ opacity: 0, y: -10, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -6, scale: 0.98 }}

@@ -1,5 +1,6 @@
 import { Download, Mail, FileText } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
+import SectionHeading from "./SectionHeading";
 
 const P = portfolio.profile;
 
@@ -8,17 +9,7 @@ export default function Resume() {
     <section id="resume" className="py-16 sm:py-24 bg-zinc-50 dark:bg-zinc-900/50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-8 sm:mb-12">
-          <span className="font-mono text-xs text-accent-blue uppercase tracking-widest">
-            Resume
-          </span>
-          <h2 className="font-serif italic text-3xl sm:text-4xl lg:text-5xl text-zinc-900 dark:text-white mt-2 mb-4">
-            My Resume
-          </h2>
-          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
-            Download my latest resume to learn more about my experience, skills, and achievements.
-          </p>
-        </div>
+        <SectionHeading n="08" title="Résumé">The one-page PDF version of all of the above.</SectionHeading>
 
         {/* Card — full width on mobile, max-2xl on larger */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-8 w-full sm:max-w-2xl">
