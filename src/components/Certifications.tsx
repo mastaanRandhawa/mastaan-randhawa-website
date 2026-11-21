@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
 import SectionHeading from "./SectionHeading";
+import { Reveal, Stagger, StaggerItem } from "@/components/ui/motion";
 
 type Credential = {
   title: string;
@@ -30,7 +31,7 @@ function CertificationCard({ cred }: { cred: Credential }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`Verify credential: ${cred.title}`}
-      className="group relative flex flex-col bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-400 dark:hover:border-zinc-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-zinc-900/50"
+      className="group relative flex w-full flex-col bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-400 dark:hover:border-zinc-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-zinc-900/50"
     >
       {/* Badge */}
       <div className="relative h-44 flex items-center justify-center bg-white dark:bg-zinc-950/60 border-b border-zinc-200 dark:border-zinc-800 p-5">
@@ -106,21 +107,27 @@ export default function Certifications() {
         </SectionHeading>
 
         {/* Certifications */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {certifications.map((cred) => (
-            <CertificationCard key={cred.title} cred={cred} />
+            <StaggerItem key={cred.title} className="flex">
+              <CertificationCard cred={cred} />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
 
         {/* Knowledge badges */}
-        <h3 className="font-mono font-semibold text-zinc-900 dark:text-white mt-10 sm:mt-14 mb-5 sm:mb-6">
-          Databricks Knowledge Badges
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <Reveal>
+          <h3 className="font-mono font-semibold text-zinc-900 dark:text-white mt-10 sm:mt-14 mb-5 sm:mb-6">
+            Databricks Knowledge Badges
+          </h3>
+        </Reveal>
+        <Stagger gap={0.06} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {badges.map((cred) => (
-            <BadgeCard key={cred.title} cred={cred} />
+            <StaggerItem key={cred.title}>
+              <BadgeCard cred={cred} />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
 
         <div className="mt-10 flex justify-center">
           <a

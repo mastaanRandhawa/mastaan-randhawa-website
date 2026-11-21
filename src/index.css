@@ -128,7 +128,7 @@ html.game-mode body {
   50% { transform: translateY(-6px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  html.game-mode *, html.game-mode *::before, html.game-mode *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
 /* The in-game "Reduce motion" setting does the same, for people who want it only here. */
 html.reduce-motion *,

@@ -1,6 +1,7 @@
 import { Download, Mail, FileText } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
 import SectionHeading from "./SectionHeading";
+import { Reveal } from "@/components/ui/motion";
 
 const P = portfolio.profile;
 
@@ -12,7 +13,7 @@ export default function Resume() {
         <SectionHeading n="08" title="Résumé">The one-page PDF version of all of the above.</SectionHeading>
 
         {/* Card — full width on mobile, max-2xl on larger */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-8 w-full sm:max-w-2xl">
+        <Reveal className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-8 w-full sm:max-w-2xl">
           <div className="flex items-start gap-4 sm:gap-5 mb-6 sm:mb-8">
             <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center flex-shrink-0">
               <FileText size={20} className="text-accent-blue" />
@@ -45,7 +46,7 @@ export default function Resume() {
               Contact Me
             </a>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

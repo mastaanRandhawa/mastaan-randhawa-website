@@ -4,7 +4,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { useGame, type Overlay } from "@/game/store";
 import { ACHIEVEMENTS, MISSIONS, SKINS, completion, unlockedSkins } from "@/game/progression";
 import { CONTROL_HELP } from "@/config/controls";
-import { portfolio } from "@/content/portfolio";
+import { gameProjects, portfolio } from "@/content/portfolio";
 import { CREDITS } from "@/content/credits";
 import { parkAtSpawn } from "@/game/runtime";
 import { clearSave } from "@/game/save";
@@ -132,7 +132,7 @@ function LogPanel({ onBack }: { onBack: () => void }) {
           </div>
           <div className="text-[13px] leading-relaxed tabular-nums text-[#5d6b80]">
             <div className="text-[17px] font-semibold text-[#1f3552]">Explored</div>
-            {p.discoveredRegions.length} regions · {p.viewed.filter((v) => v.startsWith("project-")).length} of {portfolio.projects.length} projects · {p.collectibles.length} of {portfolio.flightLogs.length} logs ·{" "}
+            {p.discoveredRegions.length} regions · {p.viewed.filter((v) => v.startsWith("project-")).length} of {gameProjects.length} projects · {p.collectibles.length} of {portfolio.flightLogs.length} logs ·{" "}
             {Math.round(p.flightSeconds / 60)} min flown
           </div>
         </div>

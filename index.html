@@ -32,6 +32,11 @@
       }
     </script>
 
+    <!-- Dark by default (unless the visitor picked light), applied before first paint so there's no white flash. -->
+    <script>
+      try { if (localStorage.getItem("theme") !== "light") document.documentElement.classList.add("dark"); } catch (e) { document.documentElement.classList.add("dark"); }
+    </script>
+    <style>html.dark:not(.game-mode) body { background: #09090b; }</style>
     <link rel="icon" type="image/webp" href="imgs/favicon.webp" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

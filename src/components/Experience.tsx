@@ -1,6 +1,8 @@
 import { Briefcase, MapPin, CalendarDays } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
 import SectionHeading from "./SectionHeading";
+import { motion } from "motion/react";
+import { Reveal, fadeUp } from "@/components/ui/motion";
 
 type Role = {
   title: string;
@@ -20,7 +22,7 @@ export default function Experience() {
         {/* Header */}
         <SectionHeading n="03" title="Experience">{portfolio.company.summary}</SectionHeading>
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-8">
+        <Reveal className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-8">
           {/* Company */}
           <div className="flex items-start gap-4 sm:gap-5 mb-8 sm:mb-10">
             <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center flex-shrink-0">
@@ -46,7 +48,14 @@ export default function Experience() {
           {/* Roles timeline */}
           <ol className="relative ml-5 sm:ml-7 border-l border-zinc-200 dark:border-zinc-800 space-y-10">
             {roles.map((role) => (
-              <li key={role.title} className="relative pl-6 sm:pl-8">
+              <motion.li
+                key={role.title}
+                className="relative pl-6 sm:pl-8"
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.25 }}
+              >
                 <span
                   className={`absolute -left-[6px] top-1.5 w-3 h-3 rounded-full ring-4 ring-white dark:ring-zinc-900 ${
                     role.current ? "bg-accent-blue" : "bg-zinc-300 dark:bg-zinc-600"
@@ -87,10 +96,10 @@ export default function Experience() {
                     </span>
                   ))}
                 </div>
-              </li>
+              </motion.li>
             ))}
           </ol>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

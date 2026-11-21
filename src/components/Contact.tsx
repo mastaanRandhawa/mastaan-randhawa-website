@@ -2,6 +2,7 @@ import { useState, FormEvent } from "react";
 import { Mail, Linkedin, Github, Send, CheckCircle } from "lucide-react";
 import { portfolio } from "@/content/portfolio";
 import SectionHeading from "./SectionHeading";
+import { Stagger, StaggerItem } from "@/components/ui/motion";
 
 const P = portfolio.profile;
 const contactMethods = [
@@ -30,9 +31,9 @@ export default function Contact() {
         {/* Header */}
         <SectionHeading n="07" title={portfolio.contact.heading}>{portfolio.contact.intro}</SectionHeading>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        <Stagger gap={0.12} className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: Contact info */}
-          <div>
+          <StaggerItem>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{portfolio.contact.connectText}</p>
 
             <div className="flex flex-col gap-3 sm:gap-4">
@@ -59,9 +60,10 @@ export default function Contact() {
                 </a>
               ))}
             </div>
-          </div>
+          </StaggerItem>
 
           {/* Right: Form */}
+          <StaggerItem>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
@@ -131,7 +133,8 @@ export default function Contact() {
               )}
             </button>
           </form>
-        </div>
+          </StaggerItem>
+        </Stagger>
       </div>
     </section>
   );

@@ -3,7 +3,7 @@ import { ArrowRight, FileText, Github, LayoutGrid, Linkedin, Mail, RotateCcw, Se
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGame } from "@/game/store";
 import { BRAND } from "@/config/brand";
-import { portfolio } from "@/content/portfolio";
+import { gameProjects, portfolio } from "@/content/portfolio";
 import { audio } from "@/game/audio";
 import { beginAirborne, beginTakeoff } from "@/game/gameplay";
 import { completion } from "@/game/progression";
@@ -184,7 +184,7 @@ export function TitleScreen() {
               <p className="legend text-[9px] text-[#5d6b80]">Stops</p>
               <p className="font-instrument text-[26px] font-semibold leading-none text-[#1f3552]">{String(REGIONS.length).padStart(2, "0")}</p>
               <p className="legend mt-2 text-[9px] text-[#5d6b80]">{hadSave ? "Logged" : "Projects"}</p>
-              <p className="font-instrument text-[15px] font-semibold leading-none text-[#1f3552]">{hadSave ? `${pct}%` : portfolio.projects.length}</p>
+              <p className="font-instrument text-[15px] font-semibold leading-none text-[#1f3552]">{hadSave ? `${pct}%` : gameProjects.length}</p>
             </div>
             <Barcode seed={P.name} />
           </div>

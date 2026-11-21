@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Mastaan Randhawa — Software Developer, Data Engineer Intern and CS student at Simon Fraser University. Explore the portfolio as a playable 3D flight game, or read the classic version." />
     <meta name="keywords" content="Mastaan Randhawa, portfolio, software developer, Simon Fraser University, web development" />
     <meta name="author" content="Mastaan Randhawa" />
@@ -32,16 +32,21 @@
       }
     </script>
 
+    <!-- Dark by default (unless the visitor picked light), applied before first paint so there's no white flash. -->
+    <script>
+      try { if (localStorage.getItem("theme") !== "light") document.documentElement.classList.add("dark"); } catch (e) { document.documentElement.classList.add("dark"); }
+    </script>
+    <style>html.dark:not(.game-mode) body { background: #09090b; }</style>
     <link rel="icon" type="image/webp" href="/assets/favicon-CnZtvxfc.webp" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,700;1,800&family=Inter:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600&family=Zain:wght@400;700;800;900&family=Nunito:wght@300..800&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/index-Dz8R2Fkc.js"></script>
+    <script type="module" crossorigin src="/assets/index-D4Z3rOjs.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-CRMCsctL.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BwBAHZzz.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-D4_sRql-.css">
   </head>
   <body>
     <div id="root"></div>
