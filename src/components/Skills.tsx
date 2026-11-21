@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import { Gravity, MatterBody } from "@/components/ui/gravity";
+import { Reveal, Stagger, StaggerItem } from "@/components/ui/motion";
 import { portfolio as content } from "@/content/portfolio";
 import SectionHeading from "./SectionHeading";
 
@@ -40,6 +42,39 @@ const shapeClass: Record<Skill["shape"], string> = {
   tag:       "rounded-sm rounded-tl-2xl rounded-br-2xl px-4 py-2 sm:px-5 sm:py-2.5",
 };
 
+function rgb(hex: string) {
+  const n = parseInt(hex.replace("#", "").padEnd(6, "0").slice(0, 6), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const;
+}
+
+function isLight(hex: string) {
+  const [r, g, b] = rgb(hex);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 140;
+}
+
+/** Light text gets a dark halo and dark text a light one, so labels stay readable over the gradient. */
+function labelShadow(textColor: string) {
+  return isLight(textColor) ? "0 1px 2px rgba(0,0,0,0.45)" : "0 0 3px rgba(255,255,255,0.5)";
+}
+
+/** Small deterministic hash, so each skill keeps the same gradient direction on every visit. */
+function hash(str: string) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+/** The skill's colour with one light-to-dark gradient over it at 30% opacity. No texture, no animation. */
+function bubbleStyle(skill: Skill): CSSProperties {
+  const angle = hash(skill.name) % 360;
+  return {
+    backgroundColor: skill.color,
+    backgroundImage: `linear-gradient(${angle}deg, rgba(255,255,255,0.3), rgba(0,0,0,0.3))`,
+    color: skill.textColor,
+    textShadow: labelShadow(skill.textColor),
+  };
+}
+
 const categories = content.skillCategories.map((c) => ({ label: c.label, color: c.color }));
 
 export default function Skills() {
@@ -52,17 +87,17 @@ export default function Skills() {
         </SectionHeading>
 
         {/* Legend */}
-        <div className="flex flex-wrap gap-3 sm:gap-4 mb-5 sm:mb-6">
+        <Stagger gap={0.06} className="flex flex-wrap gap-3 sm:gap-4 mb-5 sm:mb-6">
           {categories.map((cat) => (
-            <div key={cat.label} className="flex items-center gap-2">
+            <StaggerItem key={cat.label} className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
               <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">{cat.label}</span>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
 
         {/* Physics container — taller on larger screens, touch-friendly sizing on mobile */}
-        <div className="relative w-full h-[460px] sm:h-[500px] lg:h-[560px] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-900">
+        <Reveal y={0} className="relative w-full h-[460px] sm:h-[500px] lg:h-[560px] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-900">
           <Gravity gravity={{ x: 0, y: 0.35 }} className="w-full h-full">
             {skills.map((skill) => (
               <MatterBody
@@ -78,15 +113,15 @@ export default function Skills() {
                 angle={skill.angle ?? 0}
               >
                 <div
-                  className={`font-mono text-xs sm:text-sm font-medium whitespace-nowrap select-none shadow-sm touch-none ${shapeClass[skill.shape]}`}
-                  style={{ backgroundColor: skill.color, color: skill.textColor }}
+                  className={`font-mono text-xs sm:text-sm font-bold whitespace-nowrap select-none shadow-sm touch-none ring-1 ring-inset ring-white/10 ${shapeClass[skill.shape]}`}
+                  style={bubbleStyle(skill)}
                 >
                   {skill.name}
                 </div>
               </MatterBody>
             ))}
           </Gravity>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

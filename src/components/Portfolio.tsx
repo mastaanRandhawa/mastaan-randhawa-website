@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { EASE, Stagger, fadeUp } from "@/components/ui/motion";
 import { portfolio as content } from "@/content/portfolio";
 import SectionHeading from "./SectionHeading";
 
@@ -7,6 +9,8 @@ type Project = {
   title: string;
   description: string;
   image: string;
+  imageAlt?: string;
+  imagePosition?: string;
   tags: string[];
   link?: string;
   color: string;
@@ -15,7 +19,7 @@ type Project = {
 
 const projects: Project[] = content.projects
   .filter((p) => p.showOnSite)
-  .map((p) => ({ title: p.title, description: p.summary, image: p.image ?? "", tags: p.tech, link: p.link, color: p.color, badge: p.badge }));
+  .map((p) => ({ title: p.title, description: p.summary, image: p.image ?? "", imageAlt: p.imageAlt, imagePosition: p.imagePosition, tags: p.tech, link: p.link, color: p.color, badge: p.badge }));
 
 const INITIAL_VISIBLE = 6;
 
@@ -24,12 +28,27 @@ function ProjectCard({ project }: { project: Project }) {
     <div className="group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-400 dark:hover:border-zinc-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-zinc-900/50">
       {/* Image */}
       <div className="relative h-48 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-        <img
-          src={project.image}
-          alt={project.title}
-          loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+        {project.image ? (
+          <img
+            src={project.image}
+            alt={project.imageAlt ?? project.title}
+            loading="lazy"
+            style={project.imagePosition ? { objectPosition: project.imagePosition } : undefined}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          // No screenshot yet: the project's colour as a gradient with a dot grid and its initial.
+          <div
+            className="flex h-full w-full items-center justify-center group-hover:scale-105 transition-transform duration-500"
+            style={{
+              backgroundImage: `radial-gradient(rgba(255,255,255,0.18) 1.2px, transparent 1.6px), linear-gradient(135deg, ${project.color}, #0d1b3e)`,
+              backgroundSize: "10px 10px, auto",
+            }}
+            aria-hidden="true"
+          >
+            <span className="font-serif text-7xl font-bold text-white/90">{project.title.charAt(0)}</span>
+          </div>
+        )}
         {/* Color accent bar */}
         <div
           className="absolute bottom-0 left-0 right-0 h-1"
@@ -84,15 +103,24 @@ export default function Portfolio() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <SectionHeading n="01" title="Projects">
-          Client sites I built with Doxa Studios, plus systems work from SFU courses and a few older web projects.
+          Client sites I built with Doxa Studios, an AI trainer app I'm building now, plus systems work from SFU courses and a few older web projects.
         </SectionHeading>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {visible.map((project) => (
-            <ProjectCard key={project.title} project={project} />
-          ))}
-        </div>
+        <Stagger gap={0.07} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <AnimatePresence initial={false} mode="popLayout">
+            {visible.map((project) => (
+              <motion.div
+                key={project.title}
+                layout
+                variants={fadeUp}
+                exit={{ opacity: 0, y: 12, transition: { duration: 0.25, ease: EASE } }}
+              >
+                <ProjectCard project={project} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </Stagger>
 
         {/* Show more / less */}
         <div className="mt-10 flex justify-center">

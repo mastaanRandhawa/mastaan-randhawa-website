@@ -5,7 +5,7 @@
  *
  * `source` fields document where a fact came from so nothing is invented:
  *   - "site"   → the previous mastaanrandhawa.com React components
- *   - "resume" → public/ResumeMay2025Tech.pdf (linked from the site)
+ *   - "resume" → public/Mastaan_Randhawa_Resume2026.pdf (linked from the site)
  */
 export type ContentSource = "site" | "resume";
 
@@ -96,6 +96,8 @@ export interface Project {
   period?: string;
   badge?: string;
   image?: string;
+  /** CSS object-position for the card crop (e.g. tall phone screenshots). */
+  imagePosition?: string;
   imageAlt?: string;
   link?: string;
   linkLabel?: string;
@@ -104,6 +106,8 @@ export interface Project {
   diagram: DiagramKind;
   /** Shown in the conventional portfolio grid (site order). */
   showOnSite: boolean;
+  /** False for projects without an island in the game yet; they're left out of game progress. */
+  inGame?: boolean;
   source: ContentSource;
 }
 

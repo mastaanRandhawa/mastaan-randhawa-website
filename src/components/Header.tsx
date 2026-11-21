@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Menu, X, Moon, Sun, Plane, ChevronDown, FileText } from "lucide-react";
+import { motion } from "motion/react";
 import { portfolio } from "@/content/portfolio";
+import { EASE } from "@/components/ui/motion";
 
 type HeaderProps = {
   theme: "light" | "dark";
@@ -58,8 +60,11 @@ export default function Header({ theme, onToggleTheme, onFly }: HeaderProps) {
   }, [moreOpen]);
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    <motion.header
+      initial={{ y: -24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.7, ease: EASE, delay: 0.05 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,box-shadow,border-color,backdrop-filter] duration-300 ${
         scrolled ? "bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md shadow-sm border-b border-zinc-200 dark:border-zinc-800" : "bg-transparent"
       }`}
     >
@@ -169,6 +174,6 @@ export default function Header({ theme, onToggleTheme, onFly }: HeaderProps) {
           </div>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

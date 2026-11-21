@@ -1,13 +1,13 @@
-import { portfolio } from "@/content/portfolio";
+import { gameProjects, portfolio } from "@/content/portfolio";
 import { REGIONS } from "@/world/layout";
 import type { Progress, SkinId } from "./save";
 
 export const projectKey = (id: string) => `project-${id}`;
 export const skillKey = (id: string) => `skills-${id}`;
 
-export const ALL_PROJECT_KEYS = portfolio.projects.map((p) => projectKey(p.id));
+export const ALL_PROJECT_KEYS = gameProjects.map((p) => projectKey(p.id));
 export const ALL_SKILL_KEYS = portfolio.skillCategories.map((c) => skillKey(c.id));
-const byCategory = (cat: string) => portfolio.projects.filter((p) => p.category === cat).map((p) => projectKey(p.id));
+const byCategory = (cat: string) => gameProjects.filter((p) => p.category === cat).map((p) => projectKey(p.id));
 
 export interface AchievementDef {
   id: string;

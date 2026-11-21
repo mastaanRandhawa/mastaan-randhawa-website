@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { buildWorldSync } from "./world";
 import { REGIONS, SEA_LEVEL } from "./layout";
-import { portfolio } from "@/content/portfolio";
+import { gameProjects, portfolio } from "@/content/portfolio";
 
 describe("world build", () => {
   const w = buildWorldSync(1);
@@ -21,7 +21,7 @@ describe("world build", () => {
   });
 
   it("gives every real project a destination", () => {
-    for (const p of portfolio.projects) {
+    for (const p of gameProjects) {
       expect(w.destinations.some((d) => d.kind === "project" && d.contentId === p.id), p.id).toBe(true);
     }
   });

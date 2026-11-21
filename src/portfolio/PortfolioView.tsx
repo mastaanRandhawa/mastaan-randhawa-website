@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Plane } from "lucide-react";
 import Header from "@/components/Header";
+import { MotionProvider, ScrollProgress } from "@/components/ui/motion";
 import Hero from "@/components/Hero";
+import SkyboundCard from "@/components/SkyboundCard";
 import Portfolio from "@/components/Portfolio";
 import Skills from "@/components/Skills";
 import Experience from "@/components/Experience";
@@ -25,9 +26,9 @@ export default function PortfolioView({ onFly }: { onFly?: () => void }) {
   const webglOk = useGame((s) => s.webglOk);
   const [theme, setTheme] = useState<Theme>(() => {
     try {
-      return (localStorage.getItem("theme") as Theme | null) ?? "light";
+      return (localStorage.getItem("theme") as Theme | null) ?? "dark";
     } catch {
-      return "light";
+      return "dark";
     }
   });
 
@@ -52,29 +53,17 @@ export default function PortfolioView({ onFly }: { onFly?: () => void }) {
   const title = BRAND.title.charAt(0) + BRAND.title.slice(1).toLowerCase();
 
   return (
+    <MotionProvider>
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white transition-colors duration-300">
+      <ScrollProgress />
       <Header theme={theme} onToggleTheme={() => setTheme((t) => (t === "light" ? "dark" : "light"))} onFly={onFly} />
       <main>
-        <Hero />
+        <Hero isDark={theme === "dark"} />
         {onFly ? (
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-10 mb-6">
-            <button
-              onClick={onFly}
-              className="group flex w-full items-center justify-between gap-4 rounded-2xl border-2 border-zinc-700 dark:border-zinc-300 bg-transparent p-4 sm:p-5 text-left text-zinc-800 dark:text-zinc-100 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
-            >
-              <span>
-                <span className="block font-mono text-[11px] uppercase tracking-[0.25em] text-zinc-500 dark:text-zinc-400">{BRAND.tagline}</span>
-                <span className="block font-serif font-bold text-3xl sm:text-4xl leading-tight">
-                  {title} — {BRAND.subtitle}
-                </span>
-                <span className="block text-sm text-zinc-600 dark:text-zinc-300">Fly a little plane between floating islands that hold every project on this page.</span>
-              </span>
-              <Plane className="shrink-0 transition-transform group-hover:translate-x-1" size={28} />
-            </button>
-          </div>
+          <SkyboundCard onFly={onFly} />
         ) : (
           !webglOk && (
-            <p className="max-w-6xl mx-auto px-4 sm:px-6 -mt-10 mb-6 font-mono text-xs text-zinc-500">
+            <p className="max-w-6xl mx-auto px-4 sm:px-6 mt-2 mb-6 font-mono text-xs text-zinc-500">
               The interactive 3D version ({title}) needs WebGL, which isn't available in this browser — everything is right here instead.
             </p>
           )
@@ -90,5 +79,6 @@ export default function PortfolioView({ onFly }: { onFly?: () => void }) {
       </main>
       <Footer />
     </div>
+    </MotionProvider>
   );
 }
